@@ -1,0 +1,43 @@
+package com.swp.autocarwash.loyalty.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.math.BigDecimal;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "customer_tier", schema = "swp_auto_car_wash")
+public class CustomerTier {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "tier_name", nullable = false, length = 50)
+    private String tierName;
+
+    @NotNull
+    @Column(name = "min_points", nullable = false)
+    private Integer minPoints;
+
+    @NotNull
+    @Column(name = "booking_window_days", nullable = false)
+    private Integer bookingWindowDays;
+
+    @Column(name = "point_multiple", precision = 10, scale = 2)
+    private BigDecimal pointMultiple;
+
+    @ColumnDefault("0.00")
+    @Column(name = "retention_target_amount", precision = 12, scale = 2)
+    private BigDecimal retentionTargetAmount;
+
+
+}

@@ -1,48 +1,33 @@
-package com.swp.autocarwash.auth.entity;
+package com.swp.autocarwash.customer.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "user", schema = "swp_auto_car_wash")
-public class User {
+@Table(name = "family_group", schema = "swp_auto_car_wash")
+public class FamilyGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Size(max = 255)
+    @Size(max = 100)
     @NotNull
-    @Column(name = "email", nullable = false)
-    private String email;
-
-    @Size(max = 20)
-    @Column(name = "phone", length = 20)
-    private String phone;
-
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "group_name", nullable = false, length = 100)
+    private String groupName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private Role role;
-
-    @ColumnDefault("1")
-    @Column(name = "is_active")
-    private Boolean isActive;
+    @JoinColumn(name = "owner_customer_id")
+    private Customer ownerCustomer;
 
     @CreationTimestamp
     @Column(name = "created_at")
