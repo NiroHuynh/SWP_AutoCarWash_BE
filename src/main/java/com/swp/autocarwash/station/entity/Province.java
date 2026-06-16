@@ -1,27 +1,25 @@
-package com.swp.autocarwash.auth.entity;
+package com.swp.autocarwash.station.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "role", schema = "swp_auto_car_wash")
-public class Role {
+@Table(name = "province", schema = "swp_auto_car_wash")
+public class Province {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 50)
+    @Size(max = 100)
     @NotNull
-    @Column(name = "name", nullable = false, length = 50)
-    private String name;
+    @Column(name = "province_name", nullable = false, length = 100)
+    private String provinceName;
 
 
 }
