@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class MockVoucherBookingAdapter implements VoucherPort {
@@ -28,5 +29,15 @@ public class MockVoucherBookingAdapter implements VoucherPort {
         return false;
     }
 
+    @Override
+    public Optional<VoucherContract> getVoucher(String code) {
 
+        if (code == null) return Optional.empty();
+
+        VoucherContract v = new VoucherContract();
+        v.setVoucherCode(code);
+        v.setDiscountPercentage(15);
+
+        return Optional.of(v);
+    }
 }
