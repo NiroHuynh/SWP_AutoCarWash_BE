@@ -43,6 +43,11 @@ public enum ErrorCode {
             "LOCATION_001",
             "Province not found"
     ),
+    STATION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "STATION_001",
+            "Station not found"
+    ),
     PAYMENT_FAILED(
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
