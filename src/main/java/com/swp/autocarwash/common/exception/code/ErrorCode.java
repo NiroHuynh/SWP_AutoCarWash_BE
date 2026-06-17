@@ -38,6 +38,11 @@ public enum ErrorCode {
             "BOOKING_002",
             "Booking already cancelled"
     ),
+    PROVINCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOCATION_001",
+            "Province not found"
+    ),
     PAYMENT_FAILED(
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
