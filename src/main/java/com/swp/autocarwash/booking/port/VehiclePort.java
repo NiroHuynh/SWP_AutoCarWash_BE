@@ -14,4 +14,9 @@ public interface VehiclePort {
      * lấy customer hiện tại từ auth context
      */
     Integer getCurrentCustomerId();
+
+    /**
+     * Validate vehicle belongs to customer
+     */
+    boolean validateVehicleOwnership(Integer vehicleId, Integer customerId);
 }

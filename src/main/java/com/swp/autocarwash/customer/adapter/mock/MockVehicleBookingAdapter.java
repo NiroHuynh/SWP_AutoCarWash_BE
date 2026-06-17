@@ -20,4 +20,9 @@ public class MockVehicleBookingAdapter implements VehiclePort {
     public Integer getCurrentCustomerId() {
         return 1;
     }
+
+    @Override
+    public boolean validateVehicleOwnership(Integer vehicleId, Integer customerId) {
+        return true;
+    }
 }

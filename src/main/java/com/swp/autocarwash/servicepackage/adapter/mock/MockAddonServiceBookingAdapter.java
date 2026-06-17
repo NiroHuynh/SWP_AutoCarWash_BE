@@ -27,4 +27,10 @@ public class MockAddonServiceBookingAdapter implements AddonServicePort {
     public Integer getTotalDuration(List<Integer> addonIds) {
         return addonIds == null ? 0 : addonIds.size() * 15;
     }
+
+    @Override
+    public BigDecimal calculateAddonPrice(List<Integer> addonIds) {
+        if (addonIds == null) return BigDecimal.ZERO;
+        return BigDecimal.valueOf(addonIds.size() * 20000);
+    }
 }

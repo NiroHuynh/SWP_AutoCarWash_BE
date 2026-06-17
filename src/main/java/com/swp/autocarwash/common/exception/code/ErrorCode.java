@@ -78,6 +78,16 @@ public enum ErrorCode {
             "CUSTOMER_003",
             "Customer tier not found"
     ),
+    BOOKING_PRICE_CALCULATION_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_004",
+            "Failed to calculate booking price"
+    ),
+    VOUCHER_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "Voucher is invalid or expired"
+    ),
     PAYMENT_FAILED(
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
