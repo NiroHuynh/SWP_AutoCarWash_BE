@@ -48,6 +48,26 @@ public enum ErrorCode {
             "STATION_001",
             "Station not found"
     ),
+    BOOKING_WINDOW_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_003",
+            "Booking window not available"
+    ),
+    NO_VEHICLE_REGISTERED(
+            HttpStatus.BAD_REQUEST,
+            "NO_VEHICLE_REGISTERED",
+            "Bạn chưa có phương tiện nào. Vui lòng thêm xe trước khi đặt lịch."
+    ),
+    CUSTOMER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "CUSTOMER_002",
+            "Customer not found"
+    ),
+    CUSTOMER_TIER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "CUSTOMER_003",
+            "Customer tier not found"
+    ),
     PAYMENT_FAILED(
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
