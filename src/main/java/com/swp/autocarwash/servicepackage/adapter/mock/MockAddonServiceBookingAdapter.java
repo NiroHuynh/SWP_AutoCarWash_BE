@@ -22,4 +22,9 @@ public class MockAddonServiceBookingAdapter implements AddonServicePort {
                 new AddonServiceContract(3, "Engine Wash", new BigDecimal("50000"), 25)
         );
     }
+
+    @Override
+    public Integer getTotalDuration(List<Integer> addonIds) {
+        return addonIds == null ? 0 : addonIds.size() * 15;
+    }
 }

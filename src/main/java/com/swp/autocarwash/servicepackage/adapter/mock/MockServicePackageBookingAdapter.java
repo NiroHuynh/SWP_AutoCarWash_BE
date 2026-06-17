@@ -22,4 +22,9 @@ public class MockServicePackageBookingAdapter implements ServicePackagePort {
                 new ServicePackageContract(3, "Full Detailing", new BigDecimal("150000"), 45)
         );
     }
+
+    @Override
+    public Integer getDuration(Integer servicePackageId) {
+        return 15;
+    }
 }

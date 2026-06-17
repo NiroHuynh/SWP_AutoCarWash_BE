@@ -15,4 +15,9 @@ public class MockVehicleBookingAdapter implements VehiclePort {
                 new VehicleContract(1, "71A-12345", "Honda City")
         );
     }
+
+    @Override
+    public Integer getCurrentCustomerId() {
+        return 1;
+    }
 }

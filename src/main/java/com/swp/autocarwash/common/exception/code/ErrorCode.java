@@ -53,6 +53,16 @@ public enum ErrorCode {
             "BOOKING_003",
             "Booking window not available"
     ),
+    NO_AVAILABLE_SLOTS_FOR_DATE(
+            HttpStatus.BAD_REQUEST,
+            "NO_AVAILABLE_SLOTS_FOR_DATE",
+            "Không còn khung giờ trống trong ngày đã chọn. Vui lòng đổi ngày, đổi trạm hoặc đổi gói dịch vụ khác."
+    ),
+    SLOT_CAPACITY_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_002",
+            "Slot capacity exceeded"
+    ),
     NO_VEHICLE_REGISTERED(
             HttpStatus.BAD_REQUEST,
             "NO_VEHICLE_REGISTERED",

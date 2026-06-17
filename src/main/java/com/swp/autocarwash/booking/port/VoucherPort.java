@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface VoucherPort {
     List<VoucherContract> getValidVouchers(Integer customerId);
+
+    boolean validate(Integer voucherId, Integer customerId);
 }
