@@ -19,7 +19,7 @@ public class BookingSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
@@ -50,5 +50,8 @@ public class BookingSlot {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-
+    // derived field (KHÔNG lưu DB)
+    public int getAvailableCapacity() {
+        return maxCapacity - bookedCount;
+    }
 }

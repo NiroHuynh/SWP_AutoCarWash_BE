@@ -22,4 +22,11 @@ public class MockVoucherBookingAdapter implements VoucherPort {
                 new VoucherContract(3, "WELCOME5", 5, new BigDecimal("30000"))
         );
     }
+
+    @Override
+    public boolean validate(Integer voucherId, Integer customerId) {
+        return false;
+    }
+
+
 }

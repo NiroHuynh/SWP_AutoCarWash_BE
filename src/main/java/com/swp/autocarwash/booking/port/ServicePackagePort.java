@@ -9,4 +9,9 @@ public interface ServicePackagePort {
      * Lấy toàn bộ service package (KHÔNG filter station)
      */
     List<ServicePackageContract> getAllPackages();
+
+    /**
+     * lấy duration của service package
+     */
+    Integer getDuration(Integer servicePackageId);
 }

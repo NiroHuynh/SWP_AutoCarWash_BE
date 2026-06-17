@@ -9,4 +9,9 @@ public interface VehiclePort {
      * Lấy danh sách xe của customer hiện tại
      */
     List<VehicleContract> getVehiclesByCustomer(Integer customerId);
+
+    /**
+     * lấy customer hiện tại từ auth context
+     */
+    Integer getCurrentCustomerId();
 }
