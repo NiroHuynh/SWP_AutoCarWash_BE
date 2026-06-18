@@ -5,7 +5,7 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
-import com.swp.autocarwash.booking.mapper.BookingMapper;
+import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
@@ -34,7 +34,7 @@ import java.util.Optional;
  *
  * <p>Phối hợp giữa {@link BookingRepository} để truy vấn dữ liệu,
  * {@link BookingSlotAllocationRepository} để lấy thông tin khung giờ,
- * và {@link BookingMapper} để chuyển đổi sang DTO phản hồi.</p>
+ * và {@link BookingHistoryMapper} để chuyển đổi sang DTO phản hồi.</p>
  *
  * @author KimNgan
  * @version 1.0
@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
     private final BookingAddonRepository bookingAddonRepository;
     private final VoucherUsageRepository voucherUsageRepository;
-    private final BookingMapper bookingMapper;
+    private final BookingHistoryMapper bookingHistoryMapper;
 
     /**
      * {@inheritDoc}
@@ -99,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
 
                     List<String> allowedActions = determineAllowedActions(booking, startTime);
 
-                    return bookingMapper.toBookingCardResponse(
+                    return bookingHistoryMapper.toBookingCardResponse(
                             booking, startTime, endTime, allowedActions);
                 })
                 .sorted(Comparator
@@ -144,7 +144,7 @@ public class BookingServiceImpl implements BookingService {
                             ? null
                             : allocations.get(allocations.size() - 1).getBookingSlot().getEndTime();
 
-                    return bookingMapper.toBookingCardResponse(
+                    return bookingHistoryMapper.toBookingCardResponse(
                             booking,
                             startTime,
                             endTime,
@@ -206,7 +206,7 @@ public class BookingServiceImpl implements BookingService {
 
         String status = booking.getStatus();
 
-        return bookingMapper.toBookingDetailResponse(
+        return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
                // mapStatusLabel(status), mapStatusColor(status),
                 technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
