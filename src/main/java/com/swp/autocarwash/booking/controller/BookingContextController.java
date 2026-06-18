@@ -9,6 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * BookingContextController cung cấp API để lấy toàn bộ context cần thiết
+ * @Author: Phong
+ * @Version: 1.0
+ */
+
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor

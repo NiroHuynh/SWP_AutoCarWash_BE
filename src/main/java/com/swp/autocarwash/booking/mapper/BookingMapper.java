@@ -30,4 +30,6 @@ public class BookingMapper {
     public BookingContextResponse.VoucherDTO toVoucher(VoucherContract c) {
         return modelMapper.map(c, BookingContextResponse.VoucherDTO.class);
     }
+
+
 }

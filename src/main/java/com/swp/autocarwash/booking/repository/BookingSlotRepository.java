@@ -2,6 +2,8 @@ package com.swp.autocarwash.booking.repository;
 
 import com.swp.autocarwash.booking.entity.BookingSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -14,4 +16,8 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Intege
             Integer stationId,
             LocalDate date
     );
+
+    List<BookingSlot> findByIdIn(List<Integer> ids);
+
+
 }

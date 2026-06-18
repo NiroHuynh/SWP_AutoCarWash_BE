@@ -40,4 +40,13 @@ public class MockVoucherBookingAdapter implements VoucherPort {
 
         return Optional.of(v);
     }
+
+    @Override
+    public VoucherContract getDiscountPercent(String code, Integer amount) {
+        VoucherContract v = new VoucherContract();
+        v.setVoucherCode(code);
+        v.setDiscountPercentage(10);
+        v.setValid(true);
+        return v;
+    }
 }

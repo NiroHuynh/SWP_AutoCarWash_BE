@@ -37,4 +37,13 @@ public class MockServicePackageBookingAdapter implements ServicePackagePort {
         c.setDurationMinutes(30);
         return c;
     }
+
+    @Override
+    public ServicePackageContract getById(Integer id) {
+        ServicePackageContract c = new ServicePackageContract();
+        c.setId(id);
+        c.setBasePrice(new BigDecimal("100000"));
+        c.setDurationMinutes(30);
+        return c;
+    }
 }

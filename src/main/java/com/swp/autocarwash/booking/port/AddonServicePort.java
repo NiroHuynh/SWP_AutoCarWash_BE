@@ -17,4 +17,9 @@ public interface AddonServicePort {
      * Calculate total addon price
      */
     BigDecimal calculateAddonPrice(List<Integer> addonIds);
+
+    /**
+     * Lấy danh sách addon
+     */
+    List<AddonServiceContract> getByIds(List<Integer> ids);
 }

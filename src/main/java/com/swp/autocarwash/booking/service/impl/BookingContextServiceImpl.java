@@ -14,6 +14,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ *
+ * BookingContextServiceImpl dung de lay thong tin can thiet cho viec tao booking
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @Service
 @RequiredArgsConstructor
 public class BookingContextServiceImpl implements BookingContextService {
@@ -44,8 +52,8 @@ public class BookingContextServiceImpl implements BookingContextService {
 
         Integer customerId = getCurrentCustomerId();
 
-//        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customerId);
-        List<VehicleContract> vehicles = null;
+        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customerId);
+//        List<VehicleContract> vehicles = null;
 
         if (vehicles == null || vehicles.isEmpty()) {
             throw new BusinessException(ErrorCode.NO_VEHICLE_REGISTERED);
@@ -79,7 +87,6 @@ public class BookingContextServiceImpl implements BookingContextService {
      */
     private int resolveTierLimitDays(Integer customerId) {
 
-        // giả lập tier (thực tế sẽ call CustomerPort)
         CustomerTierContract tier = loyaltyPort.getCustomerTier(customerId);
         return tier.getBookingWindowDays();
 

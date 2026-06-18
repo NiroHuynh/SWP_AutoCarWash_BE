@@ -15,6 +15,15 @@ public class VoucherContract {
     private String voucherCode;
     private Integer discountPercentage;
     private BigDecimal minOrderValue;
+    private boolean valid;
+
+
+    public VoucherContract(Integer id, String voucherCode, Integer discountPercentage, BigDecimal minOrderValue) {
+        this.id = id;
+        this.voucherCode = voucherCode;
+        this.discountPercentage = discountPercentage;
+        this.minOrderValue = minOrderValue;
+    }
 
     public boolean isValid(BigDecimal subTotal) {
         return true; // simplified rule placeholder
