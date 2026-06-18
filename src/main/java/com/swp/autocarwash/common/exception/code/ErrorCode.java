@@ -42,6 +42,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
             "Payment failed"
+    ),
+    VALIDATION_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_003",
+                    "Validation failed"
+    ),
+    EMAIL_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_001",
+                    "Email already exists"
+    ),
+    PHONE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_002",
+                    "Phone already exists"
+    ),
+    INVALID_PASSWORD(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_003",
+                    "Password is invalid"
     );
 
     private final HttpStatus status;
