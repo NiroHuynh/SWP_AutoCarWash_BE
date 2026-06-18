@@ -43,7 +43,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "JOIN FETCH b.vehicle " +
            "JOIN FETCH b.servicePackage " +
            "WHERE b.customer.id = :customerId AND b.status IN :statuses")
-    List<Booking> findByCustomerIdAndStatuses(
+    public List<Booking> findByCustomerIdAndStatuses(
             @Param("customerId") Long customerId,
             @Param("statuses") List<String> statuses,
             Sort sort
@@ -62,5 +62,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "JOIN FETCH b.servicePackage " +
            "LEFT JOIN FETCH b.checkInEmployee " +
            "WHERE b.id = :id")
-    Optional<Booking> findDetailById(@Param("id") Long id);
+    public Optional<Booking> findDetailById(@Param("id") Long id);
+// Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu
+    //không có thì là hộp rỗng và bắt buộc phải ném exception
+
+
 }

@@ -54,4 +54,18 @@ public interface BookingService {
      *         nếu không tìm thấy booking với ID đã cho
      */
     BookingDetailResponse getBookingDetail(Long bookingId);
+
+    /**
+     * Hủy một lịch đặt theo AC-23.1.1.
+     *
+     * <p>Chuyển status booking sang {@code CANCELLED}, ghi nhận
+     * {@code canceledAt}, và xóa các {@code BookingSlotAllocation} liên quan
+     * để giải phóng slot cho khách hàng khác.</p>
+     *
+     * @param bookingId mã định danh của lịch đặt cần hủy
+     * @return {@link BookingDetailResponse} của booking sau khi hủy (status = CANCELLED)
+     * @throws com.swp.autocarwash.common.exception.ResourceNotFoundException
+     *         nếu không tìm thấy booking với ID đã cho
+     */
+    BookingDetailResponse cancelBooking(Long bookingId);
 }
