@@ -21,4 +21,8 @@ public interface ServicePackagePort {
      */
     ServicePackageContract getServicePackage(Integer id);
 
+    /**
+     * Lấy thông tin package (giá + required slot)
+     */
+    ServicePackageContract getById(Integer id);
 }

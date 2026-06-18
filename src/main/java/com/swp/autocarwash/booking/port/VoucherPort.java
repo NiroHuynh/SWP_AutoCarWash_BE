@@ -11,6 +11,12 @@ public interface VoucherPort {
     boolean validate(Integer voucherId, Integer customerId);
 
     /**
+     * Validate voucher + trả discount %
+     */
+    VoucherContract getDiscountPercent(String code, Integer amount);
+
+
+    /**
      * Get voucher by code
      */
     Optional<VoucherContract> getVoucher(String code);

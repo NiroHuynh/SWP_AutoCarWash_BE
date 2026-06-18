@@ -92,6 +92,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
             "Payment failed"
+    ),
+    BOOKING_INVALID_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_004",
+            "Invalid slot selection"
+    ),
+    BOOKING_SLOT_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_005",
+            "Slot is not available"
+    ),
+    VEHICLE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+    "VEHICLE_001",
+            "Vehicle not found"
     );
 
     private final HttpStatus status;

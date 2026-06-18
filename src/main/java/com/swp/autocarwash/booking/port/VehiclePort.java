@@ -19,4 +19,9 @@ public interface VehiclePort {
      * Validate vehicle belongs to customer
      */
     boolean validateVehicleOwnership(Integer vehicleId, Integer customerId);
+
+    /**
+     * Check vehicle tồn tại
+     */
+    VehicleContract getById(Integer id);
 }
