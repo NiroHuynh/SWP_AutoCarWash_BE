@@ -1,12 +1,18 @@
 package com.swp.autocarwash.common.exception.handler;
 
 import com.swp.autocarwash.common.exception.BaseException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestControllerAdvice
@@ -41,6 +47,43 @@ public class GlobalExceptionHandler {
                                 "SYSTEM_ERROR",
                                 null
                         )
+                );
+    }
+
+    /**
+     * Handle DTO validation
+     *
+     * @Valid validation failed
+     */
+    @ExceptionHandler(
+            MethodArgumentNotValidException.class
+    )
+    public ResponseEntity<ApiResponse<Object>> handleValidation(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors =
+                new HashMap<>();
+
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(
+                        error ->
+                                errors.put(
+                                        error.getField(),
+                                        error.getDefaultMessage()
+                                )
+                );
+
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        ApiResponse.error(
+                                "Validation failed",
+                                ErrorCode.VALIDATION_FAILED.getCode(),
+                                errors
+                        )
+
                 );
     }
 }
