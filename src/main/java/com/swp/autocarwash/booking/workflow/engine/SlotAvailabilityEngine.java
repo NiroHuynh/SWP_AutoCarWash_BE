@@ -7,6 +7,14 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ * SlotAvailabilityEngine dùng để kiểm tra và tính toán các khung giờ có sẵn để đặt lịch hay không
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @Component
 public class SlotAvailabilityEngine {
 

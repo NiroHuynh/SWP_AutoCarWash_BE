@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  *
- * BookingContextServiceImpl dung de lay thong tin can thiet cho viec tao booking
+ * BookingContextServiceImpl dùng để cung cấp các thông tin cần thiêt cho việc tạo booking
  *
  * @author Phong
  * @version 1.0
