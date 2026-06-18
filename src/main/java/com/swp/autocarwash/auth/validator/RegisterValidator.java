@@ -8,13 +8,20 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
 
+/**
+ *
+ * RegisterValidator là lớp dùng để kiểm tra tính hợp lệ của thông tin đăng ký người dùng.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 
 @Component
 @RequiredArgsConstructor
 public class RegisterValidator {
 
     private final UserRepository userRepository;
-
+    private final PasswordValidator passwordValidator;
 
     /**
      * Validate register business rules
@@ -26,6 +33,7 @@ public class RegisterValidator {
     ){
         validateEmail(request.getEmail());
         validatePhone(request.getPhone());
+        passwordValidator.validate(request.getPassword());
     }
 
 

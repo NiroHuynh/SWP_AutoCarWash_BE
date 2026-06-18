@@ -4,6 +4,13 @@ import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import org.springframework.stereotype.Component;
 
+/**
+ *
+ * PasswordValidator là lớp dùng để kiểm tra tính hợp lệ của mật khẩu người dùng.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 
 @Component
 public class PasswordValidator {

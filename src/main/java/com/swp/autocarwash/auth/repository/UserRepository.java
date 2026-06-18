@@ -5,6 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ *
+ * UserRepository dùng để truy xuất dữ liệu người dùng từ cơ sở dữ liệu.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 
 public interface UserRepository extends JpaRepository<User, Integer> {
 

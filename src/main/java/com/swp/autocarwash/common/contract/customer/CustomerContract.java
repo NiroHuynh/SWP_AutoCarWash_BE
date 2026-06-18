@@ -36,4 +36,7 @@ public class CustomerContract {
      */
     private LocalDate birthday;
 
+    public CustomerContract(Integer userId) {
+        this.userId = userId;
+    }
 }

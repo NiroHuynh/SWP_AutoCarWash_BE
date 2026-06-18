@@ -13,6 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+/**
+ *
+ * AuthController dùng để xử lý các yêu cầu liên quan đến xác thực người dùng, chẳng hạn như đăng ký tài khoản mới.
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

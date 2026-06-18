@@ -8,6 +8,13 @@ import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Component;
 
+/**
+ *
+ * UserMapper dùng để chuyển đổi giữa các đối tượng User và RegisterResponse.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 
 @Component
 @RequiredArgsConstructor
