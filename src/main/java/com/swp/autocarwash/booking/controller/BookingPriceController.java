@@ -8,6 +8,15 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+
+/**
+ *
+ * BookingPriceController cung cấp API để preview giá booking trước khi tạo booking
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor

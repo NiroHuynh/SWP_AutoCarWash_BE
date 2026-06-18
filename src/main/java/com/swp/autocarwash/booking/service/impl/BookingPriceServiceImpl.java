@@ -13,6 +13,15 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+
+/**
+ *
+ * BookingPriceServiceImpl dùng để tính toán giá tiền tạm thời dựa trên các dịch vụ đã chọn
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @Service
 @RequiredArgsConstructor
 public class BookingPriceServiceImpl implements BookingPriceService {

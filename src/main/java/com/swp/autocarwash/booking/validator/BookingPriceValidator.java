@@ -6,6 +6,14 @@ import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import org.springframework.stereotype.Component;
 
+/**
+ *
+ * BookingPriceValidator dùng để validate dữ liệu đầu vào trước khi tính toán giá tiền
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @Component
 public class BookingPriceValidator {
 

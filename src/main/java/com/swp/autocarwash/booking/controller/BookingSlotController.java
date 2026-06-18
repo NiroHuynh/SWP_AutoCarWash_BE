@@ -8,6 +8,14 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ *
+ * BookingSlotController cung cấp API để lấy danh sách các khung giờ có thể đặt trước cho một trạm rửa xe
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor

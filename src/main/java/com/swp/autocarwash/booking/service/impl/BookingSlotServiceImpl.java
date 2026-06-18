@@ -18,6 +18,15 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
+
+/**
+ *
+ * BookingSLotServiceImpl dùng để cung cấp các chức năng liên quan đến quản lý các khung giờ đặt lịch trong hệ thống
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 @Service
 @RequiredArgsConstructor
 public class BookingSlotServiceImpl implements BookingSlotService {

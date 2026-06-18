@@ -12,7 +12,7 @@ public interface ServicePackagePort {
     List<ServicePackageContract> getAllPackages();
 
     /**
-     * lấy duration của service package
+     * lấy duration (dạng phút) của service package
      */
     Integer getDuration(Integer servicePackageId);
 
