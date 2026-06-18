@@ -62,7 +62,17 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
                     "Password is invalid"
-    );
+    ),
+    LICENSE_PLATE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+        "VEHICLE_001",
+                "Biển số xe đã tồn tại trong hệ thống"
+    ),
+    VEHICLE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "VEHICLE_002",
+                "Vehicle not found"
+    ),;
 
     private final HttpStatus status;
     private final String code;

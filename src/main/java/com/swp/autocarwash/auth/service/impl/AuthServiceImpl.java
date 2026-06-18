@@ -16,6 +16,13 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ *
+ * AuthServiceImpl là  lớp triển khai của AuthService, cung cấp các chức năng liên quan đến xác thực người dùng.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 
 @Service
 @RequiredArgsConstructor
