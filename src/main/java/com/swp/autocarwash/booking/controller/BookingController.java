@@ -1,8 +1,7 @@
 package com.swp.autocarwash.booking.controller;
 
+import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
-import com.swp.autocarwash.booking.dto.response.PastBookingResponse;
-import com.swp.autocarwash.booking.dto.response.UpcomingBookingResponse;
 import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -44,14 +43,14 @@ public class BookingController {
      * <p><b>Ví dụ:</b> {@code GET /api/bookings/upcoming?customerId=1}</p>
      *
      * @param customerId mã định danh của khách hàng cần lấy danh sách lịch đặt
-     * @return {@code 200 OK} với danh sách {@link UpcomingBookingResponse};
+     * @return {@code 200 OK} với danh sách {@link BookingCardResponse};
      *         trả về danh sách rỗng nếu không có booking nào thỏa điều kiện
      */
     @GetMapping("/upcoming")
-    public ResponseEntity<ApiResponse<List<UpcomingBookingResponse>>> getUpcomingBookings(
+    public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getUpcomingBookings(
             @RequestParam Long customerId) {
 
-        List<UpcomingBookingResponse> result = bookingService.getUpcomingBookings(customerId);
+        List<BookingCardResponse> result = bookingService.getUpcomingBookings(customerId);
 
         if (result.isEmpty()) {
             return ResponseEntity.ok(
@@ -74,14 +73,14 @@ public class BookingController {
      * <p><b>Ví dụ:</b> {@code GET /api/bookings/past?customerId=1}</p>
      *
      * @param customerId mã định danh của khách hàng cần lấy lịch sử dịch vụ
-     * @return {@code 200 OK} với danh sách {@link PastBookingResponse};
+     * @return {@code 200 OK} với danh sách {@link BookingCardResponse};
      *         trả về danh sách rỗng nếu không có lịch sử nào
      */
     @GetMapping("/past")
-    public ResponseEntity<ApiResponse<List<PastBookingResponse>>> getPastBookings(
+    public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getPastBookings(
             @RequestParam Long customerId) {
 
-        List<PastBookingResponse> result = bookingService.getPastBookings(customerId);
+        List<BookingCardResponse> result = bookingService.getPastBookings(customerId);
 
         if (result.isEmpty()) {
             return ResponseEntity.ok(

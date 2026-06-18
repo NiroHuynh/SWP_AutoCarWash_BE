@@ -8,17 +8,22 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * DTO phản hồi cho từng lịch đặt sắp tới hiển thị trên tab "Upcoming Appointments".
+ * DTO phản hồi dùng chung cho booking card, hiển thị trên cả tab
+ * "Upcoming Appointments" (AC-25.1.x) và "Past Services" (AC-25.2.x).
  *
- * <p>Chứa đủ thông tin để render một booking card theo AC-25.1.3
- * và danh sách hành động được phép theo AC-25.1.4, AC-25.1.5, AC-25.1.6.</p>
+ * <p>Giá trị hợp lệ của {@code status} và {@code allowedActions} phụ thuộc
+ * vào nguồn gọi: {@code CONFIRMED}/{@code CHECKED_IN}/{@code WASHING} với
+ * action {@code CANCEL}/{@code VIEW_DETAILS} cho tab Upcoming; {@code PAID}/
+ * {@code CANCELLED}/{@code NO_SHOW} với action {@code WRITE_REVIEW} cho tab
+ * Past. Việc map {@code status} sang nhãn hiển thị và màu badge do FE đảm
+ * nhiệm, BE chỉ trả giá trị trạng thái thô.</p>
  *
  * @author KimNgan
  * @version 1.0
  */
 @Getter
 @Builder
-public class UpcomingBookingResponse {
+public class BookingCardResponse {
 
     /**
      * Mã định danh của lịch đặt.
@@ -46,8 +51,7 @@ public class UpcomingBookingResponse {
     private String color;
 
     /**
-     * Trạng thái hiện tại của lịch đặt.
-     * Chỉ nhận một trong các giá trị: {@code CONFIRMED}, {@code CHECKED_IN}, {@code WASHING}.
+     * Trạng thái nội bộ của lịch đặt.
      */
     private String status;
 
@@ -67,19 +71,7 @@ public class UpcomingBookingResponse {
     private LocalTime endTime;
 
     /**
-     * Danh sách hành động mà customer được phép thực hiện trên booking card này.
-     *
-     * <p>Quy tắc (AC-25.1.4 / AC-25.1.5 / AC-25.1.6):
-     * <ul>
-     *   <li>{@code CONFIRMED} + còn ≥ 120 phút đến giờ hẹn →
-     *       {@code ["CANCEL", "VIEW_DETAILS"]}</li>
-     *   <li>{@code CONFIRMED} + còn &lt; 120 phút đến giờ hẹn →
-     *       {@code ["VIEW_DETAILS"]}</li>
-     *   <li>{@code CHECKED_IN} hoặc {@code WASHING} →
-     *       {@code ["VIEW_DETAILS"]}</li>
-     * </ul>
-     * Nút {@code WRITE_REVIEW} không xuất hiện ở tab Upcoming — chỉ hiển thị
-     * ở tab Past Services sau khi booking hoàn thành.</p>
+     * Danh sách hành động được phép thực hiện trên booking card này.
      */
     private List<String> allowedActions;
 }

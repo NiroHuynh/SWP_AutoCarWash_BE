@@ -1,8 +1,7 @@
 package com.swp.autocarwash.booking.service;
 
+import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
-import com.swp.autocarwash.booking.dto.response.PastBookingResponse;
-import com.swp.autocarwash.booking.dto.response.UpcomingBookingResponse;
 
 import java.util.List;
 
@@ -25,10 +24,10 @@ public interface BookingService {
      * (theo AC-25.1.2).</p>
      *
      * @param customerId mã định danh của khách hàng đang đăng nhập
-     * @return danh sách {@link UpcomingBookingResponse} đã được lọc và sắp xếp;
+     * @return danh sách {@link BookingCardResponse} đã được lọc và sắp xếp;
      *         trả về danh sách rỗng nếu không có booking nào thỏa điều kiện
      */
-    List<UpcomingBookingResponse> getUpcomingBookings(Long customerId);
+    List<BookingCardResponse> getUpcomingBookings(Long customerId);
 
     /**
      * Lấy danh sách lịch sử dịch vụ của một khách hàng.
@@ -38,10 +37,10 @@ public interface BookingService {
      * (theo AC-25.2.1).</p>
      *
      * @param customerId mã định danh của khách hàng đang đăng nhập
-     * @return danh sách {@link PastBookingResponse} đã được lọc và sắp xếp;
+     * @return danh sách {@link BookingCardResponse} đã được lọc và sắp xếp;
      *         trả về danh sách rỗng nếu không có booking nào thỏa điều kiện
      */
-    List<PastBookingResponse> getPastBookings(Long customerId);
+    List<BookingCardResponse> getPastBookings(Long customerId);
 
     /**
      * Lấy thông tin chi tiết đầy đủ của một lịch đặt theo ID.
