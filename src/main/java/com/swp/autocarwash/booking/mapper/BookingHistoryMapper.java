@@ -22,7 +22,7 @@ import java.util.List;
  * @version 1.0
  */
 @Component
-public class BookingMapper {
+public class BookingHistoryMapper {
 
     /**
      * Chuyển đổi một {@link Booking} cùng thông tin giờ slot và danh sách hành động
