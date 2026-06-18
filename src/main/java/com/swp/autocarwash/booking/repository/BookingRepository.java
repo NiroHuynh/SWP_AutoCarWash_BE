@@ -1,7 +1,6 @@
 package com.swp.autocarwash.booking.repository;
 
 import com.swp.autocarwash.booking.entity.Booking;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,8 +14,9 @@ import java.util.Optional;
  *
  * <p>Sử dụng JOIN FETCH trong JPQL để tải sẵn các quan hệ lazy
  * ({@code vehicle}, {@code servicePackage}), tránh vấn đề N+1 query.
- * Chiều sắp xếp được truyền qua {@link Sort} để tái sử dụng một method
- * cho cả Upcoming (ASC) và Past (DESC).</p>
+ * Không sort ở tầng này — việc sort theo {@code appointmentDate} và
+ * {@code startTime} được thực hiện ở tầng service, vì {@code startTime}
+ * không phải field của entity {@link Booking}.</p>
  *
  * @author KimNgan
  * @version 1.0
@@ -25,18 +25,11 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /**
-     * Lấy danh sách booking của một khách hàng theo nhóm trạng thái và thứ tự sắp xếp linh hoạt.
-     *
-     * <p>Dùng chung cho hai tab:
-     * <ul>
-     *   <li>Upcoming: truyền {@code Sort.by(ASC, "appointmentDate")}</li>
-     *   <li>Past: truyền {@code Sort.by(DESC, "appointmentDate")}</li>
-     * </ul>
-     * Không đặt ORDER BY trong JPQL — Spring Data tự áp dụng {@code sort}.</p>
+     * Lấy danh sách booking của một khách hàng theo nhóm trạng thái, dùng chung
+     * cho cả tab Upcoming và Past Services (việc sắp xếp do tầng service đảm nhiệm).
      *
      * @param customerId mã định danh của khách hàng cần truy vấn
      * @param statuses   danh sách trạng thái hợp lệ
-     * @param sort       thứ tự sắp xếp kết quả
      * @return danh sách {@link Booking} thỏa điều kiện, đã eager-fetch quan hệ liên quan
      */
     @Query("SELECT DISTINCT b FROM Booking b " +
@@ -45,8 +38,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "WHERE b.customer.id = :customerId AND b.status IN :statuses")
     public List<Booking> findByCustomerIdAndStatuses(
             @Param("customerId") Long customerId,
-            @Param("statuses") List<String> statuses,
-            Sort sort
+            @Param("statuses") List<String> statuses
     );
 
     /**
