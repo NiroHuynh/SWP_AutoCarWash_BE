@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -210,6 +211,37 @@ public class BookingServiceImpl implements BookingService {
                 booking, startTime, endTime, station, addons,
                // mapStatusLabel(status), mapStatusColor(status),
                 technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Luồng xử lý:
+     * <ol>
+     *   <li>Tìm booking theo ID (404 nếu không tồn tại).</li>
+     *   <li>Cập nhật status = CANCELLED, canceledAt = now, lưu booking.</li>
+     *   <li>Xóa các BookingSlotAllocation gắn với booking để giải phóng slot.</li>
+     *   <li>Trả về BookingDetailResponse phản ánh trạng thái mới.</li>
+     * </ol>
+     * </p>
+     *
+     * @param bookingId mã định danh của lịch đặt cần hủy
+     * @return chi tiết booking sau khi hủy
+     * @throws ResourceNotFoundException nếu không tìm thấy booking
+     */
+    @Override
+    @Transactional
+    public BookingDetailResponse cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findDetailById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
+
+        booking.setStatus("CANCELLED");
+        booking.setCanceledAt(Instant.now());
+        bookingRepository.save(booking);
+
+        bookingSlotAllocationRepository.deleteByBookingId(bookingId);
+
+        return getBookingDetail(bookingId);
     }
 
     /**

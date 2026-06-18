@@ -26,5 +26,5 @@ public interface BookingAddonRepository extends JpaRepository<BookingAddon, Long
     @Query("SELECT ba FROM BookingAddon ba " +
            "JOIN FETCH ba.addonService " +
            "WHERE ba.booking.id = :bookingId")
-    List<BookingAddon> findByBookingId(@Param("bookingId") Long bookingId);
+    public List<BookingAddon> findByBookingId(@Param("bookingId") Long bookingId);
 }

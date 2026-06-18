@@ -7,6 +7,7 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -113,6 +114,29 @@ public class BookingController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Lấy thông tin chi tiết booking thành công", result)
+        );
+    }
+
+    /**
+     * Hủy một lịch đặt theo AC-23.1.1.
+     *
+     * <p>Sau khi hủy, slot đã đặt được giải phóng cho khách hàng khác.
+     * Không xử lý hoàn tiền cọc (nghiệp vụ ngoài hệ thống).</p>
+     *
+     * <p><b>Ví dụ:</b> {@code PATCH /api/bookings/1/cancel}</p>
+     *
+     * @param bookingId mã định danh của lịch đặt cần hủy
+     * @return {@code 200 OK} với {@link BookingDetailResponse} (status = CANCELLED);
+     *         {@code 404 Not Found} nếu không tìm thấy booking
+     */
+    @PatchMapping("/{bookingId}/cancel")
+    public ResponseEntity<ApiResponse<BookingDetailResponse>> cancelBooking(
+            @PathVariable Long bookingId) {
+
+        BookingDetailResponse result = bookingService.cancelBooking(bookingId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Hủy lịch đặt thành công", result)
         );
     }
 }
