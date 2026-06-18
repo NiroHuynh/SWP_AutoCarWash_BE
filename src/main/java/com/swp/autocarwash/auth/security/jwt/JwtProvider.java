@@ -30,7 +30,7 @@ public class JwtProvider {
                                     .subject(user.getId().toString())
                                     .issueTime(now)
                                     .expirationTime(expiryDate)
-                                    .claim("roles", user.getRole())
+                                    .claim("roles", user.getRole().getName())
                                     .claim("email", user.getEmail())
                                     .build();
         //chuyen claim set thanh payload

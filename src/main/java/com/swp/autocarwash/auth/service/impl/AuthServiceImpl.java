@@ -11,6 +11,7 @@ import com.swp.autocarwash.auth.validator.IdentityValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +20,7 @@ public class AuthServiceImpl implements AuthService{
     private UserRepository userRepo;
     //dùng để mã hoá mật khẩu
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtProvider jwtProvider;
 
@@ -35,6 +36,8 @@ public class AuthServiceImpl implements AuthService{
             user = userRepo.findByPhoneAndIsDeletedFalse(request.getIdentity());
         }
 
+        System.out.println("=== [DEBUG LOG] User tìm thấy dưới DB: " + (user != null ? user.getEmail() : "NULL (Không tìm thấy!)"));
+
         if(user == null) {
             throw new BadCredentialsException("Tai khoan hoac mat khau khong chinh xac");
         }
@@ -43,10 +46,16 @@ public class AuthServiceImpl implements AuthService{
             throw new AccountDisabledException("Tai khoan da bi vo hieu hoa");
         }
 
+        System.out.println("=== [DEBUG LOG] Mật khẩu thô Postman: [" + request.getPassword() + "]");
+        System.out.println("=== [DEBUG LOG] Mật khẩu hash từ DB:  [" + user.getPasswordHash() + "]");
+
         boolean isPassWordMatch = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
         if(!isPassWordMatch){
             throw new BadCredentialsException("Tai khoan hoac mat khau khong chinh xac");
         }
+
+        System.out.println("=== [DEBUG LOG] Kết quả BCrypt khớp nhau không?: " + isPassWordMatch);
+
         String actualToken = jwtProvider.generateToken(user);
 
         return actualToken;
