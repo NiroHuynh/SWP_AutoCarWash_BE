@@ -44,7 +44,7 @@ public class BookingHistoryMapper {
             LocalTime startTime,
             LocalTime endTime,
             List<String> allowedActions) {
-
+// tạo constructor đổ dữ liệu vào = new
         return BookingCardResponse.builder()
                 .bookingId(booking.getId())
                 .serviceName(booking.getServicePackage().getName())

@@ -16,7 +16,6 @@ import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.station.entity.Station;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,10 +68,10 @@ public class BookingServiceImpl implements BookingService {
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Truy vấn booking có trạng thái UPCOMING, sắp xếp ASC theo ngày hẹn.</li>
+     *   <li>Truy vấn booking có trạng thái UPCOMING.</li>
      *   <li>Với mỗi booking, lấy slot đầu (startTime) và slot cuối (endTime).</li>
      *   <li>Xác định allowedActions theo trạng thái và thời gian còn lại.</li>
-     *   <li>Sắp xếp thêm theo startTime nếu cùng ngày, rồi ánh xạ sang DTO.</li>
+     *   <li>Ánh xạ sang DTO, sắp xếp ASC theo ngày hẹn rồi startTime nếu cùng ngày.</li>
      * </ol>
      * </p>
      *
@@ -83,7 +82,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<BookingCardResponse> getUpcomingBookings(Long customerId) {
         List<Booking> bookings = bookingRepository.findByCustomerIdAndStatuses(
-                customerId, UPCOMING_STATUSES, Sort.by(Sort.Direction.ASC, "appointmentDate"));
+                customerId, UPCOMING_STATUSES);
 
         return bookings.stream()
                 .map(booking -> {
@@ -116,10 +115,11 @@ public class BookingServiceImpl implements BookingService {
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Truy vấn booking có trạng thái PAST, sắp xếp DESC theo ngày hẹn.</li>
+     *   <li>Truy vấn booking có trạng thái PAST.</li>
      *   <li>Với mỗi booking, lấy slot đầu (startTime) và slot cuối (endTime).</li>
      *   <li>Tính allowedActions theo trạng thái.</li>
-     *   <li>Ánh xạ sang {@link BookingCardResponse} và trả về.</li>
+     *   <li>Ánh xạ sang {@link BookingCardResponse}, sắp xếp DESC theo
+     *       ngày hẹn rồi {@code startTime}, và trả về.</li>
      * </ol>
      * </p>
      *
@@ -130,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<BookingCardResponse> getPastBookings(Long customerId) {
         List<Booking> bookings = bookingRepository.findByCustomerIdAndStatuses(
-                customerId, PAST_STATUSES, Sort.by(Sort.Direction.DESC, "appointmentDate"));
+                customerId, PAST_STATUSES);
 
         return bookings.stream()
                 .map(booking -> {
@@ -151,6 +151,11 @@ public class BookingServiceImpl implements BookingService {
                             endTime,
                             determineAllowedActions(booking, startTime));
                 })
+                .sorted(Comparator
+                        .comparing(BookingCardResponse::getAppointmentDate, Comparator.reverseOrder())
+                        .thenComparing(Comparator.comparing(
+                                BookingCardResponse::getStartTime,
+                                Comparator.nullsLast(Comparator.reverseOrder()))))
                 .toList();
     }
 
