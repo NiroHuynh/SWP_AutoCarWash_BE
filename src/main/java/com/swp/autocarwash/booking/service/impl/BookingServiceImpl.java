@@ -89,7 +89,14 @@ public class BookingServiceImpl implements BookingService {
     private final BookingAddonRepository bookingAddonRepository;
     private final VoucherUsageRepository voucherUsageRepository;
     private final BookingHistoryMapper bookingHistoryMapper;
+    private final BookingSlotRepository slotRepository;
+    private final ServicePackagePort servicePackagePort;
+    private final AddonServicePort addonServicePort;
+    private final VoucherPort voucherPort;
+    private final VehiclePort vehiclePort;
 
+    private final ModelMapper modelMapper;
+    private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
     /**
      * {@inheritDoc}
      *
@@ -206,15 +213,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public BookingDetailResponse getBookingDetail(Long bookingId) {
-        private final BookingRepository bookingRepository;
-        private final BookingSlotRepository slotRepository;
-        private final ServicePackagePort servicePackagePort;
-        private final AddonServicePort addonServicePort;
-        private final VoucherPort voucherPort;
-        private final VehiclePort vehiclePort;
 
-        private final ModelMapper modelMapper;
-        private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
 
       
       
