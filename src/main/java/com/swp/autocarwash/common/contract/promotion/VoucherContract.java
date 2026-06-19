@@ -26,6 +26,6 @@ public class VoucherContract {
     }
 
     public boolean isValid(BigDecimal subTotal) {
-        return true; // simplified rule placeholder
+        return valid;
     }
 }

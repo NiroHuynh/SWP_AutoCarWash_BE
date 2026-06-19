@@ -44,7 +44,7 @@ public class BookingPriceCalculator {
 
         BigDecimal discount = BigDecimal.ZERO;
 
-        VoucherContract voucher = voucherPort.getVoucher(voucherCode).orElse(null);
+        VoucherContract voucher = voucherPort.getVoucher(voucherCode,subTotal).orElse(null);
 
         // tính giảm giá nếu voucher hợp lệ
         if (voucher != null && voucher.isValid(subTotal)) {

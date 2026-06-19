@@ -2,11 +2,13 @@ package com.swp.autocarwash.common.contract.loyalty;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CustomerTierContract {
 
     private Integer tierId;
