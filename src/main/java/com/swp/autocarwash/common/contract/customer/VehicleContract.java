@@ -4,6 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ *
+ * Data transfer contract between modules (Vehicle Port)
+ *
+ * @author Phong
+ * @version 1.0
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
