@@ -2,6 +2,7 @@ package com.swp.autocarwash.booking.port;
 
 
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
+import com.swp.autocarwash.common.contract.loyalty.CustomerTierContract;
 
 public interface CustomerPort {
 
@@ -16,4 +17,10 @@ public interface CustomerPort {
      * (active, not blocked, not restricted,...)
      */
     boolean isEligibleForBooking(Integer customerId);
+
+    /**
+    * Lấy thông tin tier của customer
+    * Dùng để xác định giới hạn đặt lịch trước (booking window)
+    */
+    CustomerTierContract getTierOfCustomer(Integer customerId);
 }
