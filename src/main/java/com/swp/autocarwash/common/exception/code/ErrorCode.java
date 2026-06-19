@@ -78,6 +78,16 @@ public enum ErrorCode {
             "CUSTOMER_003",
             "Customer tier not found"
     ),
+    CUSTOMER_NOT_ELIGIBLE_FOR_BOOKING(
+            HttpStatus.BAD_REQUEST,
+        "CUSTOMER_004",
+                "Customer is not eligible for booking"
+    ),
+    CUSTOMER_RESTRICTED(
+            HttpStatus.BAD_REQUEST,
+        "CUSTOMER_005",
+                "Customer account is restricted"
+    ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_004",
