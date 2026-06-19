@@ -16,6 +16,27 @@ import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.station.entity.Station;
 import lombok.RequiredArgsConstructor;
+import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
+import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
+import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
+import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingSlot;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.port.AddonServicePort;
+import com.swp.autocarwash.booking.port.ServicePackagePort;
+import com.swp.autocarwash.booking.port.VehiclePort;
+import com.swp.autocarwash.booking.port.VoucherPort;
+import com.swp.autocarwash.booking.repository.BookingRepository;
+import com.swp.autocarwash.booking.repository.BookingSlotRepository;
+import com.swp.autocarwash.booking.service.BookingService;
+import com.swp.autocarwash.common.contract.customer.VehicleContract;
+import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
+import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Vehicle;
+import com.swp.autocarwash.servicepackage.entity.ServicePackage;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +50,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+
+import java.time.LocalDate;
+import java.util.List;
+
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
  *
@@ -39,9 +64,11 @@ import java.util.Optional;
  * @author KimNgan
  * @version 1.0
  */
+
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+
 
     /** Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2. */
     private static final List<String> UPCOMING_STATUSES =
@@ -179,6 +206,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public BookingDetailResponse getBookingDetail(Long bookingId) {
+        private final BookingRepository bookingRepository;
+        private final BookingSlotRepository slotRepository;
+        private final ServicePackagePort servicePackagePort;
+        private final AddonServicePort addonServicePort;
+        private final VoucherPort voucherPort;
+        private final VehiclePort vehiclePort;
+
+        private final ModelMapper modelMapper;
+        private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+
+      
+      
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
@@ -274,40 +313,87 @@ public class BookingServiceImpl implements BookingService {
             default -> List.of("VIEW_DETAILS");
         };
     }
+   @Override
+    @Transactional
+    public CreateBookingResponse createBooking(CreateBookingRequest request) {
 
-//    /**
-//     * Trả về nhãn trạng thái hiển thị cho người dùng theo AC-25.2.4.
-//     *
-//     * @param status trạng thái nội bộ của booking
-//     * @return chuỗi nhãn tiếng Việt tương ứng
-//     */
-//    private String mapStatusLabel(String status) {
-//        return switch (status) {
-//            case "CONFIRMED"  -> "Đã xác nhận";
-//            case "CHECKED_IN" -> "Đã check-in";
-//            case "WASHING"    -> "Đang rửa xe";
-//            case "PAID"       -> "Đã thanh toán";
-//            case "CANCELLED"  -> "Đã hủy";
-//            case "NO_SHOW"    -> "Vắng mặt";
-//            default           -> status;
-//        };
-//    }
-//
-//    /**
-//     * Trả về mã màu hex cho badge trạng thái (dùng cho cả Upcoming, Past và Detail).
-//     *
-//     * @param status trạng thái nội bộ của booking
-//     * @return mã màu hex (ví dụ: "#22C55E")
-//     */
-//    private String mapStatusColor(String status) {
-//        return switch (status) {
-//            case "CONFIRMED"  -> "#3B82F6";
-//            case "CHECKED_IN" -> "#EAB308";
-//            case "WASHING"    -> "#14B8A6";
-//            case "PAID"       -> "#22C55E";
-//            case "CANCELLED"  -> "#9CA3AF";
-//            case "NO_SHOW"    -> "#F97316";
-//            default           -> "#6B7280";
-//        };
-//    }
+        // 1. VALIDATE VEHICLE
+        VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
+        if (vehicle == null) {
+            throw new BusinessException(ErrorCode.VEHICLE_NOT_FOUND);
+        }
+
+        // 2. SERVICE PACKAGE
+        var servicePackage = servicePackagePort.getById(request.getServicePackageId());
+
+        // 3. ADDONS
+        List<AddonServiceContract> addons = addonServicePort.getByIds(request.getAddonServiceIds());
+
+        // 4. VALIDATE SLOTS (REAL BUSINESS RULE)
+        List<BookingSlot> slots = slotRepository.findByIdIn(request.getSlotIds());
+
+        if (slots.size() != request.getSlotIds().size()) {
+            throw new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
+        }
+
+        // check cùng station + liên tục + capacity
+        boolean valid = slotCalculator.validateContinuousSlots(slots, servicePackage.getDurationMinutes());
+
+        if (!valid) {
+            throw new BusinessException(ErrorCode.BOOKING_INVALID_SLOT);
+        }
+
+        // 5. PRICE CALCULATION
+        BigDecimal packagePrice = servicePackage.getBasePrice();
+
+        BigDecimal addonPrice = addons.stream()
+                .map(AddonServiceContract::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal subTotal = packagePrice.add(addonPrice);
+
+        // 6. VOUCHER
+        BigDecimal discount = BigDecimal.ZERO;
+
+        if (request.getVoucherCode() != null) {
+
+            var voucher = voucherPort.getDiscountPercent(request.getVoucherCode(), subTotal.intValue());
+
+            if (!voucher.isValid()) {
+                throw new BusinessException(ErrorCode.VOUCHER_INVALID);
+            }
+
+            discount = subTotal.multiply(
+                    BigDecimal.valueOf(voucher.getDiscountPercentage())
+                            .divide(BigDecimal.valueOf(100))
+            );
+
+            subTotal = subTotal.subtract(discount);
+        }
+
+        // 7. BUILD BOOKING ENTITY (FIXED)
+        Booking booking = new Booking();
+        booking.setVehicle(modelMapper.map(vehicle, Vehicle.class));
+        booking.setServicePackage(modelMapper.map(servicePackage, ServicePackage.class));
+        booking.setAppointmentDate(LocalDate.parse(request.getAppointmentDate()));
+        booking.setStatus(BookingStatus.PENDING.toString());
+        booking.setBookingType("ONLINE");
+        booking.setTotalServiceAmount(packagePrice);
+        booking.setTotalAddonAmount(addonPrice);
+        booking.setVoucherDiscountAmount(discount);
+        booking.setTotalAmount(subTotal);
+
+        Booking saved = bookingRepository.save(booking);
+
+        // 8. SLOT ALLOCATION (MISSING BEFORE)
+        // TODO: insert booking_slot_allocation
+
+        return CreateBookingResponse.builder()
+                .bookingId(saved.getId())
+                .status(saved.getStatus())
+                .totalAmount(subTotal)
+                .slotIds(request.getSlotIds())
+                .build();
+    }
+
 }

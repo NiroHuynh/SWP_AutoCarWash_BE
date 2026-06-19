@@ -2,7 +2,10 @@ package com.swp.autocarwash.booking.service;
 
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
+import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
+import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -68,4 +71,9 @@ public interface BookingService {
      *         nếu không tìm thấy booking với ID đã cho
      */
     BookingDetailResponse cancelBooking(Long bookingId);
+  
+  /**
+     * Tạo booking mới + validate slot + voucher + price
+     */
+    CreateBookingResponse createBooking(CreateBookingRequest request);
 }

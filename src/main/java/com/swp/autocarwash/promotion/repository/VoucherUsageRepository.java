@@ -28,4 +28,6 @@ public interface VoucherUsageRepository extends JpaRepository<VoucherUsage, Long
            "JOIN FETCH vu.voucher " +
            "WHERE vu.booking.id = :bookingId AND vu.status = 'USED'")
     Optional<VoucherUsage> findUsedByBookingId(@Param("bookingId") Long bookingId);
+
+    long countByVoucherIdAndCustomerId(Integer voucherId, Integer customerId);
 }

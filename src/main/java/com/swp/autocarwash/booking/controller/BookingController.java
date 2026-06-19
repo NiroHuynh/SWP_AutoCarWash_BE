@@ -12,6 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
+import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
+import com.swp.autocarwash.booking.service.BookingService;
+import com.swp.autocarwash.common.response.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +33,8 @@ import java.util.List;
  * @author KimNgan
  * @version 1.0
  */
+
+
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
@@ -137,6 +145,15 @@ public class BookingController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Hủy lịch đặt thành công", result)
+        );
+    }
+
+    @PostMapping
+    public ApiResponse<CreateBookingResponse> create(@RequestBody CreateBookingRequest request) {
+
+        return ApiResponse.success(
+                "Booking created successfully",
+                bookingService.createBooking(request)
         );
     }
 }
