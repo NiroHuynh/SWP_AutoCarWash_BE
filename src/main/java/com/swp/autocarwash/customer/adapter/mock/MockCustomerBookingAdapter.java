@@ -2,9 +2,11 @@ package com.swp.autocarwash.customer.adapter.mock;
 
 import com.swp.autocarwash.booking.port.CustomerPort;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("dev")
 public class MockCustomerBookingAdapter implements CustomerPort {
 
     @Override
