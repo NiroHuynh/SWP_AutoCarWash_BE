@@ -148,7 +148,17 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
         "VOUCHER_005",
                 "Voucher not applicable for this order"
-    );
+    ),
+    ADDON_SERVICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "SERVICE_001",
+                "Addon service not found"
+    ),
+    ADDON_SERVICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+        "SERVICE_002",
+                "Invalid addon service request"
+    ),;
 
     private final HttpStatus status;
     private final String code;
