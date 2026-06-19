@@ -32,7 +32,7 @@ public class MockVoucherBookingAdapter implements VoucherPort {
     }
 
     @Override
-    public Optional<VoucherContract> getVoucher(String code) {
+    public Optional<VoucherContract> getVoucher(String code,BigDecimal orderValue) {
 
         if (code == null) return Optional.empty();
 

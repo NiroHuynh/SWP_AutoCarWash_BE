@@ -46,7 +46,9 @@ public class BookingPriceServiceImpl implements BookingPriceService {
         BigDecimal subTotal = servicePrice.add(addonPrice);
 
         // 3. Voucher
-        var voucherOpt = voucherPort.getVoucher(request.getVoucherCode());
+        var voucherOpt = voucherPort.getVoucher(request.getVoucherCode(),subTotal);
+
+
 
         BigDecimal discount = BigDecimal.ZERO;
         boolean valid = false;

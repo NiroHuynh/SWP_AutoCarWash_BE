@@ -36,9 +36,9 @@ public class VoucherBookingAdapter implements VoucherPort {
     }
 
     @Override
-    public Optional<VoucherContract> getVoucher(String code) {
+    public Optional<VoucherContract> getVoucher(String code,BigDecimal orderValue) {
         return Optional.of(
-                voucherService.getVoucher(code, BigDecimal.ZERO)
+                voucherService.getVoucher(code, orderValue)
         );
     }
 

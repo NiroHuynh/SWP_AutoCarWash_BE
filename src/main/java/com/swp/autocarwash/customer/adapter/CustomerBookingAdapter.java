@@ -79,6 +79,7 @@ public class CustomerBookingAdapter implements CustomerPort {
     @Override
     public CustomerTierContract getTierOfCustomer(Integer customerId) {
         Customer customer = customerService.getCustomerById(customerId);
+        System.out.println(customer.getFirstName());
         return modelMapper.map(customer.getCustomerTier(), CustomerTierContract.class);
     }
 

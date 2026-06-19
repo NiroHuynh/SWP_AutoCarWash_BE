@@ -12,7 +12,7 @@ import java.util.Optional;
  * @author Phong
  * @version 1.0
  */
-public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 
     /**
@@ -25,6 +25,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
      * @author Phong
      * @version 1.0
      */
-    Optional<Customer> findById(Integer id);
+    Optional<Customer> findById(Long id);
 
 }

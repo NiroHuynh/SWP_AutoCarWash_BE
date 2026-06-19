@@ -51,7 +51,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer getCustomerById(Integer id){
 
         Customer customer =
-                repository.findById(id)
+                repository.findById(Long.valueOf(id))
                         .orElseThrow(
                                 () -> new ResourceNotFoundException(
                                         ErrorCode.CUSTOMER_NOT_FOUND
@@ -82,7 +82,7 @@ public class CustomerServiceImpl implements CustomerService {
     public boolean isEligibleForBooking(Integer id){
 
         Customer customer =
-                repository.findById(id)
+                repository.findById(Long.valueOf(id))
                         .orElseThrow(
                                 () -> new ResourceNotFoundException(
                                         ErrorCode.CUSTOMER_NOT_FOUND
