@@ -1,6 +1,7 @@
 package com.swp.autocarwash.customer.service.customer;
 
-import com.swp.autocarwash.common.contract.customer.CustomerContract;
+
+import com.swp.autocarwash.customer.entity.Customer;
 
 /**
  *
@@ -18,12 +19,12 @@ public interface CustomerService {
      *
      * @param id customer id
      *
-     * @return CustomerContract
+     * @return Customer
      *
      * @author Phong
      * @version 1.0
      */
-    CustomerContract getCustomerById(Integer id);
+    Customer getCustomerById(Integer id);
 
 
 

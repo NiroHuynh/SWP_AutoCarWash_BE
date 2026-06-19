@@ -2,6 +2,7 @@ package com.swp.autocarwash.promotion.adapter.mock;
 
 import com.swp.autocarwash.booking.port.VoucherPort;
 import com.swp.autocarwash.common.contract.promotion.VoucherContract;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Profile("dev")
 public class MockVoucherBookingAdapter implements VoucherPort {
 
     /**

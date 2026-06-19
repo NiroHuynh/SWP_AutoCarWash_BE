@@ -30,8 +30,8 @@ public class BookingContextServiceImpl implements BookingContextService {
     private final ServicePackagePort servicePackagePort;
     private final AddonServicePort addonServicePort;
     private final VoucherPort voucherPort;
-    private final LoyaltyPort loyaltyPort;
     private final BookingMapper bookingMapper;
+    private final CustomerPort customerPort;
 
     /**
      * Lấy customerId từ JWT hoặc session
@@ -87,7 +87,7 @@ public class BookingContextServiceImpl implements BookingContextService {
      */
     private int resolveTierLimitDays(Integer customerId) {
 
-        CustomerTierContract tier = loyaltyPort.getCustomerTier(customerId);
+        CustomerTierContract tier = customerPort.getTierOfCustomer(customerId);
         return tier.getBookingWindowDays();
 
     }

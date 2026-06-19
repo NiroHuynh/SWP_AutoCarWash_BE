@@ -48,7 +48,7 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     @Transactional(readOnly = true)
-    public CustomerContract getCustomerById(Integer id){
+    public Customer getCustomerById(Integer id){
 
         Customer customer =
                 repository.findById(id)
@@ -58,7 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
                                 )
                         );
 
-        return mapper.toContract(customer);
+        return customer;
 
     }
 

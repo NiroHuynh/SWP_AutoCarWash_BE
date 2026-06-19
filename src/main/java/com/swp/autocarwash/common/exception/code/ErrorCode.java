@@ -128,6 +128,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
         "VEHICLE_003",
                 "Vehicle is inactive or deleted"
+    ),
+    VOUCHER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "VOUCHER_002",
+                "Voucher not found"
+    ),
+    VOUCHER_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+        "VOUCHER_003",
+                "Voucher has expired"
+    ),
+    VOUCHER_USAGE_LIMIT_REACHED(
+            HttpStatus.BAD_REQUEST,
+        "VOUCHER_004",
+                "Voucher usage limit reached"
+    ),
+    VOUCHER_NOT_APPLICABLE(
+            HttpStatus.BAD_REQUEST,
+        "VOUCHER_005",
+                "Voucher not applicable for this order"
     );
 
     private final HttpStatus status;
