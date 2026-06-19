@@ -117,6 +117,17 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
     "VEHICLE_001",
             "Vehicle not found"
+    ),
+    VEHICLE_NOT_OWNED(
+            HttpStatus.FORBIDDEN,
+        "VEHICLE_002",
+                "Vehicle does not belong to customer"
+    ),
+
+    VEHICLE_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+        "VEHICLE_003",
+                "Vehicle is inactive or deleted"
     );
 
     private final HttpStatus status;
