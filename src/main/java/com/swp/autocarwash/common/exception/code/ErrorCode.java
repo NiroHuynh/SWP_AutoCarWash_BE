@@ -158,7 +158,17 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
         "SERVICE_002",
                 "Invalid addon service request"
-    ),;
+    ),
+    INVALID_SERVICE_PACKAGE_ID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_001",
+            "Service package id is invalid"
+    ),
+    SERVICE_PACKAGE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SERVICE_PACKAGE_002",
+            "Service package not found"
+    );
 
     private final HttpStatus status;
     private final String code;
