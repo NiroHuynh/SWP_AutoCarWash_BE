@@ -2,12 +2,14 @@ package com.swp.autocarwash.servicepackage.adapter.mock;
 
 import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Component
+@Profile("dev")
 public class MockAddonServiceBookingAdapter implements AddonServicePort {
 
     /**
