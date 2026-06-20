@@ -9,7 +9,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+/**
+ *
+ * Chức năng: CreateBookingResponse dùng để chứa thông tin kết quả sau khi tạo booking thành công,
+ * bao gồm mã booking, trạng thái booking, tổng số tiền và danh sách slot đã được đặt.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

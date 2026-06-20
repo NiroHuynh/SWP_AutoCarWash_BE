@@ -15,7 +15,9 @@ import java.util.List;
 
 /**
  *
- * Vehicle business logic implementation
+ * Chức năng: VehicleServiceImpl triển khai các nghiệp vụ xử lý vehicle.
+ * Class này chịu trách nhiệm quản lý logic lấy danh sách xe, lấy thông tin chi tiết
+ * vehicle và kiểm tra quyền sở hữu vehicle trước khi sử dụng trong các flow nghiệp vụ.
  *
  * @author Phong
  * @version 1.0
@@ -28,7 +30,23 @@ public class VehicleServiceImpl implements VehicleService {
     private final VehicleMapper vehicleMapper;
 
     /**
-     * Get all vehicles of a customer
+     *
+     * Chức năng: Lấy danh sách vehicle đang hoạt động của một customer.
+     *
+     * Quy trình:
+     * - Nhận customerId cần lấy danh sách vehicle.
+     * - Truy vấn vehicle theo customerId và loại bỏ vehicle đã bị xóa.
+     * - Kiểm tra danh sách vehicle có tồn tại hay không.
+     * - Nếu không có vehicle thì ném BusinessException.
+     * - Mapping danh sách Vehicle entity sang VehicleContract.
+     * - Trả về danh sách vehicle của customer.
+     *
+     * @param customerId id của customer cần lấy danh sách vehicle
+     *
+     * @return danh sách VehicleContract thuộc customer
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public List<VehicleContract> getVehiclesByCustomer(Integer customerId) {
@@ -44,7 +62,23 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     /**
-     * Get vehicle by id
+     *
+     * Chức năng: Lấy thông tin chi tiết vehicle theo id.
+     *
+     * Quy trình:
+     * - Nhận vehicleId cần tìm.
+     * - Tìm kiếm vehicle trong database.
+     * - Nếu không tồn tại vehicle thì throw VEHICLE_NOT_FOUND.
+     * - Kiểm tra trạng thái vehicle có bị inactive/xóa hay không.
+     * - Mapping Vehicle entity sang VehicleContract.
+     * - Trả về thông tin vehicle.
+     *
+     * @param id id của vehicle cần lấy thông tin
+     *
+     * @return VehicleContract chứa thông tin chi tiết vehicle
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public VehicleContract getById(Integer id) {
@@ -61,7 +95,22 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     /**
-     * Validate vehicle ownership
+     *
+     * Chức năng: Kiểm tra vehicle có thuộc quyền sở hữu của customer hay không.
+     *
+     * Quy trình:
+     * - Nhận vehicleId và customerId cần xác thực.
+     * - Kiểm tra sự tồn tại của quan hệ vehicle - customer trong database.
+     * - Nếu vehicle không thuộc customer thì throw VEHICLE_NOT_OWNED.
+     * - Trả về kết quả validate.
+     *
+     * @param vehicleId id của vehicle cần kiểm tra quyền sở hữu
+     * @param customerId id của customer cần xác nhận quyền sở hữu
+     *
+     * @return true nếu vehicle thuộc customer hợp lệ
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     @Transactional(readOnly = true)

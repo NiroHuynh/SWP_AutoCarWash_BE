@@ -12,6 +12,7 @@ import java.util.Optional;
  * Repository truy vấn thông tin sử dụng voucher ({@link VoucherUsage}).
  *
  * @author KimNgan
+ * @author Phong
  * @version 1.0
  */
 @Repository
@@ -29,5 +30,22 @@ public interface VoucherUsageRepository extends JpaRepository<VoucherUsage, Long
            "WHERE vu.booking.id = :bookingId AND vu.status = 'USED'")
     Optional<VoucherUsage> findUsedByBookingId(@Param("bookingId") Long bookingId);
 
+    /**
+     *
+     * Chức năng: Đếm số lần một voucher đã được customer sử dụng.
+     *
+     * Quy trình:
+     * - Nhận voucherId và customerId cần kiểm tra.
+     * - Truy vấn số lượng VoucherUsage tương ứng.
+     * - Trả về số lần voucher đã được customer sử dụng.
+     *
+     * @param voucherId id của voucher cần kiểm tra
+     * @param customerId id của customer sử dụng voucher
+     *
+     * @return số lượng lần voucher được sử dụng bởi customer
+     *
+     * @author Phong
+     * @version 1.0
+     */
     long countByVoucherIdAndCustomerId(Integer voucherId, Integer customerId);
 }

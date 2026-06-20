@@ -7,14 +7,32 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 /**
- * Repository truy xuất dữ liệu Station
+ *
+ * Chức năng: StationRepository cung cấp tầng truy vấn dữ liệu cho entity Station.
+ *
+ * Repository này chịu trách nhiệm thao tác với database để lấy danh sách station
+ * theo commune hoặc các điều kiện liên quan.
+ *
+ * @author Phong
+ * @version 1.0
  */
 public interface StationRepository extends JpaRepository<Station, Long> {
 
     /**
-     * Lấy danh sách station theo communeId
-     * @param communeId id của commune
-     * @return list station thuộc commune
+     *
+     * Chức năng: Lấy danh sách station theo communeId.
+     *
+     * Quy trình:
+     * - Nhận communeId từ service layer.
+     * - Thực hiện query database để tìm tất cả station thuộc commune tương ứng.
+     * - Trả về danh sách Station entity.
+     *
+     * @param communeId id của commune cần truy vấn
+     *
+     * @return danh sách Station thuộc commune
+     *
+     * @author Phong
+     * @version 1.0
      */
     List<Station> findByCommuneId(Integer communeId);
 }

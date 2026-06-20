@@ -21,12 +21,13 @@ import java.util.List;
 
 /**
  *
- * BookingSLotServiceImpl dùng để cung cấp các chức năng liên quan đến quản lý các khung giờ đặt lịch trong hệ thống
+ * Chức năng: BookingSlotServiceImpl triển khai nghiệp vụ xử lý booking slot,
+ * bao gồm việc tìm kiếm slot khả dụng dựa trên thời lượng service, addon
+ * và ngày đặt lịch của khách hàng.
  *
  * @author Phong
  * @version 1.0
  */
-
 @Service
 @RequiredArgsConstructor
 public class BookingSlotServiceImpl implements BookingSlotService {
@@ -36,6 +37,30 @@ public class BookingSlotServiceImpl implements BookingSlotService {
     private final AddonServicePort addonPort;
     private final SlotAvailabilityEngine engine;
 
+    /**
+     *
+     * Chức năng: Lấy danh sách các khung giờ có thể đặt tại một station
+     * dựa trên service package, addon service và ngày được chọn.
+     *
+     * Quy trình:
+     * - Lấy duration của service package.
+     * - Lấy tổng duration của các addon service.
+     * - Tính tổng thời gian cần thiết cho booking.
+     * - Chuyển đổi thời gian thành số lượng slot cần sử dụng.
+     * - Lấy danh sách slot của station theo ngày đặt lịch.
+     * - Gửi danh sách slot cho SlotAvailabilityEngine để xây dựng các khoảng thời gian hợp lệ.
+     * - Kiểm tra kết quả có slot khả dụng hay không.
+     * - Trả về danh sách slot có thể đặt.
+     *
+     * @param stationId id của station cần lấy slot booking
+     * @param request thông tin yêu cầu bao gồm ngày đặt lịch,
+     *                service package và addon service
+     *
+     * @return BookingSlotResponse chứa danh sách các khoảng thời gian có thể đặt
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Override
     public BookingSlotResponse getAvailableSlots(Integer stationId, BookingSlotRequest request) {
 

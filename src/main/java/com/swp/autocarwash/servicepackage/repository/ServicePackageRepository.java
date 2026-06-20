@@ -8,7 +8,11 @@ import java.util.Optional;
 
 /**
  *
- * Repository thao tác dữ liệu service package
+ * Chức năng: ServicePackageRepository dùng để truy xuất và thao tác dữ liệu
+ * của ServicePackage entity trong database.
+ *
+ * Repository cung cấp các phương thức truy vấn service package theo trạng thái
+ * hoạt động và tìm kiếm package theo id phục vụ cho các nghiệp vụ booking.
  *
  * @author Phong
  * @version 1.0
@@ -19,10 +23,17 @@ public interface ServicePackageRepository
 
     /**
      *
-     * Lấy toàn bộ service package đang hoạt động
+     * Chức năng: Lấy danh sách toàn bộ service package đang hoạt động.
      *
-     * @return danh sách service package
+     * Quy trình:
+     * - Thực hiện truy vấn database theo điều kiện isDeleted = false.
+     * - Loại bỏ các service package đã bị xóa mềm.
+     * - Trả về danh sách package hợp lệ trong hệ thống.
      *
+     * @return danh sách service package đang active
+     *
+     * @author Phong
+     * @version 1.0
      */
     List<ServicePackage> findByIsDeletedFalse();
 
@@ -30,12 +41,20 @@ public interface ServicePackageRepository
 
     /**
      *
-     * Tìm service package theo id và trạng thái active
+     * Chức năng: Tìm service package theo id với điều kiện package chưa bị xóa.
      *
-     * @param id service package id
+     * Quy trình:
+     * - Nhận service package id cần tìm.
+     * - Kiểm tra package có tồn tại trong database.
+     * - Kiểm tra trạng thái isDeleted = false.
+     * - Trả về Optional chứa service package nếu hợp lệ.
      *
-     * @return service package
+     * @param id service package id cần tìm
      *
+     * @return Optional chứa ServicePackage nếu tồn tại và đang hoạt động
+     *
+     * @author Phong
+     * @version 1.0
      */
     Optional<ServicePackage> findByIdAndIsDeletedFalse(
             Integer id

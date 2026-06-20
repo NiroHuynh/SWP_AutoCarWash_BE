@@ -7,7 +7,11 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * Validator kiểm tra dữ liệu service package
+ * Chức năng: ServicePackageValidator dùng để kiểm tra các business rule
+ * liên quan đến dữ liệu service package.
+ *
+ * Class này đảm nhiệm việc validate dữ liệu đầu vào trước khi thực hiện
+ * các nghiệp vụ lấy thông tin hoặc xử lý service package.
  *
  * @author Phong
  * @version 1.0
@@ -19,10 +23,20 @@ public class ServicePackageValidator {
 
     /**
      *
-     * Validate service package id
+     * Chức năng: Kiểm tra service package id có hợp lệ hay không.
      *
-     * @param id service package id
+     * Quy trình:
+     * - Nhận service package id từ request hoặc module khác truyền vào.
+     * - Kiểm tra id có null hay không.
+     * - Kiểm tra id có phải là số dương hay không.
+     * - Nếu dữ liệu không hợp lệ thì throw BusinessException.
      *
+     * @param id service package id cần validate
+     *
+     * @return không trả về giá trị, throw exception nếu id không hợp lệ
+     *
+     * @author Phong
+     * @version 1.0
      */
     public void validateId(
             Integer id

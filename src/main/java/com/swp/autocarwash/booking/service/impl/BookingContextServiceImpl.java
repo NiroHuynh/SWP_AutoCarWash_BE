@@ -16,12 +16,13 @@ import java.util.List;
 
 /**
  *
- * BookingContextServiceImpl dùng để cung cấp các thông tin cần thiêt cho việc tạo booking
+ * Chức năng: BookingContextServiceImpl triển khai nghiệp vụ xây dựng dữ liệu context
+ * phục vụ quá trình tạo booking. Class này tổng hợp thông tin customer, vehicle,
+ * service package, addon service và voucher để cung cấp dữ liệu cho màn hình Schedule.
  *
  * @author Phong
  * @version 1.0
  */
-
 @Service
 @RequiredArgsConstructor
 public class BookingContextServiceImpl implements BookingContextService {
@@ -34,7 +35,18 @@ public class BookingContextServiceImpl implements BookingContextService {
     private final CustomerPort customerPort;
 
     /**
-     * Lấy customerId từ JWT hoặc session
+     *
+     * Chức năng: Lấy customerId hiện tại đang thực hiện thao tác booking.
+     *
+     * Quy trình:
+     * - Lấy thông tin user hiện tại từ JWT hoặc session.
+     * - Mapping user sang customerId tương ứng.
+     * - Trả về customerId phục vụ các nghiệp vụ booking.
+     *
+     * @return id của customer hiện tại
+     *
+     * @author Phong
+     * @version 1.0
      */
     private Integer getCurrentCustomerId() {
 
@@ -47,6 +59,26 @@ public class BookingContextServiceImpl implements BookingContextService {
         return 1; // mock
     }
 
+    /**
+     *
+     * Chức năng: Xây dựng toàn bộ dữ liệu context cần thiết cho màn hình tạo booking.
+     *
+     * Quy trình:
+     * - Lấy customerId hiện tại.
+     * - Lấy danh sách vehicle thuộc customer.
+     * - Kiểm tra customer đã đăng ký vehicle hay chưa.
+     * - Tính toán booking window dựa trên tier của customer.
+     * - Lấy danh sách service package, addon service và voucher khả dụng.
+     * - Mapping dữ liệu sang BookingContextResponse.
+     * - Trả về dữ liệu context hoàn chỉnh.
+     *
+     * @param stationId id của station cần lấy dữ liệu booking context
+     *
+     * @return BookingContextResponse chứa toàn bộ dữ liệu phục vụ tạo booking
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Override
     public BookingContextResponse getBookingContext(Integer stationId) {
 
@@ -83,7 +115,21 @@ public class BookingContextServiceImpl implements BookingContextService {
     }
 
     /**
-     * AC logic: tier → số ngày booking window
+     *
+     * Chức năng: Xác định số ngày tối đa khách hàng được phép đặt lịch trước
+     * dựa trên tier hiện tại.
+     *
+     * Quy trình:
+     * - Lấy thông tin tier của customer thông qua CustomerPort.
+     * - Đọc cấu hình booking window từ tier.
+     * - Trả về số ngày được phép đặt trước.
+     *
+     * @param customerId id của customer cần lấy thông tin tier
+     *
+     * @return số ngày tối đa customer được phép đặt lịch trước
+     *
+     * @author Phong
+     * @version 1.0
      */
     private int resolveTierLimitDays(Integer customerId) {
 

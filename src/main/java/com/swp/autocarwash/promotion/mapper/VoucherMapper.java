@@ -9,7 +9,9 @@ import java.time.Instant;
 
 /**
  *
- * Mapper Voucher entity → VoucherContract
+ * Chức năng: VoucherMapper dùng để chuyển đổi dữ liệu giữa Voucher entity và
+ * VoucherContract. Class này hỗ trợ expose dữ liệu voucher giữa các module
+ * thông qua contract layer và xử lý kiểm tra trạng thái hợp lệ của voucher.
  *
  * @author Phong
  * @version 1.0
@@ -24,7 +26,23 @@ public class VoucherMapper {
     }
 
     /**
-     * Convert entity to contract
+     *
+     * Chức năng: Chuyển đổi Voucher entity sang VoucherContract để sử dụng
+     * trong giao tiếp giữa voucher module và các module khác.
+     *
+     * Quy trình:
+     * - Nhận Voucher entity từ service layer.
+     * - Sử dụng ModelMapper để mapping dữ liệu sang VoucherContract.
+     * - Kiểm tra voucher có đáp ứng các điều kiện nghiệp vụ hay không.
+     * - Gán trạng thái valid cho contract.
+     * - Trả về VoucherContract hoàn chỉnh.
+     *
+     * @param voucher entity Voucher cần chuyển đổi
+     *
+     * @return VoucherContract chứa thông tin voucher
+     *
+     * @author Phong
+     * @version 1.0
      */
     public VoucherContract toContract(Voucher voucher) {
         VoucherContract contract = modelMapper.map(voucher, VoucherContract.class);
@@ -35,7 +53,23 @@ public class VoucherMapper {
     }
 
     /**
-     * Validate voucher business rules
+     *
+     * Chức năng: Kiểm tra voucher có hợp lệ theo các rule nghiệp vụ hay không.
+     *
+     * Quy trình:
+     * - Lấy thời gian hiện tại.
+     * - Kiểm tra trạng thái voucher có ACTIVE hay không.
+     * - Kiểm tra voucher đã bắt đầu sử dụng chưa.
+     * - Kiểm tra voucher còn hạn sử dụng hay không.
+     * - Kiểm tra số lần sử dụng chưa vượt quá giới hạn.
+     * - Trả về kết quả validate.
+     *
+     * @param voucher voucher entity cần kiểm tra
+     *
+     * @return true nếu voucher hợp lệ, false nếu voucher không hợp lệ
+     *
+     * @author Phong
+     * @version 1.0
      */
     private boolean isValid(Voucher voucher) {
 

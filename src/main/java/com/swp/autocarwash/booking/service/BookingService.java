@@ -71,9 +71,26 @@ public interface BookingService {
      *         nếu không tìm thấy booking với ID đã cho
      */
     BookingDetailResponse cancelBooking(Long bookingId);
-  
-  /**
-     * Tạo booking mới + validate slot + voucher + price
+
+    /**
+     *
+     * Chức năng: Tạo mới một booking và xử lý toàn bộ logic nghiệp vụ liên quan.
+     *
+     * Quy trình:
+     * - Nhận thông tin tạo booking từ CreateBookingRequest.
+     * - Kiểm tra customer, vehicle và dữ liệu booking hợp lệ.
+     * - Validate slot có còn khả dụng hay không.
+     * - Kiểm tra voucher và áp dụng giảm giá nếu hợp lệ.
+     * - Tính toán tổng giá booking.
+     * - Lưu thông tin booking và cập nhật trạng thái slot.
+     * - Trả về thông tin booking sau khi tạo thành công.
+     *
+     * @param request thông tin cần thiết để tạo booking mới
+     *
+     * @return CreateBookingResponse chứa thông tin booking vừa được tạo
+     *
+     * @author Phong
+     * @version 1.0
      */
     CreateBookingResponse createBooking(CreateBookingRequest request);
 }

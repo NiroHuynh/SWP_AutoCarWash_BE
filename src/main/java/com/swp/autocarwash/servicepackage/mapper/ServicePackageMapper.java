@@ -9,7 +9,11 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * Mapper chuyển đổi Entity sang Contract
+ * Chức năng: ServicePackageMapper dùng để chuyển đổi dữ liệu giữa
+ * ServicePackage entity và ServicePackageContract.
+ *
+ * Class này đảm nhiệm việc mapping dữ liệu từ tầng persistence sang
+ * contract layer để các module khác có thể sử dụng mà không phụ thuộc trực tiếp vào entity.
  *
  * @author Phong
  * @version 1.0
@@ -25,12 +29,21 @@ public class ServicePackageMapper {
 
     /**
      *
-     * Convert ServicePackage entity sang contract
+     * Chức năng: Chuyển đổi ServicePackage entity sang ServicePackageContract.
      *
-     * @param entity service package entity
+     * Quy trình:
+     * - Nhận ServicePackage entity từ service layer.
+     * - Sử dụng ModelMapper để mapping các thuộc tính tương ứng.
+     * - Tính toán durationMinutes từ requiredSlot trong entity.
+     * - Gán durationMinutes vào contract.
+     * - Trả về ServicePackageContract hoàn chỉnh.
      *
-     * @return service package contract
+     * @param entity service package entity cần chuyển đổi
      *
+     * @return ServicePackageContract chứa thông tin service package
+     *
+     * @author Phong
+     * @version 1.0
      */
     public ServicePackageContract toContract(
             ServicePackage entity
@@ -45,8 +58,9 @@ public class ServicePackageMapper {
 
         /*
          *
-         * durationMinutes không tồn tại trong entity
-         * map từ requiredSlot
+         * durationMinutes không tồn tại trực tiếp trong entity.
+         * Giá trị được suy ra từ requiredSlot.
+         * Mỗi slot có thời lượng 15 phút.
          *
          */
         contract.setDurationMinutes(
