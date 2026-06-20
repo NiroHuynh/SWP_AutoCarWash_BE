@@ -19,23 +19,18 @@ import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
 import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
-import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
 import com.swp.autocarwash.booking.port.VehiclePort;
 import com.swp.autocarwash.booking.port.VoucherPort;
-import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
-import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
 import com.swp.autocarwash.common.exception.BusinessException;
-import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,13 +41,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
@@ -67,6 +62,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+// là một annotation từ thư viện Lombok — tự động sinh ra constructor cho các field final
 public class BookingServiceImpl implements BookingService {
 
 
@@ -89,6 +85,8 @@ public class BookingServiceImpl implements BookingService {
 
     /**
      * Múi giờ hệ thống.
+     * Múi giờ Việt Nam (UTC+7) — dùng thay cho LocalDateTime.now() để đảm bảo
+     *  đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
      */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
@@ -102,19 +100,61 @@ public class BookingServiceImpl implements BookingService {
     private final AddonServicePort addonServicePort;
     private final VoucherPort voucherPort;
     private final VehiclePort vehiclePort;
-
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+
+
+    /**
+     * Xây dựng danh sách {@link BookingCardResponse} từ danh sách booking, dùng chung
+     * cho cả {@link #getUpcomingBookings(Long)} và {@link #getPastBookings(Long)}.
+     *
+     * <p>Với mỗi booking: lấy slot đầu/cuối để xác định startTime/endTime, tính
+     * allowedActions theo trạng thái, rồi map sang {@link BookingCardResponse}.
+     * Kết quả trả về chưa được sắp xếp — việc sắp xếp do phương thức gọi đảm nhiệm.</p>
+     *
+     * @param bookings danh sách booking cần chuyển đổi
+     * @return danh sách {@link BookingCardResponse} chưa sắp xếp tương ứng với {@code bookings};
+     *         danh sách rỗng nếu {@code bookings} rỗng
+     */
+    private List<BookingCardResponse> buildBookingCardResponses(List<Booking> bookings) {
+        List<BookingCardResponse> result = new ArrayList<>();
+
+        for (Booking b : bookings) {
+            // Lấy danh sách slot của booking
+            List<BookingSlotAllocation> allocation =
+                    bookingSlotAllocationRepository.findByBookingId(b.getId());
+
+            // Lấy startTime và endTime
+            LocalTime startTime = null;
+            LocalTime endTime = null;
+
+            if (!allocation.isEmpty()) {
+                startTime = allocation.getFirst().getBookingSlot().getStartTime();
+                endTime = allocation.getLast().getBookingSlot().getEndTime();
+            }
+
+            // Xác định hành động được phép
+            List<String> allowedAction = determineAllowedActions(b, startTime);
+
+            // Map sang response
+            BookingCardResponse bookingResponse = bookingHistoryMapper
+                    .toBookingCardResponse(b, startTime, endTime, allowedAction);
+
+            result.add(bookingResponse);
+        }
+
+        return result;
+    }
+
 
     /**
      * {@inheritDoc}
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Truy vấn booking có trạng thái UPCOMING.</li>
-     *   <li>Với mỗi booking, lấy slot đầu (startTime) và slot cuối (endTime).</li>
-     *   <li>Xác định allowedActions theo trạng thái và thời gian còn lại.</li>
-     *   <li>Ánh xạ sang DTO, sắp xếp ASC theo ngày hẹn rồi startTime nếu cùng ngày.</li>
+     *   <li>Truy vấn booking có trạng thái nằm trong {@code UPCOMING_STATUSES}.</li>
+     *   <li>Gọi {@link #buildBookingCardResponses(List)} để map sang danh sách card.</li>
+     *   <li>Sắp xếp ASC theo ngày hẹn, rồi theo giờ bắt đầu (booking chưa có slot xếp cuối).</li>
      * </ol>
      * </p>
      *
@@ -124,45 +164,32 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<BookingCardResponse> getUpcomingBookings(Long customerId) {
-        List<Booking> bookings = bookingRepository.findByCustomerIdAndStatuses(
-                customerId, UPCOMING_STATUSES);
+        // Phần riêng: lấy đúng danh sách status
+        List<Booking> bookings = bookingRepository
+                .findByCustomerIdAndStatuses(customerId, UPCOMING_STATUSES);
 
-        return bookings.stream()
-                .map(booking -> {
-                    List<BookingSlotAllocation> allocations =
-                            bookingSlotAllocationRepository.findByBookingId(booking.getId());
+        // Phần chung: build response
+        List<BookingCardResponse> result = buildBookingCardResponses(bookings);
 
-                    LocalTime startTime = allocations.isEmpty()
-                            ? null
-                            : allocations.get(0).getBookingSlot().getStartTime();
+        // Phần riêng: sort ASC (gần nhất lên đầu)
+        result.sort(Comparator
+                .comparing(BookingCardResponse::getAppointmentDate)
+                .thenComparing(Comparator.comparing(
+                        BookingCardResponse::getStartTime,
+                        Comparator.nullsLast(Comparator.naturalOrder()))));
 
-                    LocalTime endTime = allocations.isEmpty()
-                            ? null
-                            : allocations.get(allocations.size() - 1).getBookingSlot().getEndTime();
-
-                    List<String> allowedActions = determineAllowedActions(booking, startTime);
-
-                    return bookingHistoryMapper.toBookingCardResponse(
-                            booking, startTime, endTime, allowedActions);
-                })
-                .sorted(Comparator
-                        .comparing(BookingCardResponse::getAppointmentDate)
-                        .thenComparing(Comparator.comparing(
-                                BookingCardResponse::getStartTime,
-                                Comparator.nullsLast(Comparator.naturalOrder()))))
-                .toList();
+        return result;
     }
+
 
     /**
      * {@inheritDoc}
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Truy vấn booking có trạng thái PAST.</li>
-     *   <li>Với mỗi booking, lấy slot đầu (startTime) và slot cuối (endTime).</li>
-     *   <li>Tính allowedActions theo trạng thái.</li>
-     *   <li>Ánh xạ sang {@link BookingCardResponse}, sắp xếp DESC theo
-     *       ngày hẹn rồi {@code startTime}, và trả về.</li>
+     *   <li>Truy vấn booking có trạng thái nằm trong {@code PAST_STATUSES}.</li>
+     *   <li>Gọi {@link #buildBookingCardResponses(List)} để map sang danh sách card.</li>
+     *   <li>Sắp xếp DESC theo ngày hẹn, rồi theo giờ bắt đầu (booking chưa có slot xếp cuối).</li>
      * </ol>
      * </p>
      *
@@ -172,46 +199,33 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<BookingCardResponse> getPastBookings(Long customerId) {
-        List<Booking> bookings = bookingRepository.findByCustomerIdAndStatuses(
-                customerId, PAST_STATUSES);
+        // Phần riêng: lấy đúng danh sách status
+        List<Booking> bookings = bookingRepository
+                .findByCustomerIdAndStatuses(customerId, PAST_STATUSES);
 
-        return bookings.stream()
-                .map(booking -> {
-                    List<BookingSlotAllocation> allocations =
-                            bookingSlotAllocationRepository.findByBookingId(booking.getId());
+        // Phần chung: build response
+        List<BookingCardResponse> result = buildBookingCardResponses(bookings);
 
-                    LocalTime startTime = allocations.isEmpty()
-                            ? null
-                            : allocations.get(0).getBookingSlot().getStartTime();
+        // Phần riêng: sort DESC (mới nhất lên đầu)
+        result.sort(Comparator
+                .comparing(BookingCardResponse::getAppointmentDate, Comparator.reverseOrder())
+                .thenComparing(Comparator.comparing(
+                        BookingCardResponse::getStartTime,
+                        Comparator.nullsLast(Comparator.reverseOrder()))));
 
-                    LocalTime endTime = allocations.isEmpty()
-                            ? null
-                            : allocations.get(allocations.size() - 1).getBookingSlot().getEndTime();
-
-                    return bookingHistoryMapper.toBookingCardResponse(
-                            booking,
-                            startTime,
-                            endTime,
-                            determineAllowedActions(booking, startTime));
-                })
-                .sorted(Comparator
-                        .comparing(BookingCardResponse::getAppointmentDate, Comparator.reverseOrder())
-                        .thenComparing(Comparator.comparing(
-                                BookingCardResponse::getStartTime,
-                                Comparator.nullsLast(Comparator.reverseOrder()))))
-                .toList();
+        return result;
     }
-
     /**
      * {@inheritDoc}
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Tìm booking theo ID, eager-fetch vehicle, servicePackage, checkInEmployee.</li>
-     *   <li>Lấy allocations (với slot + station) để xác định startTime, endTime, station.</li>
-     *   <li>Lấy danh sách addon và voucher đã dùng.</li>
+     *   <li>Tìm booking theo ID, ném lỗi 404 nếu không tồn tại.</li>
+     *   <li>Lấy allocations (slot + station), addons và voucher đã dùng của booking.</li>
+     *   <li>Xác định startTime, endTime, station từ slot đầu/cuối (nếu có).</li>
+     *   <li>Lấy tên kỹ thuật viên check-in (nếu đã check-in) và thông tin voucher (nếu có).</li>
      *   <li>Tính remainingAmount = totalAmount - depositAmount.</li>
-     *   <li>Ánh xạ sang {@link BookingDetailResponse} và trả về.</li>
+     *   <li>Map toàn bộ dữ liệu sang {@link BookingDetailResponse} và trả về.</li>
      * </ol>
      * </p>
      *
@@ -223,10 +237,11 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public BookingDetailResponse getBookingDetail(Long bookingId) {
 
-
+        // Bước 1: Tìm booking theo ID, không có thì báo lỗi
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
+        // Bước 2: Lấy các dữ liệu liên quan
         List<BookingSlotAllocation> allocations =
                 bookingSlotAllocationRepository.findByBookingId(bookingId);
         List<BookingAddon> addons =
@@ -234,32 +249,46 @@ public class BookingServiceImpl implements BookingService {
         Optional<VoucherUsage> voucherUsage =
                 voucherUsageRepository.findUsedByBookingId(bookingId);
 
-        LocalTime startTime = allocations.isEmpty()
-                ? null : allocations.get(0).getBookingSlot().getStartTime();
-        LocalTime endTime = allocations.isEmpty()
-                ? null : allocations.get(allocations.size() - 1).getBookingSlot().getEndTime();
-        Station station = allocations.isEmpty()
-                ? null : allocations.get(0).getBookingSlot().getStation();
+        // Bước 3: Lấy startTime, endTime, station từ allocations
+        LocalTime startTime = null;
+        LocalTime endTime = null;
+        Station station = null;
 
-        String technicianName = booking.getCheckInEmployee() != null
-                ? booking.getCheckInEmployee().getFirstName()
-                  + " " + booking.getCheckInEmployee().getLastName()
-                : null;
+        if (!allocations.isEmpty()) {
+            startTime = allocations.getFirst().getBookingSlot().getStartTime();
+            endTime = allocations.getLast().getBookingSlot().getEndTime();
+            station = allocations.getFirst().getBookingSlot().getStation();
+        }
 
-        String voucherCode = voucherUsage
-                .map(vu -> vu.getVoucher().getVoucherCode()).orElse(null);
-        Integer voucherDiscountPercent = voucherUsage
-                .map(vu -> vu.getVoucher().getDiscountPercentage()).orElse(null);
+        // Bước 4: Lấy tên kỹ thuật viên (có thể chưa có nếu chưa check-in)
+        String technicianName = null;
 
-        BigDecimal deposit = booking.getDepositAmount() != null
-                ? booking.getDepositAmount() : BigDecimal.ZERO;
+        if (booking.getCheckInEmployee() != null) {
+            technicianName = booking.getCheckInEmployee().getFirstName()
+                    + " " + booking.getCheckInEmployee().getLastName();
+        }
+
+        // Bước 5: Lấy thông tin voucher (booking có thể không dùng voucher)
+        String voucherCode = null;
+        Integer voucherDiscountPercent = null;
+
+        if (voucherUsage.isPresent()) {
+            voucherCode = voucherUsage.get().getVoucher().getVoucherCode();
+            voucherDiscountPercent = voucherUsage.get().getVoucher().getDiscountPercentage();
+        }
+
+        // Bước 6: Tính số tiền còn lại = tổng tiền - tiền cọc
+        BigDecimal deposit = BigDecimal.ZERO;
+
+        if (booking.getDepositAmount() != null) {
+            deposit = booking.getDepositAmount();
+        }
+
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
-        String status = booking.getStatus();
-
+        // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-                // mapStatusLabel(status), mapStatusColor(status),
                 technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
     }
 
@@ -303,21 +332,35 @@ public class BookingServiceImpl implements BookingService {
      * @return danh sách tên hành động được phép
      */
     private List<String> determineAllowedActions(Booking booking, LocalTime startTime) {
-        return switch (booking.getStatus()) {
-            case "PAID" -> List.of("WRITE_REVIEW");
-            case "CANCELLED", "NO_SHOW" -> List.of();
-            case "CHECKED_IN", "WASHING" -> List.of("VIEW_DETAILS");
-            case "CONFIRMED" -> {
+        List<String> actions;
+        switch (booking.getStatus()) {
+            case "PAID":
+                actions = List.of("WRITE_REVIEW");
+                break;
+            case "CANCELLED":
+            case "NO_SHOW":
+                actions = List.of();
+                break;
+            case "CONFIRMED":
+                // Nếu không có giờ thì dùng 00:00 cho an toàn
                 LocalTime effectiveStart = startTime != null ? startTime : LocalTime.MIDNIGHT;
+                // Ghép ngày + giờ thành một mốc thời gian cụ thể
                 LocalDateTime appointmentDateTime =
                         LocalDateTime.of(booking.getAppointmentDate(), effectiveStart);
+                // Tính số phút từ bây giờ đến lịch hẹn
                 long minutesUntil = ChronoUnit.MINUTES.between(LocalDateTime.now(ZONE), appointmentDateTime);
-                yield minutesUntil >= CANCEL_THRESHOLD_MINUTES
-                        ? List.of("CANCEL", "VIEW_DETAILS")
-                        : List.of("VIEW_DETAILS");
-            }
-            default -> List.of("VIEW_DETAILS");
-        };
+                // Còn đủ thời gian → cho hủy, không đủ → chỉ xem
+                if (minutesUntil >= CANCEL_THRESHOLD_MINUTES) {
+                    actions = List.of("CANCEL", "VIEW_DETAILS");
+                } else {
+                    actions = List.of("VIEW_DETAILS");
+                }
+                break;
+            // CHECKED_IN, WASHING, và mọi status khác → chỉ xem
+            default:
+                actions = List.of("VIEW_DETAILS");
+        }
+        return actions;
     }
 
     /**
