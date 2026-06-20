@@ -15,7 +15,12 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * Adapter expose customer module cho module khác
+ * Chức năng: CustomerBookingAdapter là adapter expose customer module cho booking module
+ * thông qua CustomerPort. Class này chịu trách nhiệm chuyển đổi dữ liệu từ Customer entity
+ * sang CustomerContract và cung cấp các nghiệp vụ liên quan đến customer phục vụ booking.
+ *
+ * Adapter này được sử dụng trong môi trường production để kết nối trực tiếp với
+ * customer service thật thay vì dữ liệu mock.
  *
  * @author Phong
  * @version 1.0
@@ -34,11 +39,18 @@ public class CustomerBookingAdapter implements CustomerPort {
 
     /**
      *
-     * Lấy customer information qua contract
+     * Chức năng: Lấy thông tin customer thông qua customer module và chuyển đổi
+     * sang CustomerContract để booking module sử dụng.
      *
-     * @param customerId customer id
+     * Quy trình:
+     * - Nhận customerId cần lấy thông tin.
+     * - Gọi customerService để truy vấn customer.
+     * - Mapping Customer entity sang CustomerContract.
+     * - Trả về dữ liệu customer dạng contract.
      *
-     * @return CustomerContract
+     * @param customerId id của customer cần lấy thông tin
+     *
+     * @return CustomerContract chứa thông tin customer
      *
      * @author Phong
      * @version 1.0
@@ -58,11 +70,16 @@ public class CustomerBookingAdapter implements CustomerPort {
 
     /**
      *
-     * Kiểm tra customer có thể booking
+     * Chức năng: Kiểm tra customer có đủ điều kiện để thực hiện booking hay không.
      *
-     * @param customerId customer id
+     * Quy trình:
+     * - Nhận customerId cần kiểm tra.
+     * - Gọi customerService thực hiện validate rule customer.
+     * - Trả về kết quả customer có được phép booking.
      *
-     * @return true nếu hợp lệ
+     * @param customerId id của customer cần kiểm tra
+     *
+     * @return true nếu customer hợp lệ để booking, false nếu không hợp lệ
      *
      * @author Phong
      * @version 1.0
@@ -76,6 +93,25 @@ public class CustomerBookingAdapter implements CustomerPort {
                 .isEligibleForBooking(customerId);
     }
 
+    /**
+     *
+     * Chức năng: Lấy thông tin tier hiện tại của customer phục vụ
+     * tính toán quyền lợi booking như booking window.
+     *
+     * Quy trình:
+     * - Nhận customerId cần lấy tier.
+     * - Lấy thông tin customer từ customerService.
+     * - Truy cập customerTier của customer.
+     * - Mapping CustomerTier entity sang CustomerTierContract.
+     * - Trả về thông tin tier.
+     *
+     * @param customerId id của customer cần lấy tier
+     *
+     * @return CustomerTierContract chứa thông tin tier của customer
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Override
     public CustomerTierContract getTierOfCustomer(Integer customerId) {
         Customer customer = customerService.getCustomerById(customerId);

@@ -7,7 +7,9 @@ import java.util.Optional;
 
 /**
  *
- * Repository thao tác database cho Customer entity
+ * Chức năng: CustomerRepository cung cấp các phương thức truy cập dữ liệu
+ * cho Customer entity. Repository này hỗ trợ thao tác CRUD và truy vấn customer
+ * trong database.
  *
  * @author Phong
  * @version 1.0
@@ -17,10 +19,17 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     /**
      *
-     * Tìm customer theo id
+     * Chức năng: Tìm kiếm customer theo customer id.
      *
-     * @param id customer id
-     * @return customer nếu tồn tại
+     * Quy trình:
+     * - Nhận customerId cần tìm kiếm.
+     * - Thực hiện truy vấn customer trong database.
+     * - Trả về Optional chứa Customer nếu tồn tại.
+     * - Trả về Optional.empty() nếu không tìm thấy customer.
+     *
+     * @param id id của customer cần tìm
+     *
+     * @return Optional<Customer> chứa customer nếu tồn tại
      *
      * @author Phong
      * @version 1.0

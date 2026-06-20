@@ -17,7 +17,11 @@ import java.util.List;
 
 /**
  *
- * Service xử lý logic service package
+ * Chức năng: ServicePackageServiceImpl triển khai các nghiệp vụ xử lý
+ * liên quan đến service package trong hệ thống.
+ *
+ * Class này chịu trách nhiệm xử lý business logic của service package,
+ * bao gồm lấy danh sách package, tìm package theo id và lấy thời lượng thực hiện.
  *
  * @author Phong
  * @version 1.0
@@ -41,10 +45,17 @@ public class ServicePackageServiceImpl
 
     /**
      *
-     * Lấy toàn bộ service package active
+     * Chức năng: Lấy danh sách toàn bộ service package đang hoạt động.
      *
-     * @return danh sách service package contract
+     * Quy trình:
+     * - Gọi repository lấy các service package chưa bị xóa mềm.
+     * - Mapping dữ liệu từ ServicePackage entity sang ServicePackageContract.
+     * - Trả về danh sách package hợp lệ trong hệ thống.
      *
+     * @return danh sách ServicePackageContract
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public List<ServicePackageContract> getAll(){
@@ -64,12 +75,21 @@ public class ServicePackageServiceImpl
 
     /**
      *
-     * Lấy service package theo id
+     * Chức năng: Lấy thông tin chi tiết service package theo id.
      *
-     * @param id service package id
+     * Quy trình:
+     * - Validate service package id đầu vào.
+     * - Truy vấn service package theo id và trạng thái active.
+     * - Nếu không tồn tại thì throw BusinessException.
+     * - Mapping entity sang ServicePackageContract.
+     * - Trả về thông tin package.
      *
-     * @return service package contract
+     * @param id service package id cần tìm
      *
+     * @return ServicePackageContract chứa thông tin service package
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public ServicePackageContract getById(
@@ -96,12 +116,20 @@ public class ServicePackageServiceImpl
 
     /**
      *
-     * Lấy thời gian thực hiện service package
+     * Chức năng: Lấy thời gian thực hiện của service package.
      *
-     * @param id service package id
+     * Quy trình:
+     * - Nhận service package id.
+     * - Lấy thông tin package thông qua phương thức getById().
+     * - Lấy durationMinutes từ ServicePackageContract.
+     * - Trả về thời gian thực hiện theo phút.
      *
-     * @return duration phút
+     * @param id service package id cần lấy duration
      *
+     * @return thời gian thực hiện service package tính theo phút
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public Integer getDuration(

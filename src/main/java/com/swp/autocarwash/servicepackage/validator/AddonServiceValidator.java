@@ -12,7 +12,11 @@ import java.util.stream.Collectors;
 
 /**
  *
- * Validator kiểm tra business rule của addon service
+ * Chức năng: AddonServiceValidator dùng để kiểm tra các business rule
+ * liên quan đến addon service.
+ *
+ * Class này đảm nhiệm việc validate dữ liệu đầu vào từ các module khác,
+ * đảm bảo addon service tồn tại và hợp lệ trước khi thực hiện nghiệp vụ.
  *
  * @author Phong
  * @version 1.0
@@ -24,10 +28,20 @@ public class AddonServiceValidator {
 
     /**
      *
-     * Validate danh sách addon id từ module khác gửi qua
+     * Chức năng: Kiểm tra danh sách addon id nhận từ module khác có hợp lệ hay không.
      *
-     * @param ids danh sách addon id
+     * Quy trình:
+     * - Kiểm tra danh sách addon id có null hoặc rỗng.
+     * - Duyệt qua từng id trong danh sách.
+     * - Kiểm tra id có null hoặc nhỏ hơn / bằng 0.
+     * - Nếu phát hiện dữ liệu không hợp lệ thì throw BusinessException.
      *
+     * @param ids danh sách addon id cần validate
+     *
+     * @return không trả về giá trị, throw exception nếu dữ liệu không hợp lệ
+     *
+     * @author Phong
+     * @version 1.0
      */
     public void validateAddonIds(
             List<Integer> ids
@@ -64,11 +78,22 @@ public class AddonServiceValidator {
 
     /**
      *
-     * Kiểm tra tất cả addon request đều tồn tại trong database
+     * Chức năng: Kiểm tra toàn bộ addon id client gửi lên có tồn tại trong database.
      *
-     * @param requestIds id client gửi
-     * @param existIds id tồn tại
+     * Quy trình:
+     * - Nhận danh sách addon id từ request.
+     * - Nhận danh sách addon id thực tế tồn tại trong database.
+     * - Chuyển danh sách tồn tại thành Set để tối ưu việc kiểm tra.
+     * - So sánh từng id request với danh sách tồn tại.
+     * - Nếu có addon không tồn tại thì throw BusinessException.
      *
+     * @param requestIds danh sách addon id được gửi từ client
+     * @param existIds danh sách addon id tồn tại trong database
+     *
+     * @return không trả về giá trị, throw exception nếu có addon không tồn tại
+     *
+     * @author Phong
+     * @version 1.0
      */
     public void validateAddonExist(
             List<Integer> requestIds,

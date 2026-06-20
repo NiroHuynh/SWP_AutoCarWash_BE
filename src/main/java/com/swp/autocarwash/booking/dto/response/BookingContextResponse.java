@@ -11,6 +11,15 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ *
+ * Chức năng: BookingContextResponse dùng để chứa toàn bộ dữ liệu context cần thiết
+ * cho quá trình tạo booking, bao gồm thông tin station, khoảng thời gian đặt lịch,
+ * phương tiện, gói dịch vụ, addon service và voucher khả dụng.
+ *
+ * @author Phong
+ * @version 1.0
+ */
 @Data
 @Builder
 public class BookingContextResponse {
@@ -23,6 +32,14 @@ public class BookingContextResponse {
     private List<AddonServiceDTO> addonServices;
     private List<VoucherDTO> vouchers;
 
+    /**
+     *
+     * Chức năng: BookingWindowDTO lưu trữ khoảng thời gian cho phép khách hàng
+     * thực hiện đặt lịch booking.
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -32,6 +49,14 @@ public class BookingContextResponse {
         private LocalDate maxDate;
     }
 
+    /**
+     *
+     * Chức năng: VehicleDTO chứa thông tin phương tiện của khách hàng
+     * được sử dụng trong quá trình tạo booking.
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -42,6 +67,14 @@ public class BookingContextResponse {
         private String brandName;
     }
 
+    /**
+     *
+     * Chức năng: ServicePackageDTO chứa thông tin gói dịch vụ rửa xe,
+     * bao gồm tên, giá và thời lượng thực hiện dịch vụ.
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -53,6 +86,14 @@ public class BookingContextResponse {
         private Integer durationMinutes;
     }
 
+    /**
+     *
+     * Chức năng: AddonServiceDTO chứa thông tin dịch vụ thêm được khách hàng
+     * lựa chọn trong quá trình tạo booking.
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -64,6 +105,14 @@ public class BookingContextResponse {
         private Integer durationMinutes;
     }
 
+    /**
+     *
+     * Chức năng: VoucherDTO chứa thông tin voucher giảm giá có thể áp dụng
+     * cho booking bao gồm mã voucher, phần trăm giảm và điều kiện áp dụng.
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Data
     @Builder
     @NoArgsConstructor

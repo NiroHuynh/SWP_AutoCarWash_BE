@@ -11,7 +11,9 @@ import java.time.ZoneId;
 
 /**
  *
- * Chuyển đổi Entity sang Contract
+ * Chức năng: CustomerMapper dùng để chuyển đổi dữ liệu từ Customer entity sang
+ * CustomerContract. Class này hỗ trợ việc expose dữ liệu customer giữa các module
+ * thông qua contract layer.
  *
  * @author Phong
  * @version 1.0
@@ -24,11 +26,19 @@ public class CustomerMapper {
 
     /**
      *
-     * Convert Customer entity sang CustomerContract
+     * Chức năng: Chuyển đổi Customer entity sang CustomerContract để sử dụng
+     * trong giao tiếp giữa các module.
      *
-     * @param customer entity customer
+     * Quy trình:
+     * - Nhận Customer entity từ service layer.
+     * - Sử dụng ModelMapper để mapping các field tương ứng.
+     * - Kiểm tra dữ liệu restrictedUntil có tồn tại hay không.
+     * - Convert thời gian restriction sang LocalDateTime nếu có giá trị.
+     * - Trả về CustomerContract hoàn chỉnh.
      *
-     * @return CustomerContract
+     * @param customer entity Customer cần chuyển đổi
+     *
+     * @return CustomerContract chứa dữ liệu customer dạng contract
      *
      * @author Phong
      * @version 1.0

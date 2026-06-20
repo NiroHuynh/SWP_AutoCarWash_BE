@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * BookingContextController cung cấp API để lấy toàn bộ context cần thiết
- * @Author: Phong
- * @Version: 1.0
+ *
+ * Chức năng: BookingContextController cung cấp các API liên quan đến việc lấy dữ liệu
+ * context cần thiết cho quá trình đặt lịch tại station, bao gồm các thông tin phục vụ
+ * cho màn hình Schedule.
+ *
+ * @author Phong
+ * @version 1.0
  */
-
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor
@@ -23,7 +26,22 @@ public class BookingContextController {
     private final BookingContextService bookingContextService;
 
     /**
-     * API cung cấp toàn bộ context cho màn hình Schedule
+     *
+     * Chức năng: Lấy toàn bộ dữ liệu context cần thiết cho màn hình Schedule
+     * dựa trên station được chọn.
+     *
+     * Quy trình:
+     * - Nhận stationId từ request path.
+     * - Gọi BookingContextService để lấy dữ liệu context tương ứng với station.
+     * - Đóng gói dữ liệu trả về trong ApiResponse.
+     * - Trả kết quả về cho client.
+     *
+     * @param stationId id của station cần lấy thông tin booking context
+     *
+     * @return BookingContextResponse chứa toàn bộ dữ liệu cần thiết cho màn hình Schedule
+     *
+     * @author Phong
+     * @version 1.0
      */
     @GetMapping("/{stationId}/booking-context")
     public ApiResponse<BookingContextResponse> getBookingContext(

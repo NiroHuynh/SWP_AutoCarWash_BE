@@ -70,18 +70,26 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
 
-    /** Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2. */
+    /**
+     * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
+     */
     private static final List<String> UPCOMING_STATUSES =
             List.of("CONFIRMED", "CHECKED_IN", "WASHING");
 
-    /** Danh sách trạng thái lịch sử theo AC-25.2.1. */
+    /**
+     * Danh sách trạng thái lịch sử theo AC-25.2.1.
+     */
     private static final List<String> PAST_STATUSES =
             List.of("PAID", "CANCELLED", "NO_SHOW");
 
-    /** Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5. */
+    /**
+     * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
+     */
     private static final long CANCEL_THRESHOLD_MINUTES = 120;
 
-    /** Múi giờ hệ thống. */
+    /**
+     * Múi giờ hệ thống.
+     */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final BookingRepository bookingRepository;
@@ -97,6 +105,7 @@ public class BookingServiceImpl implements BookingService {
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+
     /**
      * {@inheritDoc}
      *
@@ -215,8 +224,6 @@ public class BookingServiceImpl implements BookingService {
     public BookingDetailResponse getBookingDetail(Long bookingId) {
 
 
-      
-      
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
@@ -252,7 +259,7 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-               // mapStatusLabel(status), mapStatusColor(status),
+                // mapStatusLabel(status), mapStatusColor(status),
                 technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
     }
 
@@ -297,7 +304,7 @@ public class BookingServiceImpl implements BookingService {
      */
     private List<String> determineAllowedActions(Booking booking, LocalTime startTime) {
         return switch (booking.getStatus()) {
-            case "PAID"                  -> List.of("WRITE_REVIEW");
+            case "PAID" -> List.of("WRITE_REVIEW");
             case "CANCELLED", "NO_SHOW" -> List.of();
             case "CHECKED_IN", "WASHING" -> List.of("VIEW_DETAILS");
             case "CONFIRMED" -> {
@@ -312,7 +319,36 @@ public class BookingServiceImpl implements BookingService {
             default -> List.of("VIEW_DETAILS");
         };
     }
-   @Override
+
+    /**
+     *
+     * Chức năng: Tạo mới một booking và xử lý toàn bộ nghiệp vụ liên quan như
+     * kiểm tra vehicle, service package, addon service, slot booking, tính giá
+     * và áp dụng voucher.
+     * <p>
+     * Quy trình:
+     * - Lấy thông tin vehicle và kiểm tra vehicle tồn tại.
+     * - Lấy thông tin service package được chọn.
+     * - Lấy danh sách addon service từ request.
+     * - Kiểm tra slot booking có tồn tại đầy đủ hay không.
+     * - Validate slot theo điều kiện:
+     * + Slot thuộc cùng station.
+     * + Slot liên tục theo thời gian.
+     * + Slot còn đủ capacity.
+     * - Tính tổng giá service package và addon service.
+     * - Kiểm tra voucher nếu được cung cấp.
+     * - Tính số tiền giảm giá và tổng tiền cuối cùng.
+     * - Mapping dữ liệu sang Booking entity.
+     * - Lưu booking vào database.
+     * - Trả về thông tin booking sau khi tạo thành công.
+     *
+     * @param request thông tin cần thiết để tạo booking bao gồm vehicle,
+     *                service package, addon, slot và voucher
+     * @return CreateBookingResponse chứa thông tin booking được tạo
+     * @author Phong
+     * @version 1.0
+     */
+    @Override
     @Transactional
     public CreateBookingResponse createBooking(CreateBookingRequest request) {
 

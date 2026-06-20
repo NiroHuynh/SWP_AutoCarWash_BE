@@ -9,7 +9,11 @@ import java.util.List;
 
 /**
  *
- * Repository xử lý truy xuất dữ liệu addon service
+ * Chức năng: AddonServiceRepository dùng để truy xuất và thao tác dữ liệu
+ * của AddonService entity trong database.
+ *
+ * Repository cung cấp các phương thức truy vấn addon service theo trạng thái
+ * và danh sách id phục vụ cho các nghiệp vụ như booking, tính giá và lấy danh sách addon.
  *
  * @author Phong
  * @version 1.0
@@ -21,21 +25,37 @@ public interface AddonServiceRepository
 
     /**
      *
-     * Lấy danh sách addon service chưa bị xóa
+     * Chức năng: Lấy danh sách addon service đang hoạt động trong hệ thống.
      *
-     * @return danh sách addon đang active
+     * Quy trình:
+     * - Thực hiện truy vấn database theo điều kiện isDeleted = false.
+     * - Loại bỏ các addon service đã bị đánh dấu xóa mềm.
+     * - Trả về danh sách addon service hợp lệ.
      *
+     * @return danh sách addon service chưa bị xóa
+     *
+     * @author Phong
+     * @version 1.0
      */
     List<AddonService> findByIsDeletedFalse();
 
 
     /**
      *
-     * Lấy danh sách addon theo nhiều id
+     * Chức năng: Lấy danh sách addon service theo nhiều id.
      *
-     * @param ids danh sách addon id
-     * @return danh sách addon
+     * Quy trình:
+     * - Nhận danh sách addon id cần tìm.
+     * - Truy vấn các addon có id nằm trong danh sách.
+     * - Chỉ lấy các addon chưa bị xóa mềm.
+     * - Trả về danh sách addon service tìm được.
      *
+     * @param ids danh sách id addon service cần lấy
+     *
+     * @return danh sách addon service tương ứng với ids
+     *
+     * @author Phong
+     * @version 1.0
      */
     List<AddonService> findByIdInAndIsDeletedFalse(
             List<Integer> ids

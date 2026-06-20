@@ -6,12 +6,37 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * SlotAvaiabilityCalculator dùng để kiểm tra xem có đủ số lượng slot liên tiếp để đặt lịch hay không.
  *
- * @Author Phong
- * @Version 1.0
+ * Chức năng:
+ * Class SlotAvailabilityCalculator dùng để kiểm tra khả năng đáp ứng lịch đặt dựa trên
+ * danh sách các slot thời gian. Class này xác định xem có đủ số lượng slot liên tiếp
+ * còn trống để phục vụ một yêu cầu đặt lịch hay không.
+ *
+ * @author Phong
+ * @version 1.0
  */
 public class SlotAvailabilityCalculator {
+
+    /**
+     *
+     * Chức năng:
+     * Kiểm tra danh sách booking slot có đủ số lượng slot liên tiếp còn trống
+     * để đáp ứng thời lượng yêu cầu đặt lịch hay không.
+     *
+     * Quy trình:
+     * - Sắp xếp các slot theo thời gian bắt đầu.
+     * - Kiểm tra sức chứa còn lại của từng slot.
+     * - Đếm số lượng slot khả dụng liên tiếp.
+     * - Trả về true nếu số slot đạt yêu cầu, ngược lại trả về false.
+     *
+     * @param slots danh sách các slot cần kiểm tra
+     * @param required thời lượng dịch vụ yêu cầu (tính theo phút)
+     *
+     * @return true nếu đủ slot liên tiếp để đặt lịch, false nếu không đủ
+     *
+     * @author Phong
+     * @version 1.0
+     */
     public boolean validateContinuousSlots(List<BookingSlot> slots, int required) {
 
         // 1. sort theo time

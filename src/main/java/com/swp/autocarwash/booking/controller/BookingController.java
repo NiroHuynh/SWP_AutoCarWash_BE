@@ -30,7 +30,7 @@ import java.util.List;
  *
  * <p>Base URL: {@code /api/bookings}</p>
  *
- * @author KimNgan
+ * @author KimNgan, Phong
  * @version 1.0
  */
 
@@ -148,6 +148,24 @@ public class BookingController {
         );
     }
 
+
+    /**
+     *
+     * Chức năng: Tạo mới một booking.
+     *
+     * Quy trình:
+     * - Nhận thông tin booking từ request body.
+     * - Gọi BookingService để xử lý tạo booking.
+     * - Kiểm tra slot, giá tiền và dữ liệu liên quan trong service layer.
+     * - Trả về thông tin booking sau khi tạo thành công.
+     *
+     * @param request thông tin cần thiết để tạo booking mới
+     *
+     * @return CreateBookingResponse chứa thông tin booking vừa được tạo
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @PostMapping
     public ApiResponse<CreateBookingResponse> create(@RequestBody CreateBookingRequest request) {
 

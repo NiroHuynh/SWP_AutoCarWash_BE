@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * bookingPriceCalculator sẽ đảm nhiệm việc tính toán giá tiền của một booking dựa trên: service package, addon services, voucher code.
+ * Chức năng: BookingPriceCalculator đảm nhiệm việc tính toán giá tiền của một booking dựa trên
+ * service package, addon services và voucher code. Class này xử lý toàn bộ logic tính giá
+ * trước khi tạo booking.
  *
  * @author Phong
  * @version 1.0
@@ -28,7 +30,13 @@ public class BookingPriceCalculator {
     private final VoucherPort voucherPort;
 
     /**
-     * Calculate final booking price
+     *
+     * Chức năng: BookingPriceCalculator đảm nhiệm việc tính toán giá tiền của một booking dựa trên
+     * service package, addon services và voucher code. Class này xử lý toàn bộ logic tính giá
+     * trước khi tạo booking.
+     *
+     * @author Phong
+     * @version 1.0
      */
     public PriceResult calculate(
             ServicePackageContract servicePackage,

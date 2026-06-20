@@ -15,7 +15,10 @@ import java.util.List;
 
 /**
  *
- * Implementation xử lý logic addon service
+ * Chức năng: AddonServiceServiceImpl triển khai các nghiệp vụ xử lý addon service.
+ *
+ * Class này chịu trách nhiệm xử lý business logic liên quan đến addon service,
+ * bao gồm lấy danh sách addon, tìm addon theo id, tính tổng thời gian và chi phí addon.
  *
  * @author Phong
  * @version 1.0
@@ -36,10 +39,17 @@ public class AddonServiceServiceImpl implements AddonServiceService {
 
     /**
      *
-     * Lấy toàn bộ addon service đang hoạt động
+     * Chức năng: Lấy danh sách toàn bộ addon service đang hoạt động.
      *
-     * @return danh sách addon contract
+     * Quy trình:
+     * - Gọi repository truy vấn các addon chưa bị xóa mềm.
+     * - Mapping danh sách AddonService entity sang AddonServiceContract.
+     * - Trả về danh sách addon contract cho module sử dụng.
      *
+     * @return danh sách AddonServiceContract đang hoạt động
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public List<AddonServiceContract> getAll(){
@@ -57,12 +67,21 @@ public class AddonServiceServiceImpl implements AddonServiceService {
 
     /**
      *
-     * Lấy addon service theo danh sách id
+     * Chức năng: Lấy thông tin các addon service theo danh sách id.
      *
-     * @param ids danh sách addon id
+     * Quy trình:
+     * - Validate danh sách addon id đầu vào.
+     * - Truy vấn database các addon tương ứng và chưa bị xóa.
+     * - Mapping entity sang AddonServiceContract.
+     * - Kiểm tra các addon trả về có đầy đủ theo yêu cầu.
+     * - Trả về danh sách addon hợp lệ.
      *
-     * @return danh sách addon contract
+     * @param ids danh sách id addon service cần lấy
      *
+     * @return danh sách AddonServiceContract theo ids
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public List<AddonServiceContract> getByIds(
@@ -100,12 +119,21 @@ public class AddonServiceServiceImpl implements AddonServiceService {
 
     /**
      *
-     * Tính tổng thời gian addon
+     * Chức năng: Tính tổng thời gian thực hiện của danh sách addon service.
      *
-     * @param ids danh sách addon id
+     * Quy trình:
+     * - Nhận danh sách addon id.
+     * - Lấy thông tin addon thông qua phương thức getByIds().
+     * - Lấy durationMinutes của từng addon.
+     * - Cộng tổng thời gian của tất cả addon.
+     * - Trả về tổng thời gian tính theo phút.
      *
-     * @return tổng thời gian phút
+     * @param ids danh sách id addon service
      *
+     * @return tổng thời gian addon service (phút)
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public Integer calculateDuration(
@@ -127,12 +155,20 @@ public class AddonServiceServiceImpl implements AddonServiceService {
 
     /**
      *
-     * Tính tổng giá addon
+     * Chức năng: Tính tổng chi phí của danh sách addon service.
      *
-     * @param ids danh sách addon id
+     * Quy trình:
+     * - Nhận danh sách addon id.
+     * - Lấy thông tin giá của từng addon.
+     * - Cộng tổng giá trị các addon.
+     * - Trả về tổng chi phí addon.
      *
-     * @return tổng giá tiền
+     * @param ids danh sách id addon service cần tính giá
      *
+     * @return tổng giá tiền addon service
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public BigDecimal calculatePrice(

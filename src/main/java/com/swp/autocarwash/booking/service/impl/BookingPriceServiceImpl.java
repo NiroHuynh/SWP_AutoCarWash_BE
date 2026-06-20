@@ -16,12 +16,13 @@ import java.math.BigDecimal;
 
 /**
  *
- * BookingPriceServiceImpl dùng để tính toán giá tiền tạm thời dựa trên các dịch vụ đã chọn
+ * Chức năng: BookingPriceServiceImpl triển khai nghiệp vụ tính toán giá booking
+ * trước khi tạo booking. Class này xử lý việc tính giá service package, addon service,
+ * kiểm tra voucher và tính tổng tiền cuối cùng.
  *
  * @author Phong
  * @version 1.0
  */
-
 @Service
 @RequiredArgsConstructor
 public class BookingPriceServiceImpl implements BookingPriceService {
@@ -31,6 +32,29 @@ public class BookingPriceServiceImpl implements BookingPriceService {
     private final VoucherPort voucherPort;
     private final BookingPriceValidator validator;
 
+    /**
+     *
+     * Chức năng: Tính toán giá preview của booking dựa trên dịch vụ được chọn,
+     * addon service và voucher áp dụng.
+     *
+     * Quy trình:
+     * - Validate dữ liệu request trước khi tính giá.
+     * - Lấy thông tin service package và lấy giá dịch vụ.
+     * - Tính tổng giá addon service được chọn.
+     * - Cộng service price và addon price để tạo subtotal.
+     * - Kiểm tra voucher code có hợp lệ với giá trị đơn hàng hay không.
+     * - Tính số tiền giảm giá nếu voucher hợp lệ.
+     * - Tính tổng tiền cuối cùng sau khi giảm giá.
+     * - Trả về BookingPricePreviewResponse chứa toàn bộ thông tin giá.
+     *
+     * @param request thông tin yêu cầu tính giá bao gồm service package,
+     *                addon service và voucher code
+     *
+     * @return BookingPricePreviewResponse chứa chi tiết giá booking
+     *
+     * @author Phong
+     * @version 1.0
+     */
     @Override
     public BookingPricePreviewResponse calculatePreviewPrice(BookingPricePreviewRequest request) {
 

@@ -18,7 +18,9 @@ import java.util.List;
 
 /**
  *
- * Voucher service implementation
+ * Chức năng: VoucherServiceImpl triển khai các nghiệp vụ xử lý voucher.
+ * Class này chịu trách nhiệm xử lý logic lấy voucher, validate điều kiện sử dụng,
+ * kiểm tra giới hạn sử dụng và tính toán discount cho booking.
  *
  * @author Phong
  * @version 1.0
@@ -32,7 +34,21 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherMapper voucherMapper;
 
     /**
-     * Get all valid vouchers for customer
+     *
+     * Chức năng: Lấy danh sách voucher hợp lệ của customer.
+     *
+     * Quy trình:
+     * - Nhận customerId cần lấy voucher.
+     * - Truy vấn toàn bộ voucher từ database.
+     * - Mapping Voucher entity sang VoucherContract.
+     * - Trả về danh sách voucher contract.
+     *
+     * @param customerId id của customer cần lấy voucher
+     *
+     * @return danh sách VoucherContract
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     @Transactional(readOnly = true)
@@ -46,7 +62,24 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     /**
-     * Get voucher by code with validation
+     *
+     * Chức năng: Lấy thông tin voucher theo code và kiểm tra điều kiện áp dụng.
+     *
+     * Quy trình:
+     * - Nhận voucher code và giá trị đơn hàng.
+     * - Tìm voucher theo voucher code trong database.
+     * - Kiểm tra voucher đã hết hạn hay chưa.
+     * - Kiểm tra giá trị đơn hàng có đạt điều kiện tối thiểu không.
+     * - Mapping voucher entity sang contract.
+     * - Trả về voucher hợp lệ.
+     *
+     * @param code mã voucher cần tìm
+     * @param orderValue giá trị đơn hàng dùng để kiểm tra điều kiện voucher
+     *
+     * @return VoucherContract chứa thông tin voucher
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public VoucherContract getVoucher(String code, BigDecimal orderValue) {
@@ -68,7 +101,22 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     /**
-     * Validate voucher usage by customer
+     *
+     * Chức năng: Kiểm tra customer đã sử dụng voucher hay chưa.
+     *
+     * Quy trình:
+     * - Nhận voucherId và customerId.
+     * - Truy vấn số lần sử dụng voucher của customer.
+     * - Nếu customer đã sử dụng voucher trước đó thì throw exception.
+     * - Nếu chưa sử dụng thì xác nhận voucher hợp lệ.
+     *
+     * @param voucherId id của voucher cần kiểm tra
+     * @param customerId id của customer sử dụng voucher
+     *
+     * @return true nếu customer được phép sử dụng voucher
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public boolean validate(Integer voucherId, Integer customerId) {
@@ -84,7 +132,23 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     /**
-     * Calculate discount result
+     *
+     * Chức năng: Tính toán discount của voucher dựa trên code và giá trị đơn hàng.
+     *
+     * Quy trình:
+     * - Nhận voucher code và amount.
+     * - Tìm voucher trong database.
+     * - Mapping voucher entity sang contract.
+     * - Kiểm tra voucher có áp dụng được với amount hay không.
+     * - Trả về contract chứa thông tin discount.
+     *
+     * @param code mã voucher cần tính discount
+     * @param amount giá trị đơn hàng áp dụng voucher
+     *
+     * @return VoucherContract chứa thông tin giảm giá
+     *
+     * @author Phong
+     * @version 1.0
      */
     @Override
     public VoucherContract calculateDiscount(String code, BigDecimal amount) {
