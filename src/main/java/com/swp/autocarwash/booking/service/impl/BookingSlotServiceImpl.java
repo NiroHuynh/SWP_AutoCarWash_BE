@@ -65,7 +65,11 @@ public class BookingSlotServiceImpl implements BookingSlotService {
     public BookingSlotResponse getAvailableSlots(Integer stationId, BookingSlotRequest request) {
 
         int serviceDuration = servicePackagePort.getDuration(request.getServicePackageId());
-        int addonDuration = addonPort.getTotalDuration(request.getAddonServiceIds());
+        int addonDuration = 0;
+
+        if(request.getAddonServiceIds()!=null && !request.getAddonServiceIds().isEmpty()){
+            addonDuration = addonPort.getTotalDuration(request.getAddonServiceIds());
+        }
 
         int totalMinutes = serviceDuration + addonDuration;
         int requiredSlots = totalMinutes / 15;
