@@ -345,10 +345,6 @@ public class BookingServiceImpl implements BookingService {
             case "PAID":
                 actions = List.of("WRITE_REVIEW");
                 break;
-            case "CANCELLED":
-            case "NO_SHOW":
-                actions = List.of();
-                break;
             case "CONFIRMED":
                 // Nếu không có giờ thì dùng 00:00 cho an toàn
                 LocalTime effectiveStart = startTime != null ? startTime : LocalTime.MIDNIGHT;
