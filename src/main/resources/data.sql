@@ -13,7 +13,7 @@ INSERT IGNORE INTO user
 (id,email,phone,password_hash,role_id,is_active,created_at)
 VALUES
     (1,'admin@gmail.com','0900000001','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',1,true,CURRENT_TIMESTAMP),
-    (2,'manager@gmail.com','0900000002','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',2,true,CURRENT_TIMESTAMP),
+    (2,'manager@gmail.com','0900000002','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',2,false,CURRENT_TIMESTAMP),
     (3,'staff1@gmail.com','0900000003','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',3,true,CURRENT_TIMESTAMP),
     (4,'staff2@gmail.com','0900000004','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',3,true,CURRENT_TIMESTAMP),
     (5,'customer1@gmail.com','0900000010','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP),

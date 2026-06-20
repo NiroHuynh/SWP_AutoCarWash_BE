@@ -14,16 +14,16 @@ public class AppConfig {
     /**
      * Password encoder dùng chung toàn hệ thống
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable) // Tắt gác cổng CSRF
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // Cho mọi API đi qua tự do
-        return http.build();
-    }
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(AbstractHttpConfigurer::disable) // Tắt gác cổng CSRF
+//                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // Cho mọi API đi qua tự do
+//        return http.build();
+//    }
 }

@@ -1,5 +1,6 @@
 package com.swp.autocarwash.common.exception.handler;
 
+import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.exception.AccountDisabledException;
 import com.swp.autocarwash.common.exception.BaseException;
 import com.swp.autocarwash.common.response.ApiResponse;
@@ -16,14 +17,18 @@ import java.util.Map;
 
 
 @RestControllerAdvice
+//Xử lí ngoại lệ tập trung cho @RestController// bao bọc xung quanh @RestController
+
+
 public class GlobalExceptionHandler {
 
     //Hứng lỗi: sai tài khoản hoặc sai mật khẩu -> 401
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex){
         Map<String,String> errorBody = new HashMap<>();
-        errorBody.put("errorCode", "AUTH_001");
+        errorBody.put("success", "false");
         errorBody.put("message", ex.getMessage());
+        errorBody.put("errorCode", "AUTH_001");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody);
     }
 
@@ -31,8 +36,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountDisabledException.class)
     public ResponseEntity<Map<String,String>> handleAccountDisabled(AccountDisabledException ex){
         Map<String,String> errorBody = new HashMap<>();
-        errorBody.put("errorCode","AUTH_002");
+        errorBody.put("success", "false");
         errorBody.put("message", ex.getMessage());
+        errorBody.put("errorCode","AUTH_002");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
     }
 
@@ -40,11 +46,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRunTimeException(RuntimeException ex){
         Map<String,String> errorBody = new HashMap<>();
-        errorBody.put("errorCode", "SYS_500");
+        errorBody.put("success", "false");
         errorBody.put("message",ex.getMessage());
+        errorBody.put("errorCode", "SYS_500");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody);
     }
 
-
+    @ExceptionHandler(JOSEException.class)
+    public ResponseEntity<Map<String, Object>> handleJOSEException(JOSEException ex) {
+        Map<String, Object> errors = new HashMap<>();
+        errors.put("success", "false");
+        errors.put("message", "Can not generate token now. Please try again!");
+        errors.put("errorCode", "TOKEN_001");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
+    }
 
 }
