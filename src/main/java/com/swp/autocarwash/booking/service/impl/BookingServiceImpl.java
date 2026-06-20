@@ -299,7 +299,9 @@ public class BookingServiceImpl implements BookingService {
      * <ol>
      *   <li>Tìm booking theo ID (404 nếu không tồn tại).</li>
      *   <li>Cập nhật status = CANCELLED, canceledAt = now, lưu booking.</li>
-     *   <li>Xóa các BookingSlotAllocation gắn với booking để giải phóng slot.</li>
+     *   <li>Giảm bookedCount của từng slot đã cấp cho booking để giải phóng chỗ;
+     *       giữ nguyên BookingSlotAllocation để vẫn hiển thị được giờ đã đặt trên
+     *       booking card/detail sau khi hủy.</li>
      *   <li>Trả về BookingDetailResponse phản ánh trạng thái mới.</li>
      * </ol>
      * </p>
@@ -318,7 +320,13 @@ public class BookingServiceImpl implements BookingService {
         booking.setCanceledAt(Instant.now());
         bookingRepository.save(booking);
 
-        bookingSlotAllocationRepository.deleteByBookingId(bookingId);
+        List<BookingSlotAllocation> allocations =
+                bookingSlotAllocationRepository.findByBookingId(bookingId);
+        for (BookingSlotAllocation allocation : allocations) {
+            BookingSlot slot = allocation.getBookingSlot();
+            slot.setBookedCount(slot.getBookedCount() - 1);
+            slotRepository.save(slot);
+        }
 
         return getBookingDetail(bookingId);
     }
