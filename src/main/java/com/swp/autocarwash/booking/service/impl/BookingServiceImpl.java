@@ -362,8 +362,12 @@ public class BookingServiceImpl implements BookingService {
         var servicePackage = servicePackagePort.getById(request.getServicePackageId());
 
         // 3. ADDONS
-        List<AddonServiceContract> addons = addonServicePort.getByIds(request.getAddonServiceIds());
+        boolean haveAddons =  request.getAddonServiceIds()!=null && !request.getAddonServiceIds().isEmpty();
+        List<AddonServiceContract> addons = null;
 
+        if(haveAddons){
+            addons = addonServicePort.getByIds(request.getAddonServiceIds());
+        }
         // 4. VALIDATE SLOTS (REAL BUSINESS RULE)
         List<BookingSlot> slots = slotRepository.findByIdIn(request.getSlotIds());
 
@@ -381,9 +385,12 @@ public class BookingServiceImpl implements BookingService {
         // 5. PRICE CALCULATION
         BigDecimal packagePrice = servicePackage.getBasePrice();
 
-        BigDecimal addonPrice = addons.stream()
-                .map(AddonServiceContract::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal addonPrice = BigDecimal.ZERO;
+        if(haveAddons){
+            addonPrice = addons.stream()
+                    .map(AddonServiceContract::getPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
 
         BigDecimal subTotal = packagePrice.add(addonPrice);
 
