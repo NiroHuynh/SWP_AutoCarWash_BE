@@ -174,9 +174,9 @@ public class BookingServiceImpl implements BookingService {
         // Phần riêng: sort ASC (gần nhất lên đầu)
         result.sort(Comparator
                 .comparing(BookingCardResponse::getAppointmentDate)
-                .thenComparing(Comparator.comparing(
+                .thenComparing(
                         BookingCardResponse::getStartTime,
-                        Comparator.nullsLast(Comparator.naturalOrder()))));
+                        Comparator.nullsLast(Comparator.naturalOrder())));
 
         return result;
     }
@@ -209,9 +209,9 @@ public class BookingServiceImpl implements BookingService {
         // Phần riêng: sort DESC (mới nhất lên đầu)
         result.sort(Comparator
                 .comparing(BookingCardResponse::getAppointmentDate, Comparator.reverseOrder())
-                .thenComparing(Comparator.comparing(
+                .thenComparing(
                         BookingCardResponse::getStartTime,
-                        Comparator.nullsLast(Comparator.reverseOrder()))));
+                        Comparator.nullsLast(Comparator.reverseOrder())));
 
         return result;
     }
