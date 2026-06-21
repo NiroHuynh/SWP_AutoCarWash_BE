@@ -10,7 +10,7 @@ import com.swp.autocarwash.auth.repository.UserRepository;
 import com.swp.autocarwash.auth.security.jwt.JwtProvider;
 import com.swp.autocarwash.auth.validator.IdentityValidator;
 import com.swp.autocarwash.customer.entity.Customer;
-import com.swp.autocarwash.customer.repository.custom.CustomerRepository;
+import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
