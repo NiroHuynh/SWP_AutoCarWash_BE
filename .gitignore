@@ -1,4 +1,5 @@
 HELP.md
+PROJECT_CONTEXT.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -153,3 +154,6 @@ Beta
 0 / 0
 used queries
 1
+
+# Postman
+postman/
