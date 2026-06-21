@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService{
 
             // Kiểm tra xem bên trong cái hộp Optional có dữ liệu hay không
             if (customer != null) {
-                displayName = customer.getLastName();          // Nhặt name từ bảng customers
+                displayName = customer.getLastName() + " " +customer.getFirstName();          // Nhặt name từ bảng customers
             } else {
                 // Nếu hộp trống rỗng thì chủ động ném lỗi
                 throw new RuntimeException("Customer profile not found");
@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService{
         }else if("STAFF".equals(roleName)){
             Staff staff = staffRepository.findByUserId(user.getId());
             if (staff != null) {
-                displayName = staff.getLastName();
+                displayName = staff.getLastName() + " " + staff.getFirstName();
             } else {
             // Nếu hộp trống rỗng thì chủ động ném lỗi
             throw new RuntimeException("Staff profile not found");
