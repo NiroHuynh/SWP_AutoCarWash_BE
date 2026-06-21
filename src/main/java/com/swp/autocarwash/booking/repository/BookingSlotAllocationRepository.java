@@ -3,7 +3,6 @@ package com.swp.autocarwash.booking.repository;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocationId;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -39,14 +38,4 @@ public interface BookingSlotAllocationRepository
            "WHERE bsa.booking.id = :bookingId " +
            "ORDER BY bs.startTime ASC")
     public List<BookingSlotAllocation> findByBookingId(@Param("bookingId") Long bookingId);
-
-    /**
-     * Xóa toàn bộ phân bổ slot của một lịch đặt, dùng khi hủy booking
-     * để giải phóng slot cho khách hàng khác đặt.
-     *
-     * @param bookingId mã định danh của lịch đặt cần xóa phân bổ slot
-     */
-    @Modifying
-    @Query("DELETE FROM BookingSlotAllocation bsa WHERE bsa.booking.id = :bookingId")
-    void deleteByBookingId(@Param("bookingId") Long bookingId);
 }

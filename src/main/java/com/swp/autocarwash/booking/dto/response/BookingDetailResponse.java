@@ -29,14 +29,7 @@ public class BookingDetailResponse {
     /** Trạng thái nội bộ (CONFIRMED, CHECKED_IN, WASHING, PAID, CANCELLED, NO_SHOW). */
     private String status;
 
-    /**
-     * Nhãn trạng thái hiển thị cho người dùng (tiếng Việt).
-     * Ví dụ: "Đã xác nhận", "Đang rửa xe", "Đã thanh toán".
-     */
-    private String statusLabel;
 
-    /** Mã màu hex của badge trạng thái (ví dụ: "#22C55E"). */
-    private String statusColor;
 
     // ── Thông tin dịch vụ ────────────────────────────────────────────────────
 
