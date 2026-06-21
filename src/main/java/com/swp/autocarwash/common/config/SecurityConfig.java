@@ -4,6 +4,7 @@ import com.swp.autocarwash.auth.security.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,6 +44,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter){
             //1. tắt CSRF
             http.csrf(AbstractHttpConfigurer::disable)
+            // Thêm dòng này: bật CORS cho Spring Security. Nếu không có, preflight OPTIONS của
+            // các endpoint cần authenticated() (tất cả trừ /api/v1/auth/**) bị anyRequest().authenticated()
+            // chặn (403) trước khi tới được CORS handler của WebConfig.addCorsMappings() ở tầng MVC
+            // -> browser tự chặn luôn request thật -> UI gọi API không ra dữ liệu dù Postman/curl vẫn
+            // chạy được bình thường (curl không bị giới hạn CORS, đó là cơ chế riêng của browser).
+            // Không cần tạo CorsConfigurationSource bean riêng: Spring Security tự nhận diện CORS
+            // config đã khai báo qua WebMvcConfigurer (WebConfig.java) khi Spring MVC có trên classpath.
+            .cors(Customizer.withDefaults())
             //2. chuyển sang STATELESS(ko lưu Session/Cookie trên Server)
             .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             //3. quy định gác cổng, url nào được phép tự do, url nào phải khoá lại
