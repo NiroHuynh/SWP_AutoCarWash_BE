@@ -61,4 +61,35 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
     }
 
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBaseException(
+            BaseException ex,
+            HttpServletRequest request
+    ){
+        var error = ex.getErrorCode();
+        return ResponseEntity
+                .status(error.getStatus())
+                .body(
+                        ApiResponse.error(
+                                error.getMessage(),
+                                error.getCode(),
+                                null
+                        )
+                );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleException(
+            Exception ex
+    ){
+        return ResponseEntity
+                .internalServerError()
+                .body(
+                        ApiResponse.error(
+                                "Unexpected error",
+                                "SYSTEM_ERROR",
+                                null
+                        )
+                );
+    }
 }
