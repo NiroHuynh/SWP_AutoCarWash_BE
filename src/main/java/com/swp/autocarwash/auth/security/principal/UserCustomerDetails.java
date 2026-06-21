@@ -24,6 +24,11 @@ public class UserCustomerDetails implements UserDetails {
         this.user = user;
     }
 
+    // Thêm method này để lấy userId
+    public User getUser() {
+        return user;
+    }
+
     //Bật chức năng phân quyền (Authorization) Biến role của user thành GrantedAuthority
     //Trả về kiểu Collection -> hỗ trợ theo logic 1 user có thể có nhiều role
     // ? extends GrantedAuthority là trả về kiểu gì cũng được, miễn nó là CON hoặc chính là thằng GrantedAuthority
