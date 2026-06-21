@@ -10,16 +10,16 @@ VALUES
     (4,'CUSTOMER');
 
 -- USER
-INSERT IGNORE INTO `user`
-(id, email, phone, password_hash, role_id, is_active, created_at)
+INSERT IGNORE INTO user
+(id,email,phone,password_hash,role_id,is_active,created_at)
 VALUES
-    (1, 'admin@gmail.com',    '0900000001', '123456', 1, true, '2026-01-01 08:00:00'),
-    (2, 'manager@gmail.com',  '0900000002', '123456', 2, true, '2026-01-01 08:00:00'),
-    (3, 'staff1@gmail.com',   '0900000003', '123456', 3, true, '2026-01-01 08:00:00'),
-    (4, 'staff2@gmail.com',   '0900000004', '123456', 3, true, '2026-01-01 08:00:00'),
-    (5, 'customer1@gmail.com','0900000010', '123456', 4, true, '2026-01-01 08:00:00'),
-    (6, 'customer2@gmail.com','0900000011', '123456', 4, true, '2026-01-01 08:00:00'),
-    (7, 'customer3@gmail.com','0900000012', '123456', 4, true, '2026-01-01 08:00:00');
+    (1,'admin@gmail.com','0900000001','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',1,true,CURRENT_TIMESTAMP),
+    (2,'manager@gmail.com','0900000002','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',2,false,CURRENT_TIMESTAMP),
+    (3,'staff1@gmail.com','0900000003','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',3,true,CURRENT_TIMESTAMP),
+    (4,'staff2@gmail.com','0900000004','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',3,true,CURRENT_TIMESTAMP),
+    (5,'customer1@gmail.com','0900000010','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP),
+    (6,'customer2@gmail.com','0900000011','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP),
+    (7,'customer3@gmail.com','0900000012','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP);
 
 -- PROVINCE
 INSERT IGNORE INTO province(id, province_name)
