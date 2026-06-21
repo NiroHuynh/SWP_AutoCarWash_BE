@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 public class SlotWindowResponse {
 
-    private List<Integer> slotIds;
+    private List<Long> slotIds;
 
     private LocalTime startTime;
 
