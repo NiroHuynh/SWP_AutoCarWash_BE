@@ -48,7 +48,7 @@ public class VehicleMapper {
      */
     public VehicleContract toContract(Vehicle vehicle) {
         VehicleContract contract = modelMapper.map(vehicle, VehicleContract.class);
-        contract.setCustomerId(Integer.parseInt(vehicle.getCustomer().getId().toString()));
+        contract.setCustomerId(vehicle.getCustomer().getId());
         return contract;
     }
 

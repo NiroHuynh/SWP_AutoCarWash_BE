@@ -1,17 +1,21 @@
 package com.swp.autocarwash.booking.service.impl;
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.response.BookingContextResponse;
 import com.swp.autocarwash.booking.mapper.BookingMapper;
 import com.swp.autocarwash.booking.port.*;
 import com.swp.autocarwash.booking.service.BookingContextService;
+import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.contract.loyalty.CustomerTierContract;
+import com.swp.autocarwash.common.contract.station.StationContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +37,12 @@ public class BookingContextServiceImpl implements BookingContextService {
     private final VoucherPort voucherPort;
     private final BookingMapper bookingMapper;
     private final CustomerPort customerPort;
+    private final StationPort stationPort;
+    private final FamilySubscriptionPort familySubscriptionPort;
+    private final UnlimitSubscriptionPort unlimitSubscriptionPort;
+    private final FamilyGroupPort familyGroupPort;
+
+    private final SecurityUtils securityUtils;
 
     /**
      *
@@ -48,15 +58,9 @@ public class BookingContextServiceImpl implements BookingContextService {
      * @author Phong
      * @version 1.0
      */
-    private Integer getCurrentCustomerId() {
-
-        // CASE 1: JWT
-        // return jwtUtil.getUserId();
-
-        // CASE 2: SESSION
-        // return (Integer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return 1; // mock
+    private Long getCurrentUserId() {
+        return securityUtils.getCurrentUserId();
+//        return 1L;
     }
 
     /**
@@ -82,18 +86,20 @@ public class BookingContextServiceImpl implements BookingContextService {
     @Override
     public BookingContextResponse getBookingContext(Integer stationId) {
 
-        Integer customerId = getCurrentCustomerId();
+        Long userId = getCurrentUserId();
+        CustomerContract customer = customerPort.getCustomerByUserId(userId);
 
-        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customerId);
-//        List<VehicleContract> vehicles = null;
+        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customer.getId());
 
         if (vehicles == null || vehicles.isEmpty()) {
             throw new BusinessException(ErrorCode.NO_VEHICLE_REGISTERED);
         }
 
+        List<BookingContextResponse.VehicleDTO> vehicleDTOS = getSubscriptionOfVehicles(vehicles);
+
         // AC: compute booking window theo tier
         LocalDate now = LocalDate.now();
-        int limitDays = resolveTierLimitDays(customerId);
+        int limitDays = resolveTierLimitDays(customer.getId());
 
         BookingContextResponse.BookingWindowDTO window =
                 BookingContextResponse.BookingWindowDTO.builder()
@@ -101,15 +107,17 @@ public class BookingContextServiceImpl implements BookingContextService {
                         .maxDate(now.plusDays(limitDays))
                         .build();
 
+        StationContract station = stationPort.getStationById(stationId);
+
         return BookingContextResponse.builder()
-                .stationId(stationId)
+                .station(bookingMapper.toStationDTO(station))
                 .bookingWindow(window)
-                .vehicles(vehicles.stream().map(bookingMapper::toVehicleDTO).toList())
+                .vehicles(vehicleDTOS)
                 .servicePackages(servicePackagePort.getAllPackages()
                         .stream().map(bookingMapper::toPackage).toList())
                 .addonServices(addonServicePort.getAllAddons()
                         .stream().map(bookingMapper::toAddon).toList())
-                .vouchers(voucherPort.getValidVouchers(customerId)
+                .vouchers(voucherPort.getValidVouchers(customer.getId())
                         .stream().map(bookingMapper::toVoucher).toList())
                 .build();
     }
@@ -131,10 +139,68 @@ public class BookingContextServiceImpl implements BookingContextService {
      * @author Phong
      * @version 1.0
      */
-    private int resolveTierLimitDays(Integer customerId) {
+    private int resolveTierLimitDays(Long customerId) {
+        Long ownerCustomerId = familyGroupPort.getOwnerCustomerIdOfCustomerId(customerId);
+        Integer bookingWindowDay = customerPort.getTierOfCustomer(customerId).getBookingWindowDays();
+        if(ownerCustomerId!=null && ownerCustomerId != customerId){
+            CustomerTierContract ownerTier = customerPort.getTierOfCustomer(ownerCustomerId);
+            if(bookingWindowDay<ownerTier.getBookingWindowDays()){
+                bookingWindowDay = ownerTier.getBookingWindowDays();
+            }
+        }
+        return bookingWindowDay;
+    }
 
-        CustomerTierContract tier = customerPort.getTierOfCustomer(customerId);
-        return tier.getBookingWindowDays();
+    /**
+     *
+     * chức năng: dùng để lấy các gói unlimit, family của vehicle nếu có
+     *
+     * @author Phong
+     * @version 1.0
+     */
+    private List<BookingContextResponse.VehicleDTO> getSubscriptionOfVehicles(List<VehicleContract> vehicleContracts){
+        List<BookingContextResponse.VehicleDTO> vehicleDTOS = new ArrayList<>();
+        for(VehicleContract vehicleContract : vehicleContracts){
+            BookingContextResponse.VehicleDTO vehicleDTO = bookingMapper.toVehicleDTO(vehicleContract);
+            BookingContextResponse.VehicleDTO.ActiveSubscription activeSubscription = getActiveSubscription(vehicleContract);
+            vehicleDTO.setActiveSubscription(
+                activeSubscription
+            );
+            vehicleDTOS.add(vehicleDTO);
+        }
+        return vehicleDTOS;
+    }
+
+
+    /**
+     *
+     * chức năng: tìm kiếm xem xe có gói unlimit, family hay không để set cho ActionSubscription
+     *
+     * @author Phong
+     * @version 1.0
+     */
+    private BookingContextResponse.VehicleDTO.ActiveSubscription getActiveSubscription(VehicleContract vehicleContract){
+        Integer servicePackageId = null;
+        String type = null;
+
+        Integer familyPackageId = familySubscriptionPort.getActiveServicePackageId(vehicleContract.getId());
+        Integer unlimitPackageId = unlimitSubscriptionPort.getActiveServicePackageId(vehicleContract.getId());
+        if(familyPackageId!=null){
+            type = "FAMILY";
+            servicePackageId=familyPackageId;
+        } else if (unlimitPackageId != null) {
+            type = "UNLIMITTED";
+            servicePackageId=unlimitPackageId;
+        }
+
+        if(unlimitPackageId!=null || familyPackageId!=null){
+            return BookingContextResponse.VehicleDTO.ActiveSubscription.builder()
+                    .servicePackageId(servicePackageId)
+                    .type(type)
+                    .build();
+        }
+
+        return null;
 
     }
 }

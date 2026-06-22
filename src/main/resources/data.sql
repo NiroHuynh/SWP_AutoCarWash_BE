@@ -1,8 +1,9 @@
-
-SET FOREIGN_KEY_CHECKS = 0;
+SET
+FOREIGN_KEY_CHECKS = 0;
 
 -- ROLE
-INSERT IGNORE INTO role(id, name)
+INSERT
+IGNORE INTO role(id, name)
 VALUES
     (1,'ADMIN'),
     (2,'MANAGER'),
@@ -10,7 +11,8 @@ VALUES
     (4,'CUSTOMER');
 
 -- USER
-INSERT IGNORE INTO `user`
+INSERT
+IGNORE INTO `user`
 (id, email, phone, password_hash, role_id, is_active, created_at)
 VALUES
     (1, 'admin@gmail.com',    '0900000001', '123456', 1, true, '2026-01-01 08:00:00'),
@@ -19,38 +21,48 @@ VALUES
     (4, 'staff2@gmail.com',   '0900000004', '123456', 3, true, '2026-01-01 08:00:00'),
     (5, 'customer1@gmail.com','0900000010', '123456', 4, true, '2026-01-01 08:00:00'),
     (6, 'customer2@gmail.com','0900000011', '123456', 4, true, '2026-01-01 08:00:00'),
-    (7, 'customer3@gmail.com','0900000012', '123456', 4, true, '2026-01-01 08:00:00');
+    (7, 'customer3@gmail.com','0900000012', '123456', 4, true, '2026-01-01 08:00:00'),
+    (8,'owner@gmail.com','0900000001','hash1',1,true,'2026-01-01 08:00:00'),
+    (9,'member@gmail.com','0900000002','hash2',1,true,'2026-01-01 08:00:00'),
+    (10,'unlimit@gmail.com','0900000003','hash3',1,true,'2026-01-01 08:00:00'),
+    (11,'normal@gmail.com','0900000004','hash4',1,true,'2026-01-01 08:00:00'),
+    (12,'nosub@gmail.com','0900000005','hash5',1,true,'2026-01-01 08:00:00');
 
 -- PROVINCE
-INSERT IGNORE INTO province(id, province_name)
+INSERT
+IGNORE INTO province(id, province_name)
 VALUES
     (1, 'Tien Giang'),
     (2, 'Ho Chi Minh'),
     (3, 'Ha Noi');
 
 -- COMMUNE
-INSERT IGNORE INTO commune(id, commune_name, province_id)
+INSERT
+IGNORE INTO commune(id, commune_name, province_id)
 VALUES
     (1, 'My Tho',   1),
     (2, 'Thu Duc',  2),
     (3, 'Cau Giay', 3);
 
 -- STATION
-INSERT IGNORE INTO station
+INSERT
+IGNORE INTO station
 (id, station_name, address, commune_id, max_wash_capacity)
 VALUES
     (1, 'AutoWash My Tho', '123 Ap Bac, My Tho',           1, 20),
     (2, 'AutoWash HCM',    '456 Vo Van Ngan, Thu Duc, HCM', 2, 30);
 
 -- STAFF
-INSERT IGNORE INTO staff
+INSERT
+IGNORE INTO staff
 (id, user_id, station_id, first_name, last_name)
 VALUES
     (1, 3, 1, 'An',   'Nguyen'),
     (2, 4, 2, 'Binh', 'Tran');
 
 -- CUSTOMER TIER
-INSERT IGNORE INTO customer_tier
+INSERT
+IGNORE INTO customer_tier
 (id, tier_name, min_points, booking_window_days, point_multiple)
 VALUES
     (1, 'BRONZE',    0, 3,  1.0),
@@ -58,46 +70,66 @@ VALUES
     (3, 'GOLD',   1000, 14, 1.5);
 
 -- CUSTOMER
-INSERT IGNORE INTO customer
+INSERT
+IGNORE INTO customer
 (id, user_id, first_name, last_name, customer_tier_id)
 VALUES
-    (1, 5, 'Phong', 'Huynh', 1),
-    (2, 6, 'Nam',   'Tran',  2),
-    (3, 7, 'Linh',  'Le',    3);
+    (1, 1, 'Phong', 'Huynh', 1),
+    (2, 2, 'Nam',   'Tran',  2),
+    (3, 3, 'Linh',  'Le',    3),
+    (4,4, 'Phong','Owner',1),
+    (5,5, 'An','Member',1),
+    (6,6, 'Binh','Unlimited',2),
+    (7,7, 'Cuong','Normal',3),
+    (8,8, 'Dung','NoSub',1);
+
 
 -- VEHICLE
 -- restricted_until dùng timestamp quá khứ thay vì NULL
-INSERT IGNORE INTO vehicle
+INSERT
+IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
 VALUES
     (1, 1, '51A-11111', 'Toyota', 'White',  0, '2020-01-01 00:00:00', false),
     (2, 1, '51A-22222', 'Honda',  'Blue',   0, '2020-01-01 00:00:00', false),
     (3, 2, '51B-33333', 'Honda',  'Black',  0, '2020-01-01 00:00:00', false),
-    (4, 3, '30A-44444', 'Mazda',  'Red',    0, '2020-01-01 00:00:00', false);
+    (4, 3, '30A-44444', 'Mazda',  'Red',    0, '2020-01-01 00:00:00', false),
+    (5, 1,'51A-11111','Toyota','Black',0, '2020-01-01 00:00:00', false),
+    (6, 2,'51A-22222','Honda','White',0, '2020-01-01 00:00:00', false),
+    (7, 3,'51A-33333','BMW','Blue',0, '2020-01-01 00:00:00', false),
+    (8, 4,'51A-44444','Kia','Red',0, '2020-01-01 00:00:00', false),
+    (9, 5,'51A-55555','Mazda','Grey',0, '2020-01-01 00:00:00', false);
 
 -- SERVICE CATEGORY
-INSERT IGNORE INTO service_category
+INSERT
+IGNORE INTO service_category
 (id, category_name)
 VALUES
     (1, 'Basic Wash'),
     (2, 'Premium Wash');
 
 -- ADDON SERVICE
-INSERT IGNORE INTO addon_service
+INSERT
+IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id)
 VALUES
     (1, 'Vacuum',  50000, 20, 1),
     (2, 'Polish', 150000, 40, 2);
 
 -- SERVICE PACKAGE
-INSERT IGNORE INTO service_package
+INSERT
+IGNORE INTO service_package
 (id, service_category_id, name, base_price, required_slot, is_deleted)
 VALUES
     (1, 1, 'Normal Wash',  100000, 1, false),
-    (2, 2, 'Premium Wash', 300000, 2, false);
+    (2, 2, 'Premium Wash', 300000, 2, false),
+    (3,2,'Family Package',999000,2, false),
+    (4,2,'Unlimited Package',799000,1, false),
+    (5,2,'Basic Package',199000,1, false);
 
 -- PACKAGE ADDON MAPPING
-INSERT IGNORE INTO package_addon_mapping
+INSERT
+IGNORE INTO package_addon_mapping
 VALUES
     (1, 1),
     (2, 2);
@@ -107,7 +139,8 @@ VALUES
 -- Customer 1 (Phong): CONFIRMED, CHECKED_IN, WASHING, PAID, CANCELLED, NO_SHOW
 -- Customer 2 (Nam):   CONFIRMED, PAID, NO_SHOW
 -- Customer 3 (Linh):  CHECKED_IN, PAID
-INSERT IGNORE INTO booking
+INSERT
+IGNORE INTO booking
 (id, customer_id, vehicle_id, service_package_id,
  appointment_date, status, booking_type, check_in_employee_id,
  created_at, check_in_at, check_out_at, canceled_at,
@@ -204,7 +237,8 @@ VALUES
      0, 0);
 
 -- BOOKING ADDON
-INSERT IGNORE INTO booking_addon
+INSERT
+IGNORE INTO booking_addon
 (id, booking_id, addon_service_id, price)
 VALUES
     (1,  1,  1,  50000),
@@ -216,7 +250,8 @@ VALUES
     (7,  11, 2, 150000);
 
 -- BOOKING SLOT
-INSERT IGNORE INTO booking_slot
+INSERT
+IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
     -- Slot cho booking sắp tới
@@ -241,7 +276,8 @@ VALUES
 -- BOOKING SLOT ALLOCATION
 -- (booking_id, booking_slot_id)
 -- Premium Wash (required_slot=2) cần 2 dòng
-INSERT IGNORE INTO booking_slot_allocation
+INSERT
+IGNORE INTO booking_slot_allocation
 VALUES
     (1,  1),   -- booking 1 → slot 1
     (2,  2),   -- booking 2 → slot 2
@@ -260,7 +296,8 @@ VALUES
     (11, 15);  -- booking 11 → slot 15 (NO_SHOW, Premium 2 slots)
 
 -- INVOICE (cho booking PAID và CHECKED_IN)
-INSERT IGNORE INTO booking_invoice
+INSERT
+IGNORE INTO booking_invoice
 (id, booking_id, customer_id, raw_amount, final_amount, service_amount, addon_amount, status)
 VALUES
     (1, 4, 1, 150000, 150000, 100000,  50000, 'PAID'),
@@ -270,7 +307,8 @@ VALUES
     (5, 8, 3, 450000, 450000, 300000, 150000, 'PENDING');
 
 -- PAYMENT
-INSERT IGNORE INTO payment
+INSERT
+IGNORE INTO payment
 (id, booking_invoice_id, payment_method, amount, payment_status, payment_type)
 VALUES
     (1, 1, 'CASH', 150000, 'SUCCESS', 'PAYMENT'),
@@ -278,7 +316,8 @@ VALUES
     (3, 3, 'CASH', 100000, 'SUCCESS', 'PAYMENT');
 
 -- REVIEW (chỉ cho PAID)
-INSERT IGNORE INTO review
+INSERT
+IGNORE INTO review
 (customer_id, booking_id, rating_stars, comment)
 VALUES
     (1, 4, 5, 'Xe sạch bóng, nhân viên thân thiện, rất hài lòng!'),
@@ -286,7 +325,8 @@ VALUES
     (3, 9, 5, 'Nhanh và chất lượng, sẽ quay lại lần sau.');
 
 -- NOTIFICATION
-INSERT IGNORE INTO notification
+INSERT
+IGNORE INTO notification
 (id, title, content)
 VALUES
     (1, 'Booking Confirmed',  'Your booking #1 has been confirmed'),
@@ -294,7 +334,8 @@ VALUES
     (3, 'Check-in Success',   'You have successfully checked in for booking #2'),
     (4, 'Promotion',          'New promotion: 10% off on weekends!');
 
-INSERT IGNORE INTO customer_notification
+INSERT
+IGNORE INTO customer_notification
 (notification_id, customer_id, status)
 VALUES
     (1, 1, 'READ'),
@@ -303,10 +344,112 @@ VALUES
     (4, 3, 'UNREAD');
 
 -- SYSTEM SETTING
-INSERT IGNORE INTO system_setting
+INSERT
+IGNORE INTO system_setting
 (setting_key, setting_value, description, data_type)
 VALUES
     ('DEPOSIT_PERCENT', '30', 'Deposit percent',    'NUMBER'),
     ('MAX_BOOKING_DAY', '30', 'Maximum booking day','NUMBER');
 
-SET FOREIGN_KEY_CHECKS = 1;
+INSERT
+IGNORE INTO subscription_plan
+(service_package_id,
+ plan_name,
+ duration_days,
+ price,
+ service_category_id,
+ plan_type,
+ max_vehicle_count,
+ description)
+VALUES
+
+    (1,
+     'Family Monthly',
+     30,
+     999000,
+     1,
+     'FAMILY',
+     5,
+     'Family plan'),
+
+    (2,
+     'Unlimited Monthly',
+     30,
+     799000,
+     1,
+     'UNLIMITED',
+     NULL,
+     'Unlimited plan'),
+
+    (3,
+     'Basic Monthly',
+     30,
+     199000,
+     1,
+     'NORMAL',
+     1,
+     'Basic plan');
+
+INSERT
+IGNORE INTO family_group
+(group_name,owner_customer_id)
+VALUES
+    ('Phong Family',1);
+
+INSERT
+IGNORE INTO family_member
+(family_group_id,customer_id,vehicle_id)
+VALUES
+    (1,1,1),
+    (1,2,2);
+
+INSERT
+IGNORE INTO family_subscription
+(
+    family_group_id,
+    subscription_plan_id,
+    start_date,
+    end_date,
+    status
+)
+VALUES
+    (
+        1,
+        1,
+        CURRENT_DATE,
+        DATE_ADD(CURRENT_DATE,INTERVAL 30 DAY),
+        'ACTIVE'
+    );
+
+INSERT
+IGNORE INTO unlimit_subscription
+(
+    customer_id,
+    vehicle_id,
+    subscription_plan_id,
+    start_date,
+    end_date,
+    status
+)
+VALUES
+    (
+        3,
+        3,
+        2,
+        CURRENT_DATE,
+        DATE_ADD(CURRENT_DATE,INTERVAL 30 DAY),
+        'ACTIVE'
+    ),
+    (
+        4,
+        4,
+        2,
+        DATE_SUB(CURRENT_DATE,INTERVAL 60 DAY),
+        DATE_SUB(CURRENT_DATE,INTERVAL 30 DAY),
+        'ACTIVE'
+    );
+
+
+
+SET
+FOREIGN_KEY_CHECKS = 1;
