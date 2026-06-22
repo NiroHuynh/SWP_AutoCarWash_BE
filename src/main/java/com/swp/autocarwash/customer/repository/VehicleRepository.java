@@ -13,7 +13,7 @@ import java.util.List;
  * @author Phong
  * @version 1.0
  */
-public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
+public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     /**
      *
@@ -32,7 +32,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
      * @author Phong
      * @version 1.0
      */
-    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Integer customerId);
+    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
 
     /**
      *
@@ -52,5 +52,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
      * @author Phong
      * @version 1.0
      */
-    boolean existsByIdAndCustomerId(Integer vehicleId, Integer customerId);
+    boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
 }

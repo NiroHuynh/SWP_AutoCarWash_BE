@@ -56,10 +56,10 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Customer getCustomerById(Integer id){
+    public Customer getCustomerById(Long id){
 
         Customer customer =
-                repository.findById(Long.valueOf(id))
+                repository.findById(id)
                         .orElseThrow(
                                 () -> new ResourceNotFoundException(
                                         ErrorCode.CUSTOMER_NOT_FOUND
@@ -94,10 +94,10 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean isEligibleForBooking(Integer id){
+    public boolean isEligibleForBooking(Long id){
 
         Customer customer =
-                repository.findById(Long.valueOf(id))
+                repository.findById(id)
                         .orElseThrow(
                                 () -> new ResourceNotFoundException(
                                         ErrorCode.CUSTOMER_NOT_FOUND
@@ -111,4 +111,13 @@ public class CustomerServiceImpl implements CustomerService {
         return true;
     }
 
+    @Override
+    public Customer getCustomerByUserId(Long userId) {
+        return repository.findCustomerByUserId(userId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                ErrorCode.CUSTOMER_NOT_FOUND
+                        )
+                );
+    }
 }

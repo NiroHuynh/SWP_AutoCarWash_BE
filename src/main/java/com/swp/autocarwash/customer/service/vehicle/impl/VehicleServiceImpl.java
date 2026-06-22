@@ -49,7 +49,7 @@ public class VehicleServiceImpl implements VehicleService {
      * @version 1.0
      */
     @Override
-    public List<VehicleContract> getVehiclesByCustomer(Integer customerId) {
+    public List<VehicleContract> getVehiclesByCustomer(Long customerId) {
 
         List<Vehicle> vehicles =
                 vehicleRepository.findByCustomerIdAndIsDeletedFalse(customerId);
@@ -81,7 +81,7 @@ public class VehicleServiceImpl implements VehicleService {
      * @version 1.0
      */
     @Override
-    public VehicleContract getById(Integer id) {
+    public VehicleContract getById(Long id) {
 
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() ->
@@ -114,7 +114,7 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean validateVehicleOwnership(Integer vehicleId, Integer customerId) {
+    public boolean validateVehicleOwnership(Long vehicleId, Long customerId) {
 
         boolean exists = vehicleRepository
                 .existsByIdAndCustomerId(vehicleId, customerId);

@@ -39,10 +39,10 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      * @version 1.0
      */
     @Override
-    public CustomerContract getCustomerById(Integer customerId) {
+    public CustomerContract getCustomerById(Long customerId) {
         return new CustomerContract(
                 customerId,
-                1001,
+                Long.valueOf(101),
                 "Phong",
                 "Huynh",
                 0,
@@ -68,7 +68,7 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      * @version 1.0
      */
     @Override
-    public boolean isEligibleForBooking(Integer customerId) {
+    public boolean isEligibleForBooking(Long customerId) {
         // mock rule đơn giản
         return true;
     }
@@ -82,7 +82,7 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      * - Tạo dữ liệu tier mẫu cho môi trường development.
      * - Trả về CustomerTierContract chứa thông tin tier.
      *
-     * @param customerId id của customer cần lấy tier
+     * @param userId id của customer cần lấy tier
      *
      * @return CustomerTierContract chứa thông tin tier giả lập
      *
@@ -90,10 +90,10 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      * @version 1.0
      */
     @Override
-    public CustomerTierContract getTierOfCustomer(Integer customerId) {
+    public CustomerTierContract getTierOfCustomer(Long customerId) {
 
         return new CustomerTierContract(
-                3,
+                Long.valueOf(1),
                 "GOLD",
                 12,
                 1000,
@@ -102,5 +102,8 @@ public class MockCustomerBookingAdapter implements CustomerPort {
 
     }
 
-
+    @Override
+    public CustomerContract getCustomerByUserId(Long userId) {
+        return null;
+    }
 }

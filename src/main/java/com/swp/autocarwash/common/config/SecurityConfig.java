@@ -1,11 +1,15 @@
 package com.swp.autocarwash.common.config;
 
+
+import com.swp.autocarwash.common.config.temporary.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Cấu hình Spring Security tạm thời dùng trong giai đoạn phát triển.
@@ -17,24 +21,38 @@ import org.springframework.security.web.SecurityFilterChain;
  * @author KimNgan
  * @version 1.0
  */
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * Cấu hình SecurityFilterChain tắt CSRF và cho phép tất cả request không cần xác thực.
-     *
-     * @param http đối tượng {@link HttpSecurity} do Spring inject
-     * @return {@link SecurityFilterChain} đã được cấu hình
-     * @throws Exception nếu quá trình build filter chain thất bại
-     */
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
+
+
+        return http
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
-        return http.build();
+                        .anyRequest()
+                        .permitAll()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                .build();
     }
 }
+
+
+
+

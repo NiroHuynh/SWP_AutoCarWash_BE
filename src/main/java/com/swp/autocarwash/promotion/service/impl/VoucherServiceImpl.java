@@ -52,7 +52,7 @@ public class VoucherServiceImpl implements VoucherService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<VoucherContract> getValidVouchers(Integer customerId) {
+    public List<VoucherContract> getValidVouchers(Long customerId) {
 
         List<Voucher> vouchers = voucherRepository.findAll();
 
@@ -119,7 +119,7 @@ public class VoucherServiceImpl implements VoucherService {
      * @version 1.0
      */
     @Override
-    public boolean validate(Integer voucherId, Integer customerId) {
+    public boolean validate(Long voucherId, Long customerId) {
 
         long usage = usageRepository
                 .countByVoucherIdAndCustomerId(voucherId, customerId);

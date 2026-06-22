@@ -32,7 +32,7 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    List<VehicleContract> getVehiclesByCustomer(Integer customerId);
+    List<VehicleContract> getVehiclesByCustomer(Long customerId);
 
     /**
      *
@@ -51,7 +51,7 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    VehicleContract getById(Integer id);
+    VehicleContract getById(Long id);
 
     /**
      *
@@ -71,5 +71,5 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    boolean validateVehicleOwnership(Integer vehicleId, Integer customerId);
+    boolean validateVehicleOwnership(Long vehicleId, Long customerId);
 }

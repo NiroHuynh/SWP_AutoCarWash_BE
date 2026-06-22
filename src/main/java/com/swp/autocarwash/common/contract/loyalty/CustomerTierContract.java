@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CustomerTierContract {
 
-    private Integer tierId;
+    private Long tierId;
     private String tierName;
 
     /**

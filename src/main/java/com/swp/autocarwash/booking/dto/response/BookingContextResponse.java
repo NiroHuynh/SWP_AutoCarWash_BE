@@ -24,7 +24,7 @@ import java.util.List;
 @Builder
 public class BookingContextResponse {
 
-    private Integer stationId;
+    private StationDTO station;
     private BookingWindowDTO bookingWindow;
 
     private List<VehicleDTO> vehicles;
@@ -49,6 +49,17 @@ public class BookingContextResponse {
         private LocalDate maxDate;
     }
 
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StationDTO{
+        private Integer id;
+        private String stationName;
+        private String address;
+    }
+
     /**
      *
      * Chức năng: VehicleDTO chứa thông tin phương tiện của khách hàng
@@ -65,6 +76,16 @@ public class BookingContextResponse {
         private Integer id;
         private String licensePlate;
         private String brandName;
+        private ActiveSubscription activeSubscription;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ActiveSubscription{
+            private String type;
+            private Integer servicePackageId;
+        }
     }
 
     /**

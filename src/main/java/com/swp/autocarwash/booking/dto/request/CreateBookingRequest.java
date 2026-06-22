@@ -8,7 +8,7 @@ import lombok.Data;
 public class CreateBookingRequest {
 
     private Integer stationId;
-    private Integer vehicleId;
+    private Long vehicleId;
     private Integer servicePackageId;
     private List<Integer> addonServiceIds;
     private String appointmentDate;
