@@ -1,5 +1,7 @@
 package com.swp.autocarwash.booking.entity;
 
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
@@ -15,6 +17,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -75,8 +78,8 @@ public class Booking {
     @Column(name = "is_deposit_paid")
     private Boolean isDepositPaid;
 
-    @Column(name = "deposit_amount", precision = 12, scale = 2)
-    private BigDecimal depositAmount;
+//    @Column(name = "deposit_amount", precision = 12, scale = 2)
+//    private BigDecimal depositAmount;
 
     @ColumnDefault("0.00")
     @Column(name = "total_service_amount", precision = 12, scale = 2)
@@ -98,5 +101,17 @@ public class Booking {
     @Column(name = "point_discount_amount", precision = 12, scale = 2)
     private BigDecimal pointDiscountAmount;
 
+    /**
+     * GIẢ ĐỊNH BỔ SUNG (không có trong schema gốc): thời điểm Scheduler (Subtask 4.1)
+     * đã xử lý tịch thu cọc của booking này. Dùng để đảm bảo idempotent - không xử lý
+     * lại nếu job vô tình chạy 2 lần trong cùng 1 ngày (lỗi/restart server).
+     *
+     * Số tiền cọc bị tịch thu KHÔNG lưu ở đây - vì mức cọc là 1 con số CỐ ĐỊNH chung
+     * cho toàn hệ thống, được đọc trực tiếp từ bảng system_setting
+     * (xem SystemSettingService.KEY_DEFAULT_DEPOSIT_AMOUNT) mỗi khi cần dùng,
+     * không cần lưu thêm 1 bản sao trên Booking.
+     */
+    @Column(name = "deposit_confiscated_at")
+    private LocalDateTime depositConfiscatedAt;
 
 }

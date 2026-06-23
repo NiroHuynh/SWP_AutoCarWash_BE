@@ -1,5 +1,6 @@
 package com.swp.autocarwash.booking.repository;
 
+import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocationId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,4 +50,15 @@ public interface BookingSlotAllocationRepository
     @Modifying
     @Query("DELETE FROM BookingSlotAllocation bsa WHERE bsa.booking.id = :bookingId")
     void deleteByBookingId(@Param("bookingId") Long bookingId);
+
+    //Vbinh
+    //Lấy danh sách khung giờ/slot booking mà đơn hàng này đã chiếm/booked
+    @Query("""
+            SELECT bsa.bookingSlot FROM BookingSlotAllocation bsa
+                WHERE bsa.booking.id = :bookingId
+                ORDER BY bsa.bookingSlot.startTime ASC
+    """)
+    List<BookingSlot> findBookingSLotsByBookingId(
+            @Param("bookingId") Long bookingId
+    );
 }

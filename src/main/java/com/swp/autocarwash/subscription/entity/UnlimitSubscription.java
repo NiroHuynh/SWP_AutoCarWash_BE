@@ -2,6 +2,7 @@ package com.swp.autocarwash.subscription.entity;
 
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,7 +51,7 @@ public class UnlimitSubscription {
     @Size(max = 20)
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private SubscriptionStatus status;
 
     @Column(name = "canceled_at")
     private Instant canceledAt;
