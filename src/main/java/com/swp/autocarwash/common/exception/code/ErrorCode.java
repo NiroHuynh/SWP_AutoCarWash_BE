@@ -168,9 +168,51 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "SERVICE_PACKAGE_002",
             "Service package not found"
+    ),
+
+    EARLY_ARRIVAL_SLOT_FULL(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_001",
+            "Booking is too early. Please wait until your scheduled time or check available slots later"
+    ),
+    NO_ALLOCATED_TIME_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_002",
+            "Booking has no allocated time slot"
+    ),
+    VEHICLE_CHECKIN_RESTRICTED(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_003",
+            "Vehicle is currently restricted due to past violations. Please collect 20,000 VND deposit at the counter before check-in."
+    ),
+    PENALTY_ONLY_FOR_WALK_IN(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_004",
+            "Penalty deposit only applies to WALK_IN bookings"
+    ),
+    VEHICLE_CLEAR_NO_PENALTY(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_005",
+            "This vehicle is not currently restricted - no penalty deposit required"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found for key. Please ask Admin to configure"
+    ),
+    INVALID_CONFIG_VALUE_FORMAT(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_002",
+            "System setting [%s] has invalid numeric value"
     );
+
+
+
 
     private final HttpStatus status;
     private final String code;
     private final String message;
+
+
+
 }

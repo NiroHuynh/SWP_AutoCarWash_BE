@@ -61,4 +61,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
     }
 
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<?> handleBaseException(BaseException ex){
+        //base exception nên chứa errorCode bên trong
+        var errorCode = ex.getErrorCode();
+
+        //Đóng gói JSON lỗi -> trả về cho Front end
+        Map<String, Object> errorBody = Map.of(
+                "success", "false",
+                "message", errorCode.getMessage(),
+                "errorCode", errorCode.getCode()
+        );
+        return new ResponseEntity<>(errorBody, errorCode.getStatus());
+    }
+
 }

@@ -49,5 +49,10 @@ public class Customer {
     @Column(name = "restricted_until")
     private Instant restrictedUntil;
 
-
+    //transient là bỏ qua cột này dưới DB, logic này chỉ chạy trên RAM
+    //hàm tiện ích lấy FullName
+    @Transient
+    public String getFullName() {
+        return (firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName);
+    }
 }

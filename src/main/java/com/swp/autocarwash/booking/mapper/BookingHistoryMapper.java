@@ -5,6 +5,7 @@ import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.station.entity.Station;
 import org.springframework.stereotype.Component;
 

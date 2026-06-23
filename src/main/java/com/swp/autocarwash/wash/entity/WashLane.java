@@ -1,5 +1,6 @@
-package com.swp.autocarwash.station.entity;
+package com.swp.autocarwash.wash.entity;
 
+import com.swp.autocarwash.station.entity.Station;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

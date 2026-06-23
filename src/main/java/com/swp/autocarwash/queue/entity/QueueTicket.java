@@ -1,10 +1,12 @@
 package com.swp.autocarwash.queue.entity;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.station.entity.Station;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -15,6 +17,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "queue_ticket", schema = "swp_auto_car_wash")
 public class QueueTicket {
     @Id
@@ -38,7 +41,7 @@ public class QueueTicket {
     @Size(max = 20)
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private QueueStatus status;
 
     @CreationTimestamp
     @Column(name = "issued_at")
@@ -48,6 +51,7 @@ public class QueueTicket {
     @Column(name = "is_booking", nullable = false)
     private Boolean isBooking;
 
+    @Builder.Default
     @ColumnDefault("0")
     @Column(name = "priority_score")
     private Integer priorityScore;

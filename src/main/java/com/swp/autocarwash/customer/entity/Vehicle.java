@@ -48,4 +48,5 @@ public class Vehicle {
     private Boolean isDeleted;
 
 
+
 }
