@@ -6,6 +6,7 @@ import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
+import com.swp.autocarwash.booking.port.*;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
@@ -22,10 +23,6 @@ import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
-import com.swp.autocarwash.booking.port.AddonServicePort;
-import com.swp.autocarwash.booking.port.ServicePackagePort;
-import com.swp.autocarwash.booking.port.VehiclePort;
-import com.swp.autocarwash.booking.port.VoucherPort;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.booking.service.BookingService;
@@ -102,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
     private final AddonServicePort addonServicePort;
     private final VoucherPort voucherPort;
     private final VehiclePort vehiclePort;
+    private final SystemSettingPort systemSettingPort;
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
@@ -251,8 +249,9 @@ public class BookingServiceImpl implements BookingService {
         Integer voucherDiscountPercent = voucherUsage
                 .map(vu -> vu.getVoucher().getDiscountPercentage()).orElse(null);
 
-        BigDecimal deposit = booking.getDepositAmount() != null
-                ? booking.getDepositAmount() : BigDecimal.ZERO;
+        BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
+                ? systemSettingPort.getDepositAmount("DEFAULT_DEPOSIT_AMOUNT")
+                : BigDecimal.ZERO;
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
         String status = booking.getStatus();
@@ -260,7 +259,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
                 // mapStatusLabel(status), mapStatusColor(status),
-                technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
+                technicianName, voucherCode, voucherDiscountPercent,deposit, remainingAmount);
     }
 
     /**
