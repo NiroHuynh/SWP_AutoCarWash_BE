@@ -63,6 +63,11 @@ public enum ErrorCode {
             "AUTH_003",
                     "Password is invalid"
     ),
+    ROLE_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH_004",
+            "Role not found"
+    ),
     LICENSE_PLATE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
         "VEHICLE_001",
@@ -72,6 +77,11 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
         "VEHICLE_002",
                 "Vehicle not found"
+    ),
+    TIER_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "LOYALTY_001",
+            "Customer tier not found"
     ),;
 
     private final HttpStatus status;
