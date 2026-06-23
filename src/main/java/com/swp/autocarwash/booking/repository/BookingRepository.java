@@ -98,7 +98,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         SELECT b FROM Booking b 
         WHERE b.appointmentDate = :appointmentDate
         AND b.status = :status
-        AND b.isDepositPaid = :true
+        AND b.isDepositPaid = true
         AND b.depositConfiscatedAt IS NULL
         """)
     List<Booking> findNoShowBookingsPendingDepositConfiscation(
