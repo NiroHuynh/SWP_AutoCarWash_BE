@@ -17,4 +17,10 @@ public class UnlimitSubscriptionBookingAdapter implements UnlimitSubscriptionPor
     public Integer getActiveServicePackageId(Long vehicelId) {
         return unlimitSubscriptionService.getActiveServicePackageId(vehicelId);
     }
+
+
+    @Override
+    public boolean hasUnlimitSubscription(Long vehicleId, Integer servicePackageId) {
+        return unlimitSubscriptionService.hasUnlimitedSubscription(vehicleId, servicePackageId);
+    }
 }

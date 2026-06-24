@@ -11,4 +11,9 @@ public class MockUnlimitSubscriptionBookingAdapter implements UnlimitSubscriptio
     public Integer getActiveServicePackageId(Long vehicelId) {
         return 0;
     }
+
+    @Override
+    public boolean hasUnlimitSubscription(Long vehicleId, Integer servicePackageId) {
+        return false;
+    }
 }

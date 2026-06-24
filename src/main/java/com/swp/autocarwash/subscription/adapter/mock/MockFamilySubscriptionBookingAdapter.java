@@ -11,4 +11,9 @@ public class MockFamilySubscriptionBookingAdapter implements FamilySubscriptionP
     public Integer getActiveServicePackageId(Long vehicelId) {
         return null;
     }
+
+    @Override
+    public boolean hasFamilySubscription(Long vehicle, Integer servicePackageId) {
+        return false;
+    }
 }

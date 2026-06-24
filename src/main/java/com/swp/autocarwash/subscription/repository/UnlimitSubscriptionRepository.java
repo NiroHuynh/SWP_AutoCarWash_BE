@@ -23,4 +23,17 @@ public interface UnlimitSubscriptionRepository
             @Param("vehicleId") Long vehicleId
     );
 
+    @Query("""
+        SELECT COUNT(us) > 0
+        FROM UnlimitSubscription us
+        JOIN us.subscriptionPlan sp
+        WHERE us.vehicle.id = :vehicleId
+          AND sp.servicePackage.id = :servicePackageId
+          AND us.status = 'ACTIVE'
+          AND CURRENT_DATE BETWEEN us.startDate AND us.endDate
+    """)
+    boolean existsActiveUnlimitSubscription(
+            @Param("vehicleId") Long vehicleId,
+            @Param("servicePackageId") Integer servicePackageId
+    );
 }

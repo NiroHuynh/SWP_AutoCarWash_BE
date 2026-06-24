@@ -15,7 +15,6 @@ public class SecurityUtils {
                         .getContext()
                         .getAuthentication();
 
-        System.out.println(auth.getName());
         return Long.valueOf(auth.getName());
     }
 

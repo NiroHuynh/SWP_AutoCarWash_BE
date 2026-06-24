@@ -12,6 +12,6 @@ public class CreateBookingRequest {
     private Integer servicePackageId;
     private List<Integer> addonServiceIds;
     private String appointmentDate;
-    private List<Integer> slotIds;
+    private List<Long> slotIds;
     private String voucherCode;
 }

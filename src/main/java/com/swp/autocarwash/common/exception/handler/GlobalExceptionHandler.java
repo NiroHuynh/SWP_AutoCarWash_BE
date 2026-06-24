@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleException(
             Exception ex
     ){
+        System.out.println(ex.getMessage());
         return ResponseEntity
                 .internalServerError()
                 .body(

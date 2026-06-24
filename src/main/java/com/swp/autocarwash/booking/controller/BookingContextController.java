@@ -46,7 +46,7 @@ public class BookingContextController {
     @GetMapping("/{stationId}/booking-context")
     public ApiResponse<BookingContextResponse> getBookingContext(
             @PathVariable Integer stationId
-    ) {
+    ) { 
         return ApiResponse.success(
                 "Get booking context successfully",
                 bookingContextService.getBookingContext(stationId)

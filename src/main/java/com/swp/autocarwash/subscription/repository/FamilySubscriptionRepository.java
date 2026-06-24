@@ -25,4 +25,21 @@ public interface FamilySubscriptionRepository
     Integer findActiveServicePackageIdByVehicleId(
             @Param("vehicleId") Long vehicleId
     );
+
+    @Query("""
+        SELECT COUNT(fs) > 0
+        FROM FamilySubscription fs
+        JOIN fs.subscriptionPlan sp
+        JOIN fs.familyGroup fg
+        JOIN FamilyMember fm
+            ON fm.familyGroup.id = fg.id
+        WHERE fm.vehicle.id = :vehicleId
+          AND sp.servicePackage.id = :servicePackageId
+          AND fs.status = 'ACTIVE'
+          AND CURRENT_DATE BETWEEN fs.startDate AND fs.endDate
+    """)
+    boolean existsActiveFamilySubscription(
+            @Param("vehicleId") Long vehicleId,
+            @Param("servicePackageId") Integer servicePackageId
+    );
 }

@@ -1,31 +1,33 @@
 package com.swp.autocarwash.booking.service.impl;
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
+import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
-import com.swp.autocarwash.booking.entity.Booking;
-import com.swp.autocarwash.booking.entity.BookingAddon;
-import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
+import com.swp.autocarwash.booking.entity.*;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
+import com.swp.autocarwash.booking.port.*;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
 import com.swp.autocarwash.booking.service.BookingService;
+import com.swp.autocarwash.booking.service.BookingSlotService;
+import com.swp.autocarwash.booking.validator.BookingValidator;
+import com.swp.autocarwash.common.contract.customer.CustomerContract;
+import com.swp.autocarwash.common.contract.promotion.VoucherContract;
+import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
+import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;
 import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
 import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
-import com.swp.autocarwash.booking.entity.Booking;
-import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
-import com.swp.autocarwash.booking.port.AddonServicePort;
-import com.swp.autocarwash.booking.port.ServicePackagePort;
-import com.swp.autocarwash.booking.port.VehiclePort;
-import com.swp.autocarwash.booking.port.VoucherPort;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.booking.service.BookingService;
@@ -46,13 +48,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
@@ -102,9 +101,17 @@ public class BookingServiceImpl implements BookingService {
     private final AddonServicePort addonServicePort;
     private final VoucherPort voucherPort;
     private final VehiclePort vehiclePort;
+    private final FamilySubscriptionPort familySubscriptionPort;
+    private final UnlimitSubscriptionPort unlimitSubscriptionPort;
+    private final BookingValidator bookingValidator;
+    private final CustomerPort customerPort;
+    private final SecurityUtils securityUtils;
+    private final VoucherUsagePort voucherUsagePort;
+    private final BookingInvoicePort bookingInvoicePort;
 
     private final ModelMapper modelMapper;
-    private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+    private final BookingSlotRepository bookingSlotRepository;
+
 
     /**
      * {@inheritDoc}
@@ -286,7 +293,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
         booking.setStatus("CANCELLED");
-        booking.setCanceledAt(Instant.now());
+        booking.setCanceledAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
         bookingSlotAllocationRepository.deleteByBookingId(bookingId);
@@ -352,55 +359,37 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public CreateBookingResponse createBooking(CreateBookingRequest request) {
 
-        // 1. VALIDATE VEHICLE
+//        validate đầu vào
+        bookingValidator.validateCreateBooking(request);
+
+//        lấy customer
+        Long userId = getCurrentUserId();
+        CustomerContract customer = customerPort.getCustomerByUserId(userId);
+
+//        lấy vehicle
         VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
-        if (vehicle == null) {
-            throw new BusinessException(ErrorCode.VEHICLE_NOT_FOUND);
-        }
 
-        // 2. SERVICE PACKAGE
-        var servicePackage = servicePackagePort.getById(request.getServicePackageId());
+//        lấy service package
+        ServicePackageContract servicePackage = servicePackagePort.getById(request.getServicePackageId());
 
-        // 3. ADDONS
-        boolean haveAddons =  request.getAddonServiceIds()!=null && !request.getAddonServiceIds().isEmpty();
-        List<AddonServiceContract> addons = null;
+        // PRICE CALCULATION
+//        tính giá service package
+        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(),LocalDate.parse(request.getAppointmentDate()));
 
-        if(haveAddons){
-            addons = addonServicePort.getByIds(request.getAddonServiceIds());
-        }
-        // 4. VALIDATE SLOTS (REAL BUSINESS RULE)
-        List<BookingSlot> slots = slotRepository.findByIdIn(request.getSlotIds());
+//        tính giá addon service
+        BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
 
-        if (slots.size() != request.getSlotIds().size()) {
-            throw new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
-        }
 
-        // check cùng station + liên tục + capacity
-        boolean valid = slotCalculator.validateContinuousSlots(slots, servicePackage.getDurationMinutes());
-
-        if (!valid) {
-            throw new BusinessException(ErrorCode.BOOKING_INVALID_SLOT);
-        }
-
-        // 5. PRICE CALCULATION
-        BigDecimal packagePrice = servicePackage.getBasePrice();
-
-        BigDecimal addonPrice = BigDecimal.ZERO;
-        if(haveAddons){
-            addonPrice = addons.stream()
-                    .map(AddonServiceContract::getPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-        }
-
+//        tổng tiền của service package và addon package
         BigDecimal subTotal = packagePrice.add(addonPrice);
 
-        // 6. VOUCHER
+        // VOUCHER
         BigDecimal discount = BigDecimal.ZERO;
 
+        VoucherContract voucher = null;
         if (request.getVoucherCode() != null) {
 
-            var voucher = voucherPort.getDiscountPercent(request.getVoucherCode(), subTotal.intValue());
-
+            voucher = voucherPort.getDiscountPercent(request.getVoucherCode(), subTotal.intValue());
             if (!voucher.isValid()) {
                 throw new BusinessException(ErrorCode.VOUCHER_INVALID);
             }
@@ -413,22 +402,42 @@ public class BookingServiceImpl implements BookingService {
             subTotal = subTotal.subtract(discount);
         }
 
-        // 7. BUILD BOOKING ENTITY (FIXED)
-        Booking booking = new Booking();
-        booking.setVehicle(modelMapper.map(vehicle, Vehicle.class));
-        booking.setServicePackage(modelMapper.map(servicePackage, ServicePackage.class));
-        booking.setAppointmentDate(LocalDate.parse(request.getAppointmentDate()));
-        booking.setStatus(BookingStatus.PENDING.toString());
-        booking.setBookingType("ONLINE");
-        booking.setTotalServiceAmount(packagePrice);
-        booking.setTotalAddonAmount(addonPrice);
-        booking.setVoucherDiscountAmount(discount);
-        booking.setTotalAmount(subTotal);
+        // BUILD BOOKING ENTITY (FIXED)
+        Booking booking = Booking.builder()
+                .customer(modelMapper.map(customer, Customer.class))
+                .vehicle(modelMapper.map(vehicle, Vehicle.class))
+                .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
+                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+                .status(BookingStatus.PENDING.toString())
+                .bookingType("ONLINE")
+                .totalServiceAmount(packagePrice)
+                .totalAddonAmount(addonPrice)
+                .voucherDiscountAmount(discount)
+                .totalAmount(subTotal)
+                .build();
+
+        System.out.println(ZoneId.systemDefault());
+        System.out.println(LocalDateTime.now());
+
+//        tạo BookingAddon
+        booking = createBookingAddon(booking, request.getAddonServiceIds());
+
+
+        // SLOT ALLOCATION
+//        tạo booking slot allocation và cộng biến đếm bookingCount trong booking slot;
+        booking = createBookingAlocation(booking, request.getSlotIds());
+
+//        tạo voucherUsage
+        createVoucherUsage(voucher,booking);
 
         Booking saved = bookingRepository.save(booking);
 
-        // 8. SLOT ALLOCATION (MISSING BEFORE)
-        // TODO: insert booking_slot_allocation
+//        tạo booking invoice
+        bookingInvoicePort.createInvoice(booking);
+
+
+
+
 
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
@@ -438,4 +447,162 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
+    private void createVoucherUsage(VoucherContract voucherContract,Booking booking) {
+        if(voucherContract==null) return;
+        voucherUsagePort.consumeVoucher(voucherContract.getId(),booking);
+    }
+
+    private Booking createBookingAlocation(Booking booking, List<Long> slotIds) {
+        List<BookingSlot> slots = bookingSlotRepository.findAvailableSlots(slotIds);
+        List<BookingSlotAllocation> allocations = new ArrayList<>();
+        for(BookingSlot slot : slots){
+
+            int updated = bookingSlotRepository.increaseBookedCount(slot.getId());
+            if(updated==0){
+                throw  new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
+            }
+            BookingSlotAllocationId id = BookingSlotAllocationId.builder()
+                    .bookingSlotId(slot.getId())
+                    .bookingId(booking.getId())
+                    .build();
+            BookingSlotAllocation allocation = BookingSlotAllocation.builder()
+                    .id(id)
+                    .booking(booking)
+                    .bookingSlot(slot)
+                    .build();
+            allocations.add(allocation);
+        }
+        booking.setSlotAllocations(allocations);
+
+        return booking;
+    }
+
+
+    private Booking createBookingAddon(Booking booking, List<Integer> addonIds) {
+
+        if (addonIds == null || addonIds.isEmpty()) {
+            return booking;
+        }
+
+        List<AddonServiceContract> addonServiceContracts = addonServicePort.getByIds(addonIds);
+
+        for (AddonServiceContract addonContract : addonServiceContracts) {
+            BookingAddon addon = BookingAddon.builder()
+                    .booking(booking)
+                    .addonService(modelMapper.map(addonContract, AddonService.class))
+                    .price(addonContract.getPrice())
+                    .build();
+
+            booking.getAddons().add(addon);
+        }
+
+        return booking;
+    }
+
+    /**
+     * Tính giá tiền của service package
+     */
+    private BigDecimal getServicePackagePrice(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate
+    ) {
+        ServicePackageContract servicePackage =
+                servicePackagePort.getServicePackage(servicePackageId);
+
+        boolean isVehicleBookingOnDateAndHasSubscription =
+                isVehicleBookingOnDateAndHasSubscription(vehicleId, servicePackageId, appointmentDate);
+
+        if (isVehicleBookingOnDateAndHasSubscription) {
+            return BigDecimal.ZERO;
+        }
+
+        return servicePackage.getBasePrice();
+    }
+
+    /**
+     * Kiểm tra xe có subscription và đã có booking trong ngày hay chưa
+     */
+    private boolean isVehicleBookingOnDateAndHasSubscription(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate
+    ) {
+
+        boolean hasSubscription =
+                hasSubscription(vehicleId, servicePackageId);
+
+
+        boolean isVehicleBookedOnDate =
+                isVehicleBookedOnDate(vehicleId, appointmentDate);
+
+
+        return hasSubscription && !isVehicleBookedOnDate;
+    }
+
+    /**
+     * Kiểm tra vehicle đã có booking trong ngày
+     */
+    private boolean isVehicleBookedOnDate(
+            Long vehicleId,
+            LocalDate appointmentDate
+    ) {
+
+        return bookingRepository
+                .existsByVehicleIdAndAppointmentDateAndStatusNot(
+                        vehicleId,
+                        appointmentDate,
+                        BookingStatus.CANCELED.toString()
+                );
+    }
+
+    private boolean hasSubscription(
+            Long vehicleId,
+            Integer servicePackageId
+    ) {
+
+        boolean hasFamily =
+                familySubscriptionPort
+                        .hasFamilySubscription(vehicleId, servicePackageId);
+
+        boolean hasUnlimited =
+                unlimitSubscriptionPort
+                        .hasUnlimitSubscription(vehicleId, servicePackageId);
+
+        return hasFamily || hasUnlimited;
+    }
+
+    /**
+     * tính giá tiền của addon service
+     *
+     * @return BigDecimal
+     */
+    private BigDecimal getAddonServicePrice(List<Integer> addonServiceIds) {
+        BigDecimal addonPrice;
+        boolean haveAddons = addonServiceIds != null && !addonServiceIds.isEmpty();
+
+        if (haveAddons) {
+            addonPrice = addonServicePort.calculateAddonPrice(addonServiceIds);
+        } else {
+            addonPrice = BigDecimal.ZERO;
+        }
+
+        return addonPrice;
+    }
+
+    /**
+     *
+     * Chức năng: Lấy customerId hiện tại đang thực hiện thao tác booking.
+     * <p>
+     * Quy trình:
+     * - Lấy thông tin user hiện tại từ JWT hoặc session.
+     * - Mapping user sang customerId tương ứng.
+     * - Trả về customerId phục vụ các nghiệp vụ booking.
+     *
+     * @return id của customer hiện tại
+     */
+    private Long getCurrentUserId() {
+        return securityUtils.getCurrentUserId();
+//        return 1L;
+    }
 }

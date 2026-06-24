@@ -38,6 +38,21 @@ public enum ErrorCode {
             "BOOKING_002",
             "Booking already cancelled"
     ),
+    VEHICLE_ALREADY_BOOKED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_003",
+            "Vehicle already has a booking on this date"
+    ),
+    BOOKING_SLOT_ALREADY_USED(
+            HttpStatus.CONFLICT,
+            "BOOKING_004",
+            "Booking slot already used"
+    ),
+    BOOKING_INVOICE_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "BOOKING_001",
+            "Booking already has an invoice"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",

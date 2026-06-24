@@ -25,4 +25,9 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         return servicePackageId;
     }
+
+    @Override
+    public boolean hasFamilySubscription(Long vehicle, Integer servicePackageId) {
+        return familySubscriptionRepository.existsActiveFamilySubscription(vehicle,servicePackageId);
+    }
 }

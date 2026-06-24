@@ -20,5 +20,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
         return unlimitSubscriptionRepository.findActiveServicePackageIdByVehicleId(vehicleId);
     }
 
-
+    @Override
+    public boolean hasUnlimitedSubscription(Long vehicle, Integer servicePackageId) {
+        return unlimitSubscriptionRepository.existsActiveUnlimitSubscription(vehicle, servicePackageId);
+    }
 }
