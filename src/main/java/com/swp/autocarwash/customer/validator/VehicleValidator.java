@@ -3,9 +3,12 @@ package com.swp.autocarwash.customer.validator;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 
 /**
@@ -26,21 +29,24 @@ public class VehicleValidator {
 
     /**
      *
-     * Kiểm tra dữ liệu trước khi tạo vehicle
+     * Kiểm tra dữ liệu trước khi tạo vehicle.
      *
-     * @param request request tạo xe
+     * Biển số trùng chỉ bị chặn khi xe đó ĐÃ CÓ customer (đã có chủ thật).
+     * Nếu xe tồn tại nhưng customer đang null (ví dụ xe walk-in cũ được tạo
+     * lúc check-in, chưa gắn tài khoản nào) -> cho qua, service sẽ gắn
+     * customer hiện tại vào chính xe đó thay vì tạo dòng mới.
+     *
+     * @param existingVehicle xe tìm được theo biển số (nếu có), do service truyền vào
      */
     public void validateCreate(
-            CreateVehicleRequest request
+            Optional<Vehicle> existingVehicle
     ) {
 
+        boolean licensePlateAlreadyExists =
+                existingVehicle.isPresent()
+                        && existingVehicle.get().getCustomer() != null;
 
-        if(
-                vehicleRepository
-                        .existsByLicensePlate(
-                                request.getLicensePlate()
-                        )
-        ){
+        if (licensePlateAlreadyExists) {
 
             throw new BusinessException(
                     ErrorCode.LICENSE_PLATE_ALREADY_EXISTS
