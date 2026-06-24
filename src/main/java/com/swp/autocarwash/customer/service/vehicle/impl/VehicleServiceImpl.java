@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 /**
  *
@@ -41,11 +43,15 @@ public class VehicleServiceImpl
      * Create vehicle
      *
      * Flow:
-     * 1. Validate vehicle data
-     * 2. Check customer exists via port
-     * 3. Create vehicle
-     * 4. Save
-     * 5. Return response
+     * 1. Tìm xe theo biển số xem đã tồn tại chưa (vd xe walk-in cũ chưa có chủ)
+     * 2. Validate: nếu biển số đã có chủ (customer khác null) -> báo lỗi trùng
+     * 3. Lấy customer tương ứng với userId đang đăng nhập (qua CustomerPort)
+     * 4a. Nếu xe đã tồn tại nhưng chưa có chủ -> gắn customer vào xe cũ (UPDATE),
+     *     không tạo dòng mới, để giữ nguyên lịch sử (booking, review...) đang gắn theo vehicle_id cũ
+     * 4b. Nếu chưa có xe nào với biển số này -> tạo vehicle mới, field FE không gửi
+     *     (violationCount, restrictedUntil, isDeleted) -> set mặc định
+     * 5. Save
+     * 6. Return response
      */
     @Override
     @Transactional
@@ -54,31 +60,55 @@ public class VehicleServiceImpl
             CreateVehicleRequest request
     ){
 
+        Optional<Vehicle> existingVehicleOpt =
+                vehicleRepository.findByLicensePlate(
+                        request.getLicensePlate()
+                );
 
         vehicleValidator
-                .validateCreate(request);
+                .validateCreate(existingVehicleOpt);
 
 
-        // user đăng nhập lấy từ JWT
+
+        // Xác định customer đang đăng nhập dựa vào userId lấy từ JWT,
+        // không còn nhận customerId trực tiếp từ FE (tránh client tự ý add xe cho người khác)
         Customer customer =
                 customerPort.getCustomerReferenceByUserId(userId);
 
 
 
-        Vehicle vehicle =
-                Vehicle.builder()
-                        .customer(customer)
-                        .licensePlate(request.getLicensePlate())
-                        .brandName(request.getBrandName())
-                        .color(request.getColor())
-                        // các field FE ko gửi thì set giá trị mặc định
-                        .violationCount(0)
-                        .restrictedUntil(null)
-                        .isDeleted(false)
-                        .build();
+        Vehicle savedVehicle;
 
-        Vehicle savedVehicle =
-                vehicleRepository.save(vehicle);
+        if (existingVehicleOpt.isPresent()) {
+
+            // Xe walk-in cũ chưa có chủ -> gắn customer hiện tại vào,
+            // KHÔNG tạo dòng mới để tránh trùng license_plate và mất lịch sử cũ của xe
+            Vehicle existingVehicle =
+                    existingVehicleOpt.get();
+
+            existingVehicle.setCustomer(customer);
+
+            savedVehicle =
+                    vehicleRepository.save(existingVehicle);
+
+        } else {
+
+            Vehicle vehicle =
+                    Vehicle.builder()
+                            .customer(customer)
+                            .licensePlate(request.getLicensePlate())
+                            .brandName(request.getBrandName())
+                            .color(request.getColor())
+                            // các field FE không gửi -> set giá trị mặc định
+                            .violationCount(0)
+                            .restrictedUntil(null)
+                            .isDeleted(false)
+                            .build();
+
+            savedVehicle =
+                    vehicleRepository.save(vehicle);
+
+        }
 
         return vehicleMapper
                 .toResponse(

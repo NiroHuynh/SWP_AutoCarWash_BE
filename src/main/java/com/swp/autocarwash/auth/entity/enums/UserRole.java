@@ -6,8 +6,8 @@ package com.swp.autocarwash.auth.entity.enums;
  */
 public enum UserRole {
 
-    ROLE_CUSTOMER,
-    ROLE_STAFF,
-    ROLE_ADMIN
+    ADMIN,
+    STAFF,
+    CUSTOMER
 
 }

@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public boolean register(RegisterRequest request) {
         Role customerRole =
-                roleRepository.findByName(UserRole.ROLE_CUSTOMER.name())
+                roleRepository.findByName(UserRole.CUSTOMER.name())
                         .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
 
         CustomerTier memberTier =
