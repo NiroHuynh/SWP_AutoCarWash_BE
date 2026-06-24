@@ -14,6 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// author: Ngọc — thêm import cho CORS
+import org.springframework.security.config.Customizer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 
 
 //B2: Chuẩn bị nguyên liệu cho cuộc chơi bảo mật vòng trong
@@ -21,7 +27,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity  //Điều động lập bốt gác vòng ngoài chặn URL Web
 @EnableMethodSecurity   //Gác cổng ở vòng trong (tận các hàm xử lý code Service)
 public class SecurityConfig {
-
 
     @Bean
     //ký gửi (@Bean) cái cỗ máy mã hoá mật khẩu này vào IOC Container để ví dụ như bên Login tiêm, chích nó vào sử dụng
@@ -31,33 +36,45 @@ public class SecurityConfig {
 
     //Khai báo ông trùm quản lý xác thực trung tâm
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config){
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
     //Tiêm bộ lọc JWT được viết ở bước 3 vào đây
-
     //Hàm này nhào nặn ra cái bọc lính gác DefaultSecurityFilterChain(chứa 1 chuỗi các filter) -> để nạp vào ruột của FilterChainProxy
     //FilterChainProxy sẽ điều phối những url nào cần chạy qua SecurityFilterChain chẳng hạn
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter){
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
             //1. tắt CSRF
             http.csrf(AbstractHttpConfigurer::disable)
+            // author: Ngọc — thêm cors() để Security không chặn preflight request từ FE
+            .cors(Customizer.withDefaults())
             //2. chuyển sang STATELESS(ko lưu Session/Cookie trên Server)
-            .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             //3. quy định gác cổng, url nào được phép tự do, url nào phải khoá lại
-            .authorizeHttpRequests( auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
-                            .requestMatchers("/error").permitAll()
-            //mở toang cửa cho cụm API login
-            .anyRequest().authenticated()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                //mở toang cửa cho cụm API login
+                //tất cả các API khác đều phải có token
+                .anyRequest().authenticated()
             );
-            //tất cả các API khác đều phải có token
-            // nghĩa là tại đây vào đều cần phải có xác thưc
             //khi một request rơi vào ô này thì sẽ bị chặn lại -> thò tay vào SecurityContextHolder
             // check xem thử có Authentication không rồi mới cho qua/ nó check cái thẻ isAuthenticated()
             http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();
     }
 
-
+    // author: Ngọc — thêm bean CORS cho Security cho phép FE localhost:5173 gọi API
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 }
