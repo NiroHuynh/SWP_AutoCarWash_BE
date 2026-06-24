@@ -56,4 +56,11 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
     boolean existsByIdAndCustomerId(Integer vehicleId, Integer customerId);
 
     Optional<Vehicle> findByLicensePlateAndIsDeletedFalse(String licensePlate);
+
+    //lấy ta danh sách vehicle của thuộc 1 customer
+    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
+
+    //kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay ko
+    boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
+
 }
