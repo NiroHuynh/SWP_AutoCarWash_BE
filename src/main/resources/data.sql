@@ -7,15 +7,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 INSERT IGNORE INTO role (id, name)
 VALUES
     (1, 'ADMIN'),
-    (2, 'MANAGER'),
-    (3, 'EMPLOYEE'),
-    (4, 'CUSTOMER'),
-    (5, 'SUPPORT'),
-    (6, 'ACCOUNTANT'),
-    (7, 'MARKETING'),
-    (8, 'HR'),
-    (9, 'AUDITOR'),
-    (10, 'GUEST');
+    (2, 'STAFF'),
+    (3, 'CUSTOMER');
+
 
 -- =====================================================================
 -- USER (27) — 1 admin, 2 manager, 12 staff (EMPLOYEE), 12 customer
