@@ -59,7 +59,7 @@ public class VehicleServiceImpl
                 .validateCreate(request);
 
 
-        // user đăng nhập lấy từ JWWT
+        // user đăng nhập lấy từ JWT
         Customer customer =
                 customerPort.getCustomerReferenceByUserId(userId);
 
