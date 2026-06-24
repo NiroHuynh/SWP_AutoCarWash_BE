@@ -41,7 +41,7 @@ public class QueueTicket {
     @Size(max = 20)
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
-    private QueueStatus status;
+    private String status;
 
     @CreationTimestamp
     @Column(name = "issued_at")

@@ -59,11 +59,11 @@ VALUES
 
 -- CUSTOMER
 INSERT IGNORE INTO customer
-(id, user_id, first_name, last_name, customer_tier_id)
+(id, user_id, first_name, last_name, customer_tier_id,violation_count, restricted_until)
 VALUES
-    (1, 5, 'Phong', 'Huynh', 1),
-    (2, 6, 'Nam',   'Tran',  2),
-    (3, 7, 'Linh',  'Le',    3);
+    (1, 5, 'Phong', 'Huynh', 1,null,null),
+    (2, 6, 'Nam',   'Tran',  2,3,null),
+    (3, 7, 'Linh',  'Le',    3,null,null);
 
 -- VEHICLE
 -- restricted_until dùng timestamp quá khứ thay vì NULL
@@ -73,8 +73,10 @@ VALUES
     (1, 1, '51A-11111', 'Toyota', 'White',  0, '2020-01-01 00:00:00', false),
     (2, 1, '51A-22222', 'Honda',  'Blue',   0, '2020-01-01 00:00:00', false),
     (3, 2, '51B-33333', 'Honda',  'Black',  0, '2020-01-01 00:00:00', false),
-    (4, 3, '30A-44444', 'Mazda',  'Red',    0, '2020-01-01 00:00:00', false);
-
+    (4, 3, '30A-44444', 'Mazda',  'Red',    0, '2020-01-01 00:00:00', false),
+    (5, 2, '51A-12345', 'Mazda',  'Red',    0, null,  false);
+#     (5, 2, '51A-12345', 'Mazda',  'Red',    0, DATE_ADD(NOW(), INTERVAL 5 DAY),  false),
+# (5, 2, '51A-12345', 'Mazda',  'Red',    0, null, false);
 -- SERVICE CATEGORY
 INSERT IGNORE INTO service_category
 (id, category_name)
@@ -201,7 +203,12 @@ VALUES
      '2026-06-12 08:00:00', '2020-01-01 00:00:00', '2020-01-01 00:00:00', '2020-01-01 00:00:00',
      true,
      300000, 150000, 450000,
-     0, 0);
+     0, 0),
+
+    (12, 2, 5,  2,CURDATE(), 'CONFIRMED', 'WALK_IN', 2,
+     '2026-06-22 08:00:00', null, null, null, false,100000,0, 100000,
+    0,0);
+
 
 -- BOOKING ADDON
 INSERT IGNORE INTO booking_addon
@@ -236,7 +243,10 @@ VALUES
     (12, 1, '10:00', '11:00', 5, '2026-06-05', 0, 'AVAILABLE'),  -- booking 5 (CANCELLED)
     (13, 1, '09:00', '10:00', 5, '2026-06-15', 1, 'COMPLETED'),  -- booking 10 (NO_SHOW)
     (14, 2, '09:00', '10:00', 5, '2026-06-14', 1, 'COMPLETED'),  -- booking 11 slot 1 (NO_SHOW)
-    (15, 2, '10:00', '11:00', 5, '2026-06-14', 1, 'COMPLETED');  -- booking 11 slot 2 (NO_SHOW)
+    (15, 2, '10:00', '11:00', 5, '2026-06-14', 1, 'COMPLETED'),  -- booking 11 slot 2 (NO_SHOW)
+
+    (16,1, '12:30:00', '13:00:00', 4, CURDATE(), 1, 'AVAILABLE');
+
 
 -- BOOKING SLOT ALLOCATION
 -- (booking_id, booking_slot_id)
@@ -257,7 +267,8 @@ VALUES
     (9,  11),  -- booking 9 → slot 11 (PAID)
     (10, 13),  -- booking 10 → slot 13 (NO_SHOW)
     (11, 14),  -- booking 11 → slot 14 (NO_SHOW)
-    (11, 15);  -- booking 11 → slot 15 (NO_SHOW, Premium 2 slots)
+    (11, 15), -- booking 11 → slot 15 (NO_SHOW, Premium 2 slots)
+    (12, 16);
 
 -- INVOICE (cho booking PAID và CHECKED_IN)
 INSERT IGNORE INTO booking_invoice
@@ -309,5 +320,20 @@ VALUES
     ('DEPOSIT_PERCENT', '30', 'Deposit percent',    'NUMBER'),
     ('MAX_BOOKING_DAY', '30', 'Maximum booking day','NUMBER'),
     ('DEFAULT_DEPOSIT_AMOUNT', '20000', 'Deposit amount','BIG DECIMAL');
+
+# --WASH LANE (ĐÃ CHUẨN HÓA)
+-- 1. Tắt tạm khóa ngoại và xóa sạch bảng để reset ID tự tăng về 1
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE wash_lane;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 2. Chỉ định đích danh ID để tránh việc Hibernate đẩy số tự tăng làm lệch data test
+INSERT INTO wash_lane (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
+VALUES (1, 1, 'Làn Rửa Số 1 - VIP', 'WASHING', 3, FALSE);
+
+INSERT INTO wash_lane (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
+VALUES (2, 1, 'Làn Rửa Số 2 - Tiêu Chuẩn', 'WASHING', 3, FALSE);
+
+COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;

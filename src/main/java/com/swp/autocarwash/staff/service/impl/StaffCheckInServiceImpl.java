@@ -104,7 +104,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         // AC04: Áp dụng TRƯỚC khi xét đúng giờ/sớm/trễ - khách Walk-in đang bị
         // restricted_until (đã từng vi phạm > 3 lần) phải bị chặn check-in cho đến khi
         // Staff thu 20.000đ cọc tại quầy (gọi API collectWalkInPenaltyDeposit trước).
-        if (booking.getBookingType() == BookingType.WALK_IN.toString()) {
+        if (booking.getBookingType().equals(BookingType.WALK_IN.toString()) ) {
             Vehicle vehicle = booking.getVehicle();
             boolean penalized = isVehiclePenalized(vehicle);
             boolean depositCollected = Boolean.TRUE.equals(booking.getIsDepositPaid());
@@ -131,7 +131,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
         if (isEarly) {
             // Subtask 3.3: luồng "ĐẾN SỚM" (> 15 phút)
-            if (washLaneRepository.findByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE)) {
+            if (washLaneRepository.existsByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE.toString())) {
                 return doCheckIn(booking, slots.get(0), (int) minutesDeviation,
                         "Checked in early - lane available");
             }
@@ -155,7 +155,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .station(slot.getStation())
                 .booking(booking)
                 .ticketNumber(generateTicketNumber(slot.getStation().getId(),true))
-                .status(QueueStatus.WAITING)
+                .status(QueueStatus.WAITING.toString())
                 .isBooking(true)
                 .build();
         queueTicketRepository.save(ticket);
@@ -175,7 +175,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
      * Phân nhánh theo loại booking: Khách lẻ (chuyển Walk-in) hoặc Khách dùng Package (phạt vi phạm).
      */
     private CheckInResultResponse handleLateArrival(Booking booking, BookingSlot slot, int minutesDeviation) {
-        if (washLaneRepository.findByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE)) {
+        if (washLaneRepository.existsByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE.toString())) {
             // Trường hợp 1: Cửa hàng còn làn trống -> châm chước, bỏ qua phạt.
             return doCheckIn(booking, slot, minutesDeviation, "Checked in late - lane available, penalty waived");
         }
@@ -184,7 +184,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         booking.setStatus(BookingStatus.NO_SHOW.toString());
         bookingRepository.save(booking);
 
-        if (booking.getBookingType() == BookingType.SUBSCRIPTION.toString()) {
+        if (booking.getBookingType().equals(BookingType.SUBSCRIPTION.toString())) {
             //  Khách dùng gói Unlimited/Family -> phạt phải cộng vào
             // CUSTOMER (không phải vehicle), vì gói này không gắn 1 xe cố định.
             Customer customer = customerRepository.findById(booking.getCustomer().getId())
@@ -224,10 +224,12 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         // Bước 2.1: Xác định Prefix theo loại khách
         String prefix = isBooked ? "B" : "W";
 
-        // Bước 2.2: Đếm số vé đã cấp trong ngày hôm nay tại chi nhánh này
+        // Bước 2.2: Đếm số vé đã cấp trong ngày hôm nay tại chi nhánh nàystart
+
         LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        LocalDateTime localStart = today.atStartOfDay();
+        Instant startOfDay = localStart.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+        Instant endOfDay = startOfDay.plus(1, ChronoUnit.DAYS);
 
         long countToday = queueTicketRepository.countByStationIdAndIssuedAtBetween(
                 stationId, startOfDay, endOfDay);
@@ -245,7 +247,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if (booking.getBookingType() != BookingType.WALK_IN.toString()) {
+        if (!booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
             throw new BusinessException(ErrorCode.PENALTY_ONLY_FOR_WALK_IN);
         }
 

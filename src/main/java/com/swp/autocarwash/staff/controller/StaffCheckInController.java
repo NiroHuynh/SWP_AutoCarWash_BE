@@ -23,7 +23,7 @@ public class StaffCheckInController {
     public ResponseEntity<ApiResponse<ScanVehicleResponse>> scanVehicle
             (@Valid @RequestBody ScanVehicleRequest request){
         ScanVehicleResponse response = staffCheckinService.scanVehicle(request.getLicensePlate());
-        return ResponseEntity.ok(ApiResponse.success("Have booking in the system",response));
+        return ResponseEntity.ok(ApiResponse.success("Checked booking in the system with the result above",response));
     }
 
     //endpoint xác nhận check-in khi Staff bấm nút [CONFIRM CHECK_IN]

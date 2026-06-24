@@ -47,6 +47,7 @@ public class SecurityConfig {
             .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             //3. quy định gác cổng, url nào được phép tự do, url nào phải khoá lại
             .authorizeHttpRequests( auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
+                            .requestMatchers("/error").permitAll()
             //mở toang cửa cho cụm API login
             .anyRequest().authenticated()
             );
