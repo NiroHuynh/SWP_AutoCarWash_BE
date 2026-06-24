@@ -112,4 +112,17 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("status") String status
     );
 
+    //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.vehicle.id = :vehicleId " +
+            "AND b.appointmentDate = :appointmentDate " +
+            "AND b.status = :status " +
+            "AND b.isDepositPaid = true " +
+            "AND b.depositConfiscatedAt IS NULL")
+    Optional<Booking> findBookingToRescueDeposit(
+            @Param("vehicleId") Long vehicleId,
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
+
 }
