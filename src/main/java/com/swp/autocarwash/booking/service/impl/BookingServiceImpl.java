@@ -16,6 +16,7 @@ import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
+import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.station.entity.Station;
 import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
@@ -117,6 +118,7 @@ public class BookingServiceImpl implements BookingService {
     private final VehiclePort vehiclePort;
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+    private final QueueTicketRepository queueTicketRepository;
 
 
     /**
@@ -329,6 +331,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
+
         booking.setStatus("CANCELLED");
         booking.setCanceledAt(Instant.now());
         bookingRepository.save(booking);
@@ -348,8 +351,64 @@ public class BookingServiceImpl implements BookingService {
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .vehicleId(booking.getVehicle().getId())
                     .bookingId(bookingId)
-                    // TODO: resolve từ staff principal thật khi endpoint staff-cancel-after-checkin
-                    // (BL-QU-05) ra đời — cancelBooking() hiện không có actor staff đã xác thực.
+                    .canceledByStaffId(null)
+                    .bookingType(booking.getBookingType())
+                    .isDepositPaid(booking.getIsDepositPaid())
+                    .checkInAt(booking.getCheckInAt())
+                    .canceledAt(booking.getCanceledAt()).build());
+        }
+
+        return getBookingDetail(bookingId);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Luồng xử lý:
+     * <ol>
+     *   <li>Validate booking đang ở trạng thái CHECKED_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
+     *   <li>Đổi status booking sang CANCELLED, ghi nhận canceledAt.</li>
+     *   <li>Giải phóng slot đã đặt (giảm bookedCount).</li>
+     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELLED .</li>
+     *   <li>Resolve Staff thực hiện hành động từ actingUserId, publish BookingCanceledEvent
+     *       để các listener xử lý tịch thu cọc / cộng điểm vi phạm / cập nhật dashboard.</li>
+     * </ol>
+     * </p>
+     */
+
+    @Override
+    @Transactional
+    public BookingDetailResponse cancelGuestLeftAtCheckIn(Long bookingId, Long actingUserId) {
+        Booking booking = bookingRepository.findDetailById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if("CHECK_IN".equals(booking.getStatus())){
+            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
+        }
+
+        booking.setStatus("CANCELLED");
+        booking.setCanceledAt(Instant.now());
+        bookingRepository.save(booking);
+
+        List<BookingSlotAllocation> allocations =
+                bookingSlotAllocationRepository.findByBookingId(bookingId);
+        for (BookingSlotAllocation allocation : allocations) {
+            BookingSlot slot = allocation.getBookingSlot();
+            slot.setBookedCount(slot.getBookedCount() - 1);
+            slotRepository.save(slot);
+        }
+        // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
+        // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
+        queueTicketRepository.findQueueTicketByBookingId(bookingId).ifPresent(ticket -> {
+            ticket.setStatus("CANCELLED");
+            queueTicketRepository.save(ticket);
+        });
+        if (booking.getCheckInEmployee() != null) {
+            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                    .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
+                    .vehicleId(booking.getVehicle().getId())
+                    .bookingId(bookingId)
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
                     .isDepositPaid(booking.getIsDepositPaid())
