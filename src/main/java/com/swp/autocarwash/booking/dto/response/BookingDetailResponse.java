@@ -85,6 +85,8 @@ public class BookingDetailResponse {
     /** Tổng giá các addon. */
     private BigDecimal addonTotal;
 
+
+    private BigDecimal depositAmount;
     /**
      * Mã voucher đã áp dụng.
      * {@code null} nếu không dùng voucher.
@@ -106,9 +108,6 @@ public class BookingDetailResponse {
     /** Trạng thái đã đặt cọc hay chưa. */
     private Boolean isDepositPaid;
 
-    /** Số tiền đặt cọc. */
-    private BigDecimal depositAmount;
-
-    /** Số tiền còn lại cần thanh toán tại quầy (totalAmount - depositAmount). */
+    /** Số tiền còn lại cần thanh toán tại quầy (totalAmount - tiền cọc đã thanh toán). */
     private BigDecimal remainingAmount;
 }
