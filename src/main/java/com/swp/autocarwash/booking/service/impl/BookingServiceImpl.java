@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of("CONFIRMED", "CHECKED_IN", "WASHING");
+            List.of("CONFIRMED", "CHECKED_IN", "WASHING", "PENDING");
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
@@ -82,6 +82,11 @@ public class BookingServiceImpl implements BookingService {
      * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
      */
     private static final long CANCEL_THRESHOLD_MINUTES = 120;
+
+    /**
+     * Số tiền đặt cọc cố định theo BL-BK-00 (không lưu theo từng booking).
+     */
+    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
 
     /**
      * Múi giờ hệ thống.
@@ -224,7 +229,7 @@ public class BookingServiceImpl implements BookingService {
      *   <li>Lấy allocations (slot + station), addons và voucher đã dùng của booking.</li>
      *   <li>Xác định startTime, endTime, station từ slot đầu/cuối (nếu có).</li>
      *   <li>Lấy tên kỹ thuật viên check-in (nếu đã check-in) và thông tin voucher (nếu có).</li>
-     *   <li>Tính remainingAmount = totalAmount - depositAmount.</li>
+     *   <li>Tính remainingAmount = totalAmount - tiền cọc cố định (nếu đã đặt cọc).</li>
      *   <li>Map toàn bộ dữ liệu sang {@link BookingDetailResponse} và trả về.</li>
      * </ol>
      * </p>
@@ -278,18 +283,16 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // Bước 6: Tính số tiền còn lại = tổng tiền - tiền cọc
-        BigDecimal deposit = BigDecimal.ZERO;
-
-        if (booking.getDepositAmount() != null) {
-            deposit = booking.getDepositAmount();
-        }
+        BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
+                ? DEFAULT_DEPOSIT_AMOUNT
+                : BigDecimal.ZERO;
 
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-                technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
+                technicianName, voucherCode, voucherDiscountPercent,deposit, remainingAmount);
     }
 
     /**
@@ -343,7 +346,7 @@ public class BookingServiceImpl implements BookingService {
         List<String> actions;
         switch (booking.getStatus()) {
             case "PAID":
-                actions = List.of("WRITE_REVIEW");
+                actions = List.of("WRITE_REVIEW", "VIEW_DETAILS");
                 break;
             case "CONFIRMED":
                 // Nếu không có giờ thì dùng 00:00 cho an toàn
