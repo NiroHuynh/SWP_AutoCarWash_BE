@@ -38,6 +38,12 @@ public enum ErrorCode {
             "BOOKING_002",
             "Booking already cancelled"
     ),
+
+    BOOKING_NOT_CHECKED_IN(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_006",
+            "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",

@@ -72,6 +72,21 @@ public interface BookingService {
      */
     BookingDetailResponse cancelBooking(Long bookingId);
 
+
+    /**
+     * Chức năng: Staff hủy 1 booking đang CHECKED_IN trong queue vì khách bỏ về (BL-QU-05).
+     *
+     * <p>Khác với {@link #cancelBooking(Long)} (khách tự hủy khi còn CONFIRMED):
+     * action này chỉ staff thực hiện, chỉ áp dụng khi booking đã CHECKED_IN, và
+     * phát sinh hậu quả khác hẳn (tịch thu cọc / cộng điểm vi phạm / khóa tài khoản-xe).</p>
+     *
+     * @param bookingId    id của booking đang CHECKED_IN cần hủy
+     * @param actingUserId id của user (auth.User) đang đăng nhập, để xác định Staff thực hiện hành động
+     * @return thông tin chi tiết booking sau khi hủy
+     * @author KimNgan
+     * @version 1.0
+     */
+    BookingDetailResponse cancelGuestLeftAtCheckIn(Long bookingId, Long actingUserId);
     /**
      *
      * Chức năng: Tạo mới một booking và xử lý toàn bộ logic nghiệp vụ liên quan.
