@@ -77,13 +77,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findConfirmedBookingByLicensePlate(
         @Param("licensePlate") String licensePlate,
-        @Param("status") BookingStatus status,
+        @Param("status") String status,
         @Param("appointmentDate") LocalDate appointmentDate
     );
 
     //tự lấy status CONFIRMED và ngày hiện tại
     default Optional<Booking> findConfirmedBookingTodayByLicensePlate(String licensePlate){
-        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED, LocalDate.now());
+        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED.toString(), LocalDate.now());
     }
 
     /**
@@ -94,13 +94,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Dùng cho Cron Job tịch thu tiền cọc cuối ngày.
      */
 
-    @Query("""
-        SELECT b FROM Booking b 
-        WHERE b.appointmentDate = :appointmentDate
-        AND b.status = :status
-        AND b.isDepositPaid = true
-        AND b.depositConfiscatedAt IS NULL
-        """)
+//    @Query("""
+//        SELECT b FROM Booking b
+//        WHERE b.appointmentDate = :appointmentDate
+//        AND b.status = :status
+//        AND b.isDepositPaid = true
+//        AND b.depositConfiscatedAt IS NULL
+//        """)
+//    List<Booking> findNoShowBookingsPendingDepositConfiscation(
+//            @Param("appointmentDate") LocalDate appointmentDate,
+//            @Param("status") String status
+//    );
+
+    @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.status = :status AND b.isDepositPaid = true AND b.depositConfiscatedAt IS NULL")
     List<Booking> findNoShowBookingsPendingDepositConfiscation(
             @Param("appointmentDate") LocalDate appointmentDate,
             @Param("status") String status

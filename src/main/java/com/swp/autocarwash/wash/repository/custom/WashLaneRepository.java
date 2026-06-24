@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WashLaneRepository extends JpaRepository<WashLane, Integer> {
     //check xem hệ thống có bất kỳ làn rửa nào ở trạng thái đc truyền vào hay ko
-    boolean findByStatus(WashLaneStatus status);
+    Boolean existsByStatus(String status);
 
     //loại trừ những thằng đã bị softdeleted ra
-    boolean findByStatusAndIsDeletedFalse(WashLaneStatus status);
+    Boolean existsByStatusAndIsDeletedFalse(String status);
 }
