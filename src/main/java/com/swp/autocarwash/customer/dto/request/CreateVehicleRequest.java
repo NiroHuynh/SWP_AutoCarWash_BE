@@ -20,17 +20,6 @@ import lombok.*;
 @AllArgsConstructor
 public class CreateVehicleRequest {
 
-
-    /**
-     * Customer sở hữu xe
-     */
-    @NotNull(
-            message = "Customer id is required"
-    )
-    private Integer customerId;
-
-
-
     /**
      * Biển số xe
      */

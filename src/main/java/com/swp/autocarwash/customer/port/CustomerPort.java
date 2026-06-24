@@ -5,15 +5,13 @@ import com.swp.autocarwash.customer.entity.Customer;
 
 public interface CustomerPort {
 
-
     /**
-     * Get customer reference
+     * Get customer tương ứng với userId (lấy từ JWT của user đang đăng nhập).
      *
-     * @param customerId customer id
-     * @return customer entity reference
+     * @param userId id của user
+     * @return customer entity tương ứng
      */
-    Customer getCustomerReference(
-            Long customerId
+    Customer getCustomerReferenceByUserId(
+            Long userId
     );
-
 }

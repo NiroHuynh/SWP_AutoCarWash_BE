@@ -50,6 +50,7 @@ public class VehicleServiceImpl
     @Override
     @Transactional
     public CreateVehicleResponse createVehicle(
+            Long userId,
             CreateVehicleRequest request
     ){
 
@@ -58,11 +59,9 @@ public class VehicleServiceImpl
                 .validateCreate(request);
 
 
-
+        // user đăng nhập lấy từ JWWT
         Customer customer =
-                customerPort.getCustomerReference(
-                        Long.parseLong(request.getCustomerId().toString())
-                );
+                customerPort.getCustomerReferenceByUserId(userId);
 
 
 
@@ -72,7 +71,9 @@ public class VehicleServiceImpl
                         .licensePlate(request.getLicensePlate())
                         .brandName(request.getBrandName())
                         .color(request.getColor())
+                        // các field FE ko gửi thì set giá trị mặc định
                         .violationCount(0)
+                        .restrictedUntil(null)
                         .isDeleted(false)
                         .build();
 

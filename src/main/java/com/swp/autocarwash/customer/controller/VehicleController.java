@@ -1,5 +1,6 @@
 package com.swp.autocarwash.customer.controller;
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
@@ -25,6 +26,7 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
 
+    private final SecurityUtils securityUtils;
 
 
     /**
@@ -43,9 +45,11 @@ public class VehicleController {
             CreateVehicleRequest request
     ){
 
+        Long userId = securityUtils.getCurrentUserId();
+
         CreateVehicleResponse response =
                 vehicleService
-                        .createVehicle(request);
+                        .createVehicle(userId, request);
 
         return ApiResponse.success(
                         "Vehicle added successfully",
