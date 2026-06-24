@@ -24,6 +24,7 @@ public interface VehicleService {
      * @return vehicle response
      */
     CreateVehicleResponse createVehicle(
+            Long userId,
             CreateVehicleRequest request
     );
 

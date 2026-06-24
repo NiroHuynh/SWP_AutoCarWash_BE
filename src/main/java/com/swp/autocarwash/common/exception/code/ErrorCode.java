@@ -82,6 +82,11 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "LOYALTY_001",
             "Customer tier not found"
+    ),
+    CUSTOMER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "CUSTOMER_001",
+            "Customer not found"
     ),;
 
     private final HttpStatus status;
