@@ -63,7 +63,7 @@ VALUES
     (10, 21, 'rt-cust-00000000000000010',  DATE_SUB(NOW(), INTERVAL 3 DAY),  DATE_SUB(NOW(), INTERVAL 33 DAY));
 
 -- =====================================================================
--- PROVINCE (10)
+-- PROVINCE (5)
 -- =====================================================================
 INSERT IGNORE INTO province (id, province_name)
 VALUES
@@ -71,15 +71,10 @@ VALUES
     (2, 'Ho Chi Minh'),
     (3, 'Ha Noi'),
     (4, 'Da Nang'),
-    (5, 'Can Tho'),
-    (6, 'Binh Duong'),
-    (7, 'Dong Nai'),
-    (8, 'Khanh Hoa'),
-    (9, 'Hai Phong'),
-    (10, 'Lam Dong');
+    (5, 'Can Tho');
 
 -- =====================================================================
--- COMMUNE (12)
+-- COMMUNE (7) — each province has 1 or 2 communes
 -- =====================================================================
 INSERT IGNORE INTO commune (id, commune_name, province_id)
 VALUES
@@ -88,30 +83,23 @@ VALUES
     (3,  'Cau Giay',  3),
     (4,  'Hai Chau',  4),
     (5,  'Ninh Kieu', 5),
-    (6,  'Thuan An',  6),
-    (7,  'Bien Hoa',  7),
-    (8,  'Nha Trang', 8),
-    (9,  'Hong Bang', 9),
-    (10, 'Da Lat',    10),
     (11, 'Go Vap',    2),
     (12, 'Ba Dinh',   3);
 
 -- =====================================================================
--- STATION (10)
+-- STATION (8) — each commune has 1 or 2 stations
 -- =====================================================================
 INSERT IGNORE INTO station
 (id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
 VALUES
-    (1,  'AutoWash My Tho',       '123 Ap Bac, My Tho',              1,  true,  20, false),
-    (2,  'AutoWash HCM Thu Duc',  '456 Vo Van Ngan, Thu Duc, HCM',   2,  true,  30, false),
-    (3,  'AutoWash Ha Noi',       '12 Cau Giay, Ha Noi',             3,  true,  25, false),
-    (4,  'AutoWash Da Nang',      '78 Nguyen Van Linh, Da Nang',     4,  true,  20, false),
-    (5,  'AutoWash Can Tho',      '34 Mau Than, Ninh Kieu, Can Tho', 5,  true,  18, false),
-    (6,  'AutoWash Binh Duong',   '56 Le Hong Phong, Thuan An',      6,  true,  22, false),
-    (7,  'AutoWash Dong Nai',     '9 Pham Van Thuan, Bien Hoa',      7,  true,  20, false),
-    (8,  'AutoWash Nha Trang',    '21 Tran Phu, Nha Trang',          8,  true,  15, false),
-    (9,  'AutoWash Hai Phong',    '88 Lach Tray, Hong Bang',         9,  true,  18, false),
-    (10, 'AutoWash Da Lat',       '5 Tran Phu, Da Lat',              10, false, 12, false);
+    (1,  'AutoWash My Tho',         '123 Ap Bac, My Tho',              1,  true, 20, false),
+    (2,  'AutoWash HCM Thu Duc',    '456 Vo Van Ngan, Thu Duc, HCM',   2,  true, 30, false),
+    (3,  'AutoWash Ha Noi',         '12 Cau Giay, Ha Noi',             3,  true, 25, false),
+    (4,  'AutoWash Da Nang',        '78 Nguyen Van Linh, Da Nang',     4,  true, 20, false),
+    (5,  'AutoWash Can Tho',        '34 Mau Than, Ninh Kieu, Can Tho', 5,  true, 18, false),
+    (6,  'AutoWash HCM Thu Duc 2',  '12 Kha Van Can, Thu Duc, HCM',    2,  true, 22, false),
+    (7,  'AutoWash HCM Go Vap',     '34 Quang Trung, Go Vap, HCM',     11, true, 20, false),
+    (8,  'AutoWash Ha Noi Ba Dinh', '7 Doi Can, Ba Dinh, Ha Noi',      12, true, 18, false);
 
 -- =====================================================================
 -- WASH LANE (15)
@@ -132,8 +120,8 @@ VALUES
     (11, 6,  'Lane 2', 'ACTIVE',   4, false),
     (12, 7,  'Lane 1', 'ACTIVE',   3, false),
     (13, 8,  'Lane 1', 'ACTIVE',   3, false),
-    (14, 9,  'Lane 1', 'ACTIVE',   3, false),
-    (15, 10, 'Lane 1', 'INACTIVE', 3, false);
+    (14, 6,  'Lane 1', 'ACTIVE',   3, false),
+    (15, 7,  'Lane 1', 'INACTIVE', 3, false);
 
 -- =====================================================================
 -- STAFF (12)
@@ -151,43 +139,31 @@ VALUES
     (8,  11, 6,  'Hieu',  'Do'),
     (9,  12, 7,  'Ich',   'Ho'),
     (10, 13, 8,  'Khang', 'Ngo'),
-    (11, 14, 9,  'Loan',  'Ly'),
-    (12, 15, 10, 'Minh',  'Vu');
+    (11, 14, 6,  'Loan',  'Ly'),
+    (12, 15, 7,  'Minh',  'Vu');
 
 -- =====================================================================
--- CUSTOMER TIER (10)
+-- CUSTOMER TIER (4)
 -- =====================================================================
 INSERT IGNORE INTO customer_tier
 (id, tier_name, min_points, booking_window_days, point_multiple, retention_target_amount)
 VALUES
-    (1,  'BRONZE',    0,     3,  1.0, 0),
-    (2,  'SILVER',    500,   7,  1.2, 1500000),
-    (3,  'GOLD',      1000,  14, 1.5, 3000000),
-    (4,  'PLATINUM',  2000,  21, 1.8, 5000000),
-    (5,  'DIAMOND',   3500,  30, 2.0, 7000000),
-    (6,  'TITANIUM',  5000,  30, 2.2, 9000000),
-    (7,  'RUBY',      7000,  45, 2.5, 12000000),
-    (8,  'SAPPHIRE',  9000,  45, 2.8, 15000000),
-    (9,  'EMERALD',   12000, 60, 3.0, 20000000),
-    (10, 'LEGEND',    15000, 60, 3.5, 25000000);
+    (1,  'MEMBER',    0,     7,  1.0, 0),
+    (2,  'SILVER',    500,   10, 1.2, 1500000),
+    (3,  'GOLD',      1000,  12, 1.5, 3000000),
+    (4,  'PLATINUM',  2000,  14, 1.8, 5000000);
 
 -- =====================================================================
--- TIER BENEFIT (12)
+-- TIER BENEFIT (6)
 -- =====================================================================
 INSERT IGNORE INTO tier_benefit
 (id, customer_tier_id, benefit_description)
 VALUES
     (1,  1,  'Tich diem co ban x1 moi luot rua xe'),
-    (2,  2,  'Uu tien dat lich truoc 7 ngay'),
+    (2,  2,  'Uu tien dat lich truoc 10 ngay'),
     (3,  3,  'Giam 5% phi dich vu addon'),
     (4,  3,  'Tich diem x1.5 moi luot'),
     (5,  4,  'Mien phi 1 luot danh bong moi quy'),
-    (6,  5,  'Ho tro duong day nong rieng'),
-    (7,  6,  'Uu dai dac biet vao sinh nhat'),
-    (8,  7,  'Mien phi doi xe trong gia dinh khong gioi han'),
-    (9,  8,  'Uu tien lan rua VIP'),
-    (10, 9,  'Tang 1 goi Premium Wash moi nam'),
-    (11, 10, 'Quan ly cham soc khach hang rieng'),
     (12, 2,  'Email thong bao khuyen mai som');
 
 -- =====================================================================
@@ -200,12 +176,12 @@ VALUES
     (2,  17, 'Nam',   'Tran',  '1988-03-22', 2,  0, NULL),
     (3,  18, 'Linh',  'Le',    '1995-07-09', 3,  0, NULL),
     (4,  19, 'Mai',   'Nguyen','1992-11-30', 4,  0, NULL),
-    (5,  20, 'Hoa',   'Pham',  '1985-05-18', 5,  1, NULL),
-    (6,  21, 'Duc',   'Vo',    '1998-09-02', 6,  0, NULL),
-    (7,  22, 'Thao',  'Dang',  '1993-12-25', 7,  0, NULL),
-    (8,  23, 'Quang', 'Bui',   '1991-02-14', 8,  0, NULL),
-    (9,  24, 'Yen',   'Do',    '1996-06-08', 9,  0, NULL),
-    (10, 25, 'Khanh', 'Ho',    '1989-08-19', 10, 0, NULL),
+    (5,  20, 'Hoa',   'Pham',  '1985-05-18', 1,  1, NULL),
+    (6,  21, 'Duc',   'Vo',    '1998-09-02', 2,  0, NULL),
+    (7,  22, 'Thao',  'Dang',  '1993-12-25', 3,  0, NULL),
+    (8,  23, 'Quang', 'Bui',   '1991-02-14', 4,  0, NULL),
+    (9,  24, 'Yen',   'Do',    '1996-06-08', 1,  0, NULL),
+    (10, 25, 'Khanh', 'Ho',    '1989-08-19', 2,  0, NULL),
     (11, 26, 'Trang', 'Ngo',   '1994-04-27', 2,  0, NULL),
     (12, 27, 'Hung',  'Ly',    '1997-10-11', 3,  0, NULL);
 
@@ -277,12 +253,12 @@ VALUES
     (2,  2,  2,  3000000, 1200000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
     (3,  3,  3,  5000000, 2000000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
     (4,  4,  4,  7000000, 3500000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
-    (5,  5,  5,  9000000, 4000000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
-    (6,  6,  6,  9000000, 5000000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
-    (7,  7,  7,  12000000, 12500000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (8,  8,  8,  15000000, 15200000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (9,  9,  9,  20000000, 20500000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (10, 10, 10, 25000000, 9000000,  DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'FAILED',   DATE_SUB(NOW(), INTERVAL 5 DAY)),
+    (5,  5,  1,  9000000, 4000000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
+    (6,  6,  2,  9000000, 5000000, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
+    (7,  7,  3,  12000000, 12500000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+    (8,  8,  4,  15000000, 15200000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+    (9,  9,  1,  20000000, 20500000, DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'ACHIEVED', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+    (10, 10, 2,  25000000, 9000000,  DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'FAILED',   DATE_SUB(NOW(), INTERVAL 5 DAY)),
     (11, 11, 2,  3000000, 800000,   DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'FAILED',   DATE_SUB(NOW(), INTERVAL 5 DAY)),
     (12, 12, 3,  5000000, 1000000,  DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'FAILED',   DATE_SUB(NOW(), INTERVAL 5 DAY));
 
@@ -306,94 +282,78 @@ VALUES
     (12, 340,  840);
 
 -- =====================================================================
--- SERVICE CATEGORY (10)
+-- SERVICE CATEGORY (3) — dong san pham: rua le, goi Family, goi Unlimited
 -- =====================================================================
 INSERT IGNORE INTO service_category
 (id, category_name, description)
 VALUES
-    (1,  'Basic Wash',         'Rua xe co ban ben ngoai'),
-    (2,  'Premium Wash',       'Rua xe cao cap, lam sach toan dien'),
-    (3,  'Interior Detailing', 'Lam sach va cham soc noi that'),
-    (4,  'Exterior Detailing', 'Cham soc chi tiet ben ngoai xe'),
-    (5,  'Engine Wash',        've sinh khoang dong co'),
-    (6,  'Undercarriage Wash', 've sinh gam xe'),
-    (7,  'Wax & Polish',       'Danh bong va phu sap bao ve son'),
-    (8,  'Ceramic Coating',    'Phu ceramic bao ve lau dai'),
-    (9,  'Pet Care Wash',      've sinh khu mui long thu cung'),
-    (10, 'Express Wash',       'Rua xe nhanh trong 15 phut');
+    (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
+    (2, 'Family',      'Dich vu thuoc goi thanh vien Family (nhieu xe)'),
+    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
 
 -- =====================================================================
--- ADDON SERVICE (12)
+-- ADDON SERVICE (12) — addon la dich vu them theo lan (thuoc Single Wash)
 -- =====================================================================
 INSERT IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id, is_deleted)
 VALUES
-    (1,  'Vacuum',                 50000,  20, 1, false),
-    (2,  'Polish',                 150000, 40, 7, false),
-    (3,  'Wax Coating',            180000, 30, 7, false),
-    (4,  'Tire Shine',             40000,  10, 4, false),
-    (5,  'Interior Shampoo',       120000, 35, 3, false),
-    (6,  'Engine Degrease',        100000, 25, 5, false),
-    (7,  'Pet Hair Removal',       90000,  20, 9, false),
-    (8,  'Air Freshener',          20000,  5,  1, false),
-    (9,  'Headlight Restoration',  130000, 30, 4, false),
-    (10, 'Ceramic Spray',          220000, 30, 8, false),
-    (11, 'Leather Conditioning',   140000, 25, 3, false),
-    (12, 'Underbody Rust-proofing',160000, 30, 6, false);
+    (1,  'Vacuum',                 50000,  15, 1, false),
+    (2,  'Polish',                 150000, 45, 1, false),
+    (3,  'Wax Coating',            180000, 30, 1, false),
+    (4,  'Tire Shine',             40000,  0,  1, false),
+    (5,  'Interior Shampoo',       120000, 30, 1, false),
+    (6,  'Engine Degrease',        100000, 30, 1, false),
+    (7,  'Pet Hair Removal',       90000,  15, 1, false),
+    (8,  'Air Freshener',          20000,  0,  1, false),
+    (9,  'Headlight Restoration',  130000, 30, 1, false),
+    (10, 'Ceramic Spray',          220000, 30, 1, false),
+    (11, 'Leather Conditioning',   140000, 30, 1, false),
+    (12, 'Underbody Rust-proofing',160000, 30, 1, false);
 
 -- =====================================================================
--- SERVICE PACKAGE (12) — required_slot = number of 15-minute slots
+-- SERVICE PACKAGE (3) — cac muc do rua xe; thuoc category Single Wash.
+-- Booking va subscription_plan deu chon 1 trong 3 muc nay (BL-BK-03:
+-- khach Family/Unlimited van chon package, gia chi bi giam ve 0d).
+-- required_slot = number of 15-minute slots
 -- =====================================================================
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
-    (1,  1,  'Normal Wash',                  100000, 'Rua xe co ban ben ngoai',          1, false),
-    (2,  2,  'Premium Wash',                 300000, 'Rua xe cao cap toan dien',         2, false),
-    (3,  3,  'Interior Detailing Standard',  250000, 'Lam sach noi that co ban',         2, false),
-    (4,  3,  'Interior Detailing Deep',      400000, 'Lam sach noi that chuyen sau',     3, false),
-    (5,  4,  'Exterior Detailing',           220000, 'Cham soc chi tiet ben ngoai',      2, false),
-    (6,  5,  'Engine Wash',                  150000, 've sinh khoang dong co',           1, false),
-    (7,  6,  'Undercarriage Wash',           120000, 've sinh gam xe',                   1, false),
-    (8,  7,  'Wax & Polish',                 280000, 'Danh bong va phu sap',             2, false),
-    (9,  8,  'Ceramic Coating',              600000, 'Phu ceramic bao ve lau dai',       4, false),
-    (10, 9,  'Pet Care Wash',                180000, 've sinh khu mui long thu cung',    2, false),
-    (11, 10, 'Express Wash',                 70000,  'Rua xe nhanh',                     1, false),
-    (12, 2,  'Premium Wash Deluxe',          350000, 'Premium Wash kem uu dai',          2, false);
+    (1, 1, 'Basic',   100000, 'Rua xe co ban ben ngoai',               1, false),
+    (2, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
+    (3, 1, 'Premium', 300000, 'Rua xe cao cap, lam sach toan dien',    3, false);
 
 -- =====================================================================
--- PACKAGE ADDON MAPPING (15)
+-- PACKAGE ADDON MAPPING (8)
 -- =====================================================================
 INSERT IGNORE INTO package_addon_mapping
 (service_package_id, addon_service_id)
 VALUES
     (1, 1), (1, 8),
-    (2, 2), (2, 3),
-    (3, 5), (3, 11),
-    (4, 5),
-    (5, 4), (5, 9),
-    (6, 6),
-    (7, 12),
-    (8, 2),
-    (9, 3),
-    (10, 7),
-    (12, 3);
+    (3, 2), (3, 3),
+    (2, 4), (2, 9),
+    (2, 6),
+    (3, 7);
 
 -- =====================================================================
--- SUBSCRIPTION PLAN (10)
+-- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
+-- co du 3 ky han: 1 thang, 3 thang, 6 thang
 -- =====================================================================
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted)
 VALUES
-    (1,  1, 1, 'Unlimited Basic Monthly',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang', false),
-    (2,  2, 2, 'Unlimited Premium Monthly',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang', false),
-    (3,  1, 1, 'Unlimited Basic Quarterly',   90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang', false),
-    (4,  2, 2, 'Unlimited Premium Quarterly', 90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang', false),
-    (5,  2, 2, 'Unlimited Premium Yearly',    365, 8500000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 nam', false),
-    (6,  1, 1, 'Family Basic Monthly',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang', false),
-    (7,  2, 2, 'Family Premium Monthly',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang', false),
-    (8,  1, 1, 'Family Basic Quarterly',      90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang', false),
-    (9,  2, 2, 'Family Premium Quarterly',    90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang', false),
-    (10, 2, 2, 'Family Premium Yearly',       365, 18000000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 1 nam', false);
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang', false),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang', false),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang', false),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang', false),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 6 thang', false),
+    (6,  1, 2, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang', false),
+    (7,  3, 2, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang', false),
+    (8,  1, 2, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang', false),
+    (9,  3, 2, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang', false),
+    (10, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
+    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false);
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
@@ -474,7 +434,7 @@ VALUES
     (1,  'All Customers',          'ALL',     'Ap dung cho tat ca khach hang'),
     (2,  'New Customer',           'NEW',     'Khach hang moi'),
     (3,  'VIP Customer',           'VIP',     'Khach hang VIP'),
-    (4,  'Bronze Tier',            'BRONZE',  'Khach hang hang Bronze'),
+    (4,  'Member Tier',            'MEMBER',  'Khach hang hang Member'),
     (5,  'Silver Tier',            'SILVER',  'Khach hang hang Silver'),
     (6,  'Gold Tier',              'GOLD',    'Khach hang hang Gold'),
     (7,  'First Time Booking',     'FIRST',   'Lan dau dat lich'),
@@ -559,28 +519,28 @@ INSERT IGNORE INTO booking
  voucher_discount_amount, point_discount_amount)
 VALUES
     (1,  1,  1,  1,  DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, NULL, NULL, true,  100000, 70000,  170000, 0,     0),
-    (2,  2,  2,  2,  DATE_ADD(CURDATE(), INTERVAL 5 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  300000, 330000, 630000, 30000, 0),
+    (2,  2,  2,  3,  DATE_ADD(CURDATE(), INTERVAL 5 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  300000, 330000, 630000, 30000, 0),
     (3,  3,  3,  1,  DATE_ADD(CURDATE(), INTERVAL 2 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
-    (4,  5,  5,  6,  DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'CONFIRMED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0,      150000, 0,     0),
+    (4,  5,  5,  2,  DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'CONFIRMED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0,      150000, 0,     0),
     (5,  6,  6,  1,  DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
 
-    (6,  7,  7,  2,  CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
+    (6,  7,  7,  3,  CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
     (7,  8,  8,  1,  CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
-    (8,  9,  9,  5,  CURDATE(), 'CHECKED_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
+    (8,  9,  9,  2,  CURDATE(), 'CHECKED_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
     (9,  10, 10, 1,  CURDATE(), 'WASHING',    'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 100000, 90000,  190000, 0,     5000),
-    (10, 11, 11, 6,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
+    (10, 11, 11, 2,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
 
     (11, 1,  1,  1,  DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'PAID', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 240 HOUR), DATE_SUB(NOW(), INTERVAL 239 HOUR), NULL, true, 100000, 50000,  150000, 0,     0),
-    (12, 2,  2,  2,  DATE_SUB(CURDATE(), INTERVAL 7 DAY),  'PAID', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 9 DAY),  DATE_SUB(NOW(), INTERVAL 168 HOUR), DATE_SUB(NOW(), INTERVAL 166 HOUR), NULL, true, 300000, 150000, 430000, 20000, 0),
+    (12, 2,  2,  3,  DATE_SUB(CURDATE(), INTERVAL 7 DAY),  'PAID', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 9 DAY),  DATE_SUB(NOW(), INTERVAL 168 HOUR), DATE_SUB(NOW(), INTERVAL 166 HOUR), NULL, true, 300000, 150000, 430000, 20000, 0),
     (13, 3,  3,  1,  DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'PAID', 'WALK_IN', 5, DATE_SUB(NOW(), INTERVAL 16 DAY), DATE_SUB(NOW(), INTERVAL 360 HOUR), DATE_SUB(NOW(), INTERVAL 359 HOUR), NULL, true, 100000, 20000,  120000, 0,     0),
-    (14, 12, 12, 10, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'PAID', 'ONLINE',  8, DATE_SUB(NOW(), INTERVAL 22 DAY), DATE_SUB(NOW(), INTERVAL 480 HOUR), DATE_SUB(NOW(), INTERVAL 478 HOUR), NULL, true, 180000, 220000, 400000, 0,     0),
+    (14, 12, 12, 3,  DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'PAID', 'ONLINE',  8, DATE_SUB(NOW(), INTERVAL 22 DAY), DATE_SUB(NOW(), INTERVAL 480 HOUR), DATE_SUB(NOW(), INTERVAL 478 HOUR), NULL, true, 180000, 220000, 400000, 0,     0),
 
     (15, 4,  4,  1,  DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'CANCELLED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 6 DAY), true,  100000, 0,      100000, 0, 0),
-    (16, 5,  5,  2,  DATE_SUB(CURDATE(), INTERVAL 3 DAY), 'CANCELLED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), false, 300000, 150000, 450000, 0, 0),
+    (16, 5,  5,  3,  DATE_SUB(CURDATE(), INTERVAL 3 DAY), 'CANCELLED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), false, 300000, 150000, 450000, 0, 0),
     (17, 6,  6,  1,  DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'CANCELLED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), false, 100000, 0,      100000, 0, 0),
 
     (18, 7,  7,  1,  DATE_SUB(CURDATE(), INTERVAL 9 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 11 DAY), NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
-    (19, 8,  8,  2,  DATE_SUB(CURDATE(), INTERVAL 6 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  NULL, NULL, NULL, true, 300000, 330000, 630000, 0, 0),
+    (19, 8,  8,  3,  DATE_SUB(CURDATE(), INTERVAL 6 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  NULL, NULL, NULL, true, 300000, 330000, 630000, 0, 0),
     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0);
 
 -- =====================================================================
@@ -663,7 +623,14 @@ VALUES
     -- spare unbooked AVAILABLE slots for browsing
     (28, 5, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
     (29, 5, '08:15', '08:30', 5, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
-    (30, 7, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 0, 'AVAILABLE');
+    (30, 7, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 0, 'AVAILABLE'),
+    -- 3rd slot for Premium (required_slot=3) bookings 2,6,12,14,16,19
+    (31, 2, '08:30', '08:45', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY),  1, 'AVAILABLE'),
+    (32, 2, '08:30', '08:45', 5, CURDATE(),                             1, 'AVAILABLE'),
+    (33, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 7 DAY),  1, 'COMPLETED'),
+    (34, 6, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
+    (35, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 3 DAY),  0, 'AVAILABLE'),
+    (36, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 6 DAY),  1, 'COMPLETED');
 
 -- =====================================================================
 -- BOOKING SLOT ALLOCATION (27) — (booking_id, booking_slot_id)
@@ -690,7 +657,14 @@ VALUES
     (17, 23),
     (18, 24),
     (19, 25), (19, 26),
-    (20, 27);
+    (20, 27),
+    -- 3rd slot for Premium bookings (required_slot=3)
+    (2,  31),
+    (6,  32),
+    (12, 33),
+    (14, 34),
+    (16, 35),
+    (19, 36);
 
 -- =====================================================================
 -- LOYALTY POINT TRANSACTION (15)
