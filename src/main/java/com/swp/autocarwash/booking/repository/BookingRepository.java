@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,5 +59,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 // Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu
     //không có thì là hộp rỗng và bắt buộc phải ném exception
 
+//    kiểm tra xem xe đó có booking vào ngày đặt chưa
+    boolean existsByVehicleIdAndAppointmentDateAndStatusNot(
+            Long vehicleId,
+            LocalDate date,
+            String status
+    );
 
 }

@@ -11,6 +11,8 @@ public class BookingPricePreviewRequest {
 
     private Integer stationId;
     private Integer servicePackageId;
+    private Long vehicleId;
     private List<Integer> addonServiceIds;
+    private String appointmentDate;
     private String voucherCode;
 }

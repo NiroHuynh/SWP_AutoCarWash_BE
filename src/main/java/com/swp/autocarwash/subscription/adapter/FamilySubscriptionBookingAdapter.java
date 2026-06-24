@@ -17,4 +17,9 @@ public class FamilySubscriptionBookingAdapter implements FamilySubscriptionPort 
     public Integer getActiveServicePackageId(Long vehicelId) {
         return familySubscriptionService.getActiveServicePackageId(vehicelId);
     }
+
+    @Override
+    public boolean hasFamilySubscription(Long vehicle, Integer servicePackageId) {
+        return familySubscriptionService.hasFamilySubscription(vehicle, servicePackageId);
+    }
 }

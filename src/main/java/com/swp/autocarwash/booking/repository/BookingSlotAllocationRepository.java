@@ -49,4 +49,19 @@ public interface BookingSlotAllocationRepository
     @Modifying
     @Query("DELETE FROM BookingSlotAllocation bsa WHERE bsa.booking.id = :bookingId")
     void deleteByBookingId(@Param("bookingId") Long bookingId);
+
+
+
+//    kiểm tra xem xe đó có đăng ký slot được chọn trước đó chưa
+    @Query("""
+    SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
+    FROM BookingSlotAllocation bsa
+    WHERE bsa.booking.vehicle.id = :vehicleId
+      AND bsa.bookingSlot.id IN :slotIds
+      AND bsa.booking.status <> 'CANCELLED'
+""")
+    boolean existsConflictSlot(
+            @Param("vehicleId") Long vehicleId,
+            @Param("slotIds") List<Long> slotIds
+    );
 }

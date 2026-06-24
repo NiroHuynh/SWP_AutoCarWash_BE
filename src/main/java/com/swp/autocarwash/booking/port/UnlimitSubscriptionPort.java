@@ -1,5 +1,6 @@
 package com.swp.autocarwash.booking.port;
 
 public interface UnlimitSubscriptionPort {
-    Integer getActiveServicePackageId(Long vehicelId);
+    Integer getActiveServicePackageId(Long vehicleId);
+    boolean hasUnlimitSubscription(Long vehicleId, Integer servicePackageId);
 }
