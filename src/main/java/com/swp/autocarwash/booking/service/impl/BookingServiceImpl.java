@@ -5,6 +5,8 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
+import com.swp.autocarwash.booking.event.BookingCanceledEvent;
+import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
@@ -94,6 +96,14 @@ public class BookingServiceImpl implements BookingService {
      *  đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
      */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    /**
+     * Publisher riêng của module booking, bọc lại ApplicationEventPublisher của Spring.
+     * Khi gọi publishBookingCanceled(), Spring sẽ tìm tất cả class có annotation
+     * @EventListener/@TransactionalEventListener lắng nghe BookingCanceledEvent để thông báo
+     * "có 1 sự kiện vừa diễn ra" — còn làm gì sau khi nghe thông báo thì tự đám listener xử lí.
+     */
+    private final BookingEventPublisher bookingEventPublisher;
 
     private final BookingRepository bookingRepository;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
@@ -329,6 +339,22 @@ public class BookingServiceImpl implements BookingService {
             BookingSlot slot = allocation.getBookingSlot();
             slot.setBookedCount(slot.getBookedCount() - 1);
             slotRepository.save(slot);
+        }
+        // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
+        // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
+
+        if (booking.getCheckInEmployee() != null) {
+            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                    .vehicleId(booking.getVehicle().getId())
+                    .bookingId(bookingId)
+                    // TODO: resolve từ staff principal thật khi endpoint staff-cancel-after-checkin
+                    // (BL-QU-05) ra đời — cancelBooking() hiện không có actor staff đã xác thực.
+                    .canceledByStaffId(null)
+                    .bookingType(booking.getBookingType())
+                    .isDepositPaid(booking.getIsDepositPaid())
+                    .checkInAt(booking.getCheckInAt())
+                    .canceledAt(booking.getCanceledAt()).build());
         }
 
         return getBookingDetail(bookingId);
