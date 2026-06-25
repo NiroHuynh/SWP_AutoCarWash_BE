@@ -58,6 +58,9 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
     Optional<Vehicle> findByLicensePlateAndIsDeletedFalse(String licensePlate);
 
     //lấy ta danh sách vehicle của thuộc 1 customer
+//    @Query("SELECT v FROM Vehicle v WHERE v.customer.id = :customerId AND v.isDeleted = false")
+//    List<Vehicle> findByCustomerIdAndIsDeletedFalse(@Param("customerId") Long customerId);
+
     List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
 
     //kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay ko

@@ -19,7 +19,6 @@ public class CheckInResultResponse {
     private Integer minutesDeviation;
     // Thông điệp hiển thị cho Staff, ví dụ "Checked in successfully", "Please wait for your time"
     private String message;
-
      //true nếu nghiệp vụ yêu cầu Frontend chuyển sang màn hình tạo đơn Walk-in mới
      //(trường hợp Booking bị chuyển NO_SHOW và khách là khách lẻ).
     private boolean requiresWalkIn;

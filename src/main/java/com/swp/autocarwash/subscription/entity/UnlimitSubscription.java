@@ -51,7 +51,7 @@ public class UnlimitSubscription {
     @Size(max = 20)
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
-    private SubscriptionStatus status;
+    private String status;
 
     @Column(name = "canceled_at")
     private Instant canceledAt;

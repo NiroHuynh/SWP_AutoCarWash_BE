@@ -5,17 +5,18 @@ import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-
+@Entity
 @Getter
 @Setter
-@Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "booking_invoice", schema = "swp_auto_car_wash")
 public class BookingInvoice {
     @Id
@@ -36,9 +37,10 @@ public class BookingInvoice {
     @Column(name = "raw_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal rawAmount;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "discount_amount", precision = 12, scale = 2)
-    private BigDecimal discountAmount;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @NotNull
     @Column(name = "final_amount", nullable = false, precision = 12, scale = 2)
@@ -53,24 +55,26 @@ public class BookingInvoice {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount", precision = 12, scale = 2)
-    private BigDecimal voucherDiscount;
+    private BigDecimal voucherDiscount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "point_discount", precision = 12, scale = 2)
-    private BigDecimal pointDiscount;
+    private BigDecimal pointDiscount = BigDecimal.ZERO;
 
     @NotNull
     @Column(name = "service_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal serviceAmount;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "addon_amount", precision = 12, scale = 2)
-    private BigDecimal addonAmount;
+    private BigDecimal addonAmount = BigDecimal.ZERO ;
 
     @Column(name = "paid_at")
     private Instant paidAt;
-
 
 }

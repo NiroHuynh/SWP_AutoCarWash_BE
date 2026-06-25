@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,7 +20,18 @@ public class BookingSummaryResponse {
     private BigDecimal transferredCredit;
     private BigDecimal remainingBalance;
     private String systemNotice;
-    private boolean isActionBlock;
+    private boolean isActionBlock; //cho fe nhận diện hiển thị/hide button thu cọc
+
+    private List<AvailableSlotDTO> availableSlots;
+
+    @Getter
+    @Setter
+    @Builder
+    public static class AvailableSlotDTO {
+        private Long slotId; // [cite: 159, 161]
+        private LocalTime startTime; // [cite: 165]
+        private LocalTime endTime; // [cite: 167]
+    }
 }
 //rawAmount , packageDiscount (Khấu trừ gói) ,
 // penaltyDeposit (Cọc phạt 20k) , transferredCredit (Cọc cũ chuyển sang),

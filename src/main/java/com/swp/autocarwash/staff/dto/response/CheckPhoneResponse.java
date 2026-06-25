@@ -12,9 +12,10 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL) // Ẩn các trường null khi trả về JSON
 public class CheckPhoneResponse {
-    private boolean isExisted;
+    private Boolean existed;
     private String customerName;
     private String tierName;
+    private Long customerId;
     private List<VehicleDTO> savedVehicles;
 
     @Getter

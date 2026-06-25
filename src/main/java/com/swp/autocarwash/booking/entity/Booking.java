@@ -9,8 +9,7 @@ import com.swp.autocarwash.staff.entity.Staff;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -22,6 +21,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "booking", schema = "swp_auto_car_wash")
 public class Booking {
     @Id
@@ -74,32 +76,38 @@ public class Booking {
     @Column(name = "canceled_at")
     private Instant canceledAt;
 
+    @Builder.Default
     @ColumnDefault("0")
     @Column(name = "is_deposit_paid")
-    private Boolean isDepositPaid;
+    private Boolean isDepositPaid = false;
 
 //    @Column(name = "deposit_amount", precision = 12, scale = 2)
 //    private BigDecimal depositAmount;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_service_amount", precision = 12, scale = 2)
-    private BigDecimal totalServiceAmount;
+    private BigDecimal totalServiceAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_addon_amount", precision = 12, scale = 2)
-    private BigDecimal totalAddonAmount;
+    private BigDecimal totalAddonAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_amount", precision = 12, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount_amount", precision = 12, scale = 2)
-    private BigDecimal voucherDiscountAmount;
+    private BigDecimal voucherDiscountAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "point_discount_amount", precision = 12, scale = 2)
-    private BigDecimal pointDiscountAmount;
+    private BigDecimal pointDiscountAmount = BigDecimal.ZERO;
 
     /**
      * GIẢ ĐỊNH BỔ SUNG (không có trong schema gốc): thời điểm Scheduler (Subtask 4.1)

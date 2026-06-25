@@ -4,6 +4,7 @@ import com.swp.autocarwash.booking.entity.BookingSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -63,5 +64,14 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Intege
      */
     List<BookingSlot> findByIdIn(List<Integer> ids);
 
-
+    //Lấy danh sách slot còn trống của chi nhánh trong ngày
+    // dùng để hiển thị cho create_walkin chọn slot
+    @Query("SELECT bs FROM BookingSlot bs " +
+            "WHERE bs.station.id = :stationId " +
+            "AND bs.date = :date " +
+            "AND bs.status = 'AVAILABLE' " +
+            "AND bs.bookedCount < bs.maxCapacity " +
+            "ORDER BY bs.startTime ASC")
+    List<BookingSlot> findAvailableSlotsByStationAndDate(@Param("stationId") Integer stationId,
+                                                         @Param("date") LocalDate date);
 }

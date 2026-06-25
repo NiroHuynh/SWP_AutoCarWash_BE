@@ -17,7 +17,7 @@ import static com.swp.autocarwash.common.exception.code.ErrorCode.SYSTEM_SETTING
 public class SystemSettingServiceImpl implements SystemSettingService {
 
     /** Key duy nhat luu muc coc co dinh ap dung cho toan he thong (20.000d). */
-    public static final String KEY_DEFAULT_DEPOSIT_AMOUNT = "DEFAULT_DEPOSIT_AMOUNT";
+    public static final String DEFAULT_DEPOSIT_AMOUNT = "DEFAULT_DEPOSIT_AMOUNT";
     private final SystemSettingRepository systemSettingRepository;
 
     /**
