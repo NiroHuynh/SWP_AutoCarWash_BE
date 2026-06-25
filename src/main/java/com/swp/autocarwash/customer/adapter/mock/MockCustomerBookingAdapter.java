@@ -82,7 +82,7 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      * - Tạo dữ liệu tier mẫu cho môi trường development.
      * - Trả về CustomerTierContract chứa thông tin tier.
      *
-     * @param userId id của customer cần lấy tier
+     * @param CustomerTierContract id của customer cần lấy tier
      *
      * @return CustomerTierContract chứa thông tin tier giả lập
      *

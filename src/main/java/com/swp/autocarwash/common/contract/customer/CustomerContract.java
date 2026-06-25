@@ -1,21 +1,14 @@
 package com.swp.autocarwash.common.contract.customer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-/**
- *
- * Object dùng để giao tiếp giữa các module
- *
- * Không expose Entity ra ngoài module
- *
- * @author Phong
- * @version 1.0
- */
-@Data
+
+@Getter
+@Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerContract {
@@ -23,9 +16,28 @@ public class CustomerContract {
     private Long id;
     private Long userId;
 
+
+    /**
+     * Customer first name
+     */
     private String firstName;
+
+
+    /**
+     * Customer last name
+     */
     private String lastName;
 
-    private Integer violationCount;
+
+    /**
+     * Customer birthday
+     */
+    private LocalDate birthday;
+
+      private Integer violationCount;
     private LocalDateTime restrictedUntil;
+
+    public CustomerContract(Long userId) {
+        this.userId = userId;
+    }
 }

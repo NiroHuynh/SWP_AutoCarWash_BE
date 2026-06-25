@@ -82,6 +82,7 @@ public class BookingHistoryMapper {
             String technicianName,
             String voucherCode,
             Integer voucherDiscountPercent,
+            BigDecimal depositAmount,
             BigDecimal remainingAmount) {
 
         List<AddonInfo> addonInfos = addons.stream()
@@ -112,7 +113,7 @@ public class BookingHistoryMapper {
                 .voucherDiscountAmount(booking.getVoucherDiscountAmount())
                 .totalAmount(booking.getTotalAmount())
                 .isDepositPaid(booking.getIsDepositPaid())
-                .depositAmount(booking.getDepositAmount())
+                .depositAmount(depositAmount)
                 .remainingAmount(remainingAmount)
                 .build();
     }
