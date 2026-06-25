@@ -10,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -49,6 +50,11 @@ public class BookingSlot {
     @NotNull
     @Column(name = "status", nullable = false, length = 20)
     private String status;
+
+    @OneToMany(
+            mappedBy = "bookingSlot"
+    )
+    private List<BookingSlotAllocation> allocations;
 
     // derived field (KHÔNG lưu DB)
     public int getAvailableCapacity() {

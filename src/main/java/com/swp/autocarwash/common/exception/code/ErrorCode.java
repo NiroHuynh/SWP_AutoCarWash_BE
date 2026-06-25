@@ -13,6 +13,11 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    UNAUTHORIZED(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
             "COMMON_002",
@@ -37,6 +42,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_002",
             "Booking already cancelled"
+    ),
+    VEHICLE_ALREADY_BOOKED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_003",
+            "Vehicle already has a booking on this date"
+    ),
+    BOOKING_SLOT_ALREADY_USED(
+            HttpStatus.CONFLICT,
+            "BOOKING_004",
+            "Booking slot already used"
+    ),
+    BOOKING_INVOICE_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "BOOKING_001",
+            "Booking already has an invoice"
     ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
