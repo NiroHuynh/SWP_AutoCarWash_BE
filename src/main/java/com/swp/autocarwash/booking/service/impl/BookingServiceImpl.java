@@ -349,7 +349,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getCheckInEmployee() != null) {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .vehicleId(booking.getVehicle().getId())
+                    .vehicleId(booking.getVehicle().getId().intValue())
                     .bookingId(bookingId)
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
@@ -382,7 +382,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if("CHECK_IN".equals(booking.getStatus())){
+        if(!"CHECKED_IN".equals(booking.getStatus())){
             throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
@@ -407,9 +407,8 @@ public class BookingServiceImpl implements BookingService {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
-                    .vehicleId(booking.getVehicle().getId())
+                    .vehicleId(booking.getVehicle().getId().intValue())
                     .bookingId(bookingId)
-                    .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
                     .isDepositPaid(booking.getIsDepositPaid())
                     .checkInAt(booking.getCheckInAt())
