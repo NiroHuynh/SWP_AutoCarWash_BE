@@ -5,7 +5,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-@Repository
+import org.springframework.stereotype.Repository;
+import com.swp.autocarwash.auth.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+/**
+ *
+ * UserRepository dùng để truy xuất dữ liệu người dùng từ cơ sở dữ liệu.
+ *
+ * @author Phong
+ * @version 1.0
+ */
+
 public interface UserRepository extends JpaRepository<User, Long> {
 
     // Code gốc (derived query, không JOIN FETCH role):
@@ -22,4 +35,34 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.phone = :phone AND u.isDeleted = false")
     User findByPhoneAndIsDeletedFalse(@Param("phone") String phone);
+
+    /**
+     * Check email existing in database
+     *
+     * @param email user email
+     * @return true if email exists
+     */
+    boolean existsByEmail(String email);
+
+
+    /**
+     * Check phone existing in database
+     *
+     * @param phone user phone
+     * @return true if phone exists
+     */
+    boolean existsByPhone(String phone);
+
+
+    /**
+     * Find user by email
+     *
+     * @param email user email
+     * @return user information
+     */
+    Optional<User> findByEmail(String email);
+    
+      User findByEmailAndIsDeletedFalse(String email);
+    User findByPhoneAndIsDeletedFalse(String phone);
+
 }
