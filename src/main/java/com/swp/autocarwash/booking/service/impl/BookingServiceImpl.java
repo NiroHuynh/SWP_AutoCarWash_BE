@@ -346,10 +346,8 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getCheckInEmployee() != null) {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .vehicleId(booking.getVehicle().getId())
+                    .vehicleId(booking.getVehicle().getId().intValue())
                     .bookingId(bookingId)
-                    // TODO: resolve từ staff principal thật khi endpoint staff-cancel-after-checkin
-                    // (BL-QU-05) ra đời — cancelBooking() hiện không có actor staff đã xác thực.
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
                     .isDepositPaid(booking.getIsDepositPaid())
