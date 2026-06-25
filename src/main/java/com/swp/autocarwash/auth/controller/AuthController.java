@@ -1,5 +1,4 @@
 package com.swp.autocarwash.auth.controller;
-
 import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.dto.request.LoginRequest;
 import com.swp.autocarwash.auth.dto.response.LoginResponse;
@@ -12,6 +11,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.swp.autocarwash.auth.dto.request.RegisterRequest;
+import com.swp.autocarwash.auth.dto.response.RegisterResponse;
+import com.swp.autocarwash.auth.service.AuthService;
+import com.swp.autocarwash.common.response.ApiResponse;
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
+
+import org.springframework.web.bind.annotation.*;
+
+
 
 @RestController
 @RequestMapping("api/v1/auth")
@@ -28,5 +40,25 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    /**
+     * Register new user account
+     *
+     * @param request register information
+     * @return register result
+     */
+    @PostMapping("/register")
+    public ApiResponse<RegisterResponse> register(
+            @Valid
+            @RequestBody RegisterRequest request
+    ) {
 
+        authService.register(request);
+
+        return ApiResponse.success(
+                "Register successfully",
+                null
+        );
+
+    }
+  
 }
