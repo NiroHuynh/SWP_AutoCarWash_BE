@@ -14,10 +14,13 @@ import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
 import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.station.entity.Station;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
+import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
@@ -119,6 +122,8 @@ public class BookingServiceImpl implements BookingService {
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
     private final QueueTicketRepository queueTicketRepository;
+    private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
+    private final FamilySubscriptionRepository familySubscriptionRepository;
 
 
     /**
@@ -301,10 +306,31 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
+        // Bước 6.5: Lấy thông tin subscription plan nếu customer có gói ACTIVE cho xe này
+        SubscriptionInfo subscriptionInfo = null;
+        if (booking.getCustomer() != null) {
+            Long cId = booking.getCustomer().getId();
+            Long vId = booking.getVehicle().getId();
+            subscriptionInfo = unlimitSubscriptionRepository
+                    .findActiveByCustomerAndVehicle(cId, vId)
+                    .map(u -> new SubscriptionInfo(
+                            u.getSubscriptionPlan().getPlanName(),
+                            u.getSubscriptionPlan().getPlanType(),
+                            u.getSubscriptionPlan().getDurationDays()))
+                    .orElseGet(() -> familySubscriptionRepository
+                            .findActiveByCustomerAndVehicle(cId, vId)
+                            .map(f -> new SubscriptionInfo(
+                                    f.getSubscriptionPlan().getPlanName(),
+                                    f.getSubscriptionPlan().getPlanType(),
+                                    f.getSubscriptionPlan().getDurationDays()))
+                            .orElse(null));
+        }
+
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-                technicianName, voucherCode, voucherDiscountPercent,deposit, remainingAmount);
+                technicianName, voucherCode, voucherDiscountPercent, deposit, remainingAmount,
+                subscriptionInfo);
     }
 
     /**
