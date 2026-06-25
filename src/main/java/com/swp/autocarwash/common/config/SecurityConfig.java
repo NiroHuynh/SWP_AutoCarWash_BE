@@ -1,8 +1,10 @@
 package com.swp.autocarwash.common.config;
 
 import com.swp.autocarwash.auth.security.filter.JwtAuthenticationFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -67,5 +69,33 @@ public class SecurityConfig {
             return http.build();
     }
 
+
+    // JwtAuthenticationFilter có @Component -> Spring Boot tự động đăng ký thêm 1 bản riêng
+// làm servlet filter cho TẤT CẢ URL, độc lập với SecurityFilterChain ở dưới. Tắt bản tự
+// đăng ký đó đi bằng FilterRegistrationBean(setEnabled(false)) — không ảnh hưởng gì tới
+// addFilterBefore(jwtAuthFilter,...) trong securityFilterChain() của Bình, vì đó là 2 cơ
+// chế đăng ký filter hoàn toàn khác nhau.
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtAuthFilterRegistration(JwtAuthenticationFilter jwtAuthFilter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>(jwtAuthFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    // Chain riêng cho /api/v1/auth/** — KHÔNG gắn jwtAuthFilter ở đây, nên token rác/cũ gửi
+// kèm request login không còn cơ hội làm crash request nữa. @Order(1) để Spring đánh giá
+// chain này TRƯỚC chain securityFilterChain() của Bình (chain đó không cần thêm @Order —
+// SecurityFilterChain không có @Order tự động được Spring xếp cuối cùng, đúng là vị trí
+// "catch-all" mình cần, không cần sửa method đó để đạt thứ tự này).
+    @Bean
+    @Order(1)
+    public SecurityFilterChain authFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/api/v1/auth/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
 
 }
