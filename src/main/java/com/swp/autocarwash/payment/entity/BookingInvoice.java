@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -53,7 +54,8 @@ public class BookingInvoice {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount", precision = 12, scale = 2)
