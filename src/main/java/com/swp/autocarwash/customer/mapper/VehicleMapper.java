@@ -5,11 +5,20 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+import com.swp.autocarwash.common.contract.customer.VehicleContract;
+import com.swp.autocarwash.customer.entity.Vehicle;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
  *
- * Mapper chuyển đổi Vehicle entity và DTO
+ * Chức năng: VehicleMapper dùng để chuyển đổi dữ liệu giữa Vehicle entity và
+ * VehicleContract. Class này hỗ trợ expose dữ liệu vehicle giữa các module
+ * thông qua contract layer.
  *
  * @author Phong
  * @version 1.0

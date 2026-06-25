@@ -2,6 +2,7 @@ package com.swp.autocarwash.common.contract.customer;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 
 
@@ -11,7 +12,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerContract {
-
+    
+      private Integer id;
 
     /**
      * User id from auth module
@@ -35,6 +37,9 @@ public class CustomerContract {
      * Customer birthday
      */
     private LocalDate birthday;
+  
+      private Integer violationCount;
+    private LocalDateTime restrictedUntil;
 
     public CustomerContract(Integer userId) {
         this.userId = userId;
