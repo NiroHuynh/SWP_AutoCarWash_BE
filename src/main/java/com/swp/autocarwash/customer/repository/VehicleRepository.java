@@ -2,13 +2,16 @@ package com.swp.autocarwash.customer.repository;
 
 import com.swp.autocarwash.customer.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
-
+import java.util.List;
 import java.util.Optional;
+
 
 
 /**
  *
- * Repository thao tác dữ liệu Vehicle
+ * Chức năng: VehicleRepository cung cấp các phương thức truy cập dữ liệu
+ * cho Vehicle entity. Repository này hỗ trợ truy vấn, kiểm tra và quản lý
+ * dữ liệu vehicle trong database.
  *
  * @author Phong
  * @version 1.0

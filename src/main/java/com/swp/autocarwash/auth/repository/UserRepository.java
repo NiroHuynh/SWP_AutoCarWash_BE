@@ -1,5 +1,6 @@
 package com.swp.autocarwash.auth.repository;
 
+import org.springframework.stereotype.Repository;
 import com.swp.autocarwash.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -41,6 +42,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return user information
      */
     Optional<User> findByEmail(String email);
-
+    
+      User findByEmailAndIsDeletedFalse(String email);
+    User findByPhoneAndIsDeletedFalse(String phone);
 
 }

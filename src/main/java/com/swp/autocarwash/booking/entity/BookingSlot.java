@@ -50,5 +50,8 @@ public class BookingSlot {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-
+    // derived field (KHÔNG lưu DB)
+    public int getAvailableCapacity() {
+        return maxCapacity - bookedCount;
+    }
 }

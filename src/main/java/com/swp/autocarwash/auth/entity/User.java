@@ -15,7 +15,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "user", schema = "swp_auto_car_wash")
+@Table(name = "user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +40,7 @@ public class User {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @Builder.Default
+    @Builder.Default    //@Builder bỏ qua giá trị khởi tạo field
     @ColumnDefault("1")
     @Column(name = "is_active")
     private Boolean isActive = true;

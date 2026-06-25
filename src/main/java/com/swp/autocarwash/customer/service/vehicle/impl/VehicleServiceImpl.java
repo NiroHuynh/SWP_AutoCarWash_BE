@@ -9,6 +9,13 @@ import com.swp.autocarwash.customer.port.CustomerPort;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import com.swp.autocarwash.customer.validator.VehicleValidator;
+import com.swp.autocarwash.common.contract.customer.VehicleContract;
+import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Vehicle;
+import com.swp.autocarwash.customer.mapper.VehicleMapper;
+import com.swp.autocarwash.customer.repository.VehicleRepository;
+import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 
+
+import java.util.List;
+
 /**
  *
- * Implementation xử lý nghiệp vụ Vehicle
+ * Chức năng: VehicleServiceImpl triển khai các nghiệp vụ xử lý vehicle.
+ * Class này chịu trách nhiệm quản lý logic lấy danh sách xe, lấy thông tin chi tiết
+ * vehicle và kiểm tra quyền sở hữu vehicle trước khi sử dụng trong các flow nghiệp vụ.
  *
  * @author Phong
  * @version 1.0
