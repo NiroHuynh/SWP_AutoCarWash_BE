@@ -6,10 +6,10 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -47,8 +47,8 @@ public class BookingCanceledEventListener {
      * Gọi chức năng xử lí điểm khi BookingCanceledEvent bắn/pulish sự kiện: hiểu như là séttatus cancel thành công trong database, nếu cancel không thành công -> event ko được publish -> listener ko nghe thấy -> ko hành động gì hết
      * @param event dữ liệu từ sự kiện huỷ booking
      */
-    @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) // Chỉ chạy sau khi booking cancel thành công — đảm bảo booking thật sự bị hủy rồi mới ghi violation
+    @Transactional(propagation = Propagation.REQUIRES_NEW) // bắt buộc REQUIRES_NEW (Spring yêu cầu) — transaction gốc đã commit xong, listener cần tự mở transaction mới riêng để save() thực sự flush/commit xuống DB
     public void onBookingCanceled(BookingCanceledEvent event) {
         if("WALK_IN".equals(event.getBookingType())){
             applyVehicleViolation(event.getVehicleId());
@@ -83,7 +83,7 @@ public class BookingCanceledEventListener {
      *
      * @param vehicleId id của vehicle liên quan đến booking bị hủy
      */
-    private void applyVehicleViolation(Long vehicleId) {
+    private void applyVehicleViolation(Integer vehicleId) {
         Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow();
         int count = (vehicle.getViolationCount() == null ? 0 : vehicle.getViolationCount()) + 1;
         vehicle.setViolationCount(count);
