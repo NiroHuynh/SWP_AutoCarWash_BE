@@ -12,11 +12,17 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
+import com.swp.autocarwash.payment.entity.BookingInvoice;
+import com.swp.autocarwash.payment.repository.custom.BookingInvoiceRepository;
+import com.swp.autocarwash.promotion.entity.VoucherUsage;
+import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;
+import com.swp.autocarwash.system.service.SystemSettingService;
+import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
 import com.swp.autocarwash.wash.repository.custom.WashLaneRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +50,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     //Số ngày bị khoá đặt lịch khi vượt quá số lần vi phạm cho phép
     private static final long RESTRICTION_DAYS = 14;
 
+    private final BookingInvoiceRepository bookingInvoiceRepository;
 
 
     private final BookingRepository bookingRepository;
@@ -52,44 +59,168 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
     private final WashLaneRepository washLaneRepository;
     private final QueueTicketRepository queueTicketRepository;
+    private final SystemSettingServiceImpl systemSettingServiceImpl;
+    private final VoucherUsageRepository voucherUsageRepository;
 
     //check và trả về thông tin booking khi input license
+//    @Override
+//    public ScanVehicleResponse scanVehicle(String licensePlate) {
+//        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate);
+//        if(bookingOtp.isEmpty()){
+//            //không có lịch, booking trước -> FE tự mở màn hình CREATE FOR WALK_IN
+//            Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(licensePlate).orElse(null);
+//            return ScanVehicleResponse.builder()
+//                    .licensePlate(licensePlate)
+//                    .hasBooking(false)
+//                    .isVehiclePenalized(vehicle != null && isVehiclePenalized(vehicle))
+//                    .build();
+//        }
+//
+//        Booking booking = bookingOtp.get();
+//        Vehicle vehicle = booking.getVehicle();
+//
+//        Customer customer = customerRepository.findById(booking.getCustomer().getId()).orElse(null);
+//        String customerName = customer != null ? customer.getFullName() : null;
+//        List<BookingSlot> slots = bookingSlotAllocationRepository.findBookingSLotsByBookingId(booking.getId());
+//        //tính ra khung giờ đặt, khung giờ kết thúc
+//        LocalTime slotStartTime = slots.isEmpty() ? null : slots.get(0).getStartTime();
+//        LocalTime slotEndTime = slots.isEmpty() ? null : slots.get(slots.size() - 1).getEndTime();
+//
+//        return ScanVehicleResponse.builder()
+//                .bookingId(booking.getId())
+//                .licensePlate(licensePlate)
+//                .customerName(customerName)
+//                .slotStartTime(slotStartTime)
+//                .slotEndTime(slotEndTime)
+//                .hasBooking(true)
+//                .isVehiclePenalized(isVehiclePenalized(vehicle))
+//                .build();
+//    }
+//
+//    private boolean isVehiclePenalized(Vehicle vehicle){
+//        return vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
+//    }
+
     @Override
     public ScanVehicleResponse scanVehicle(String licensePlate) {
         Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate);
-        if(bookingOtp.isEmpty()){
-            //không có lịch, booking trước -> FE tự mở màn hình CREATE FOR WALK_IN
+
+        // TRƯỜNG HỢP 1: KHÔNG TÌM THẤY LỊCH ĐẶT TRƯỚC (KHÁCH VÃNG LAI)
+        if (bookingOtp.isEmpty()) {
             Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(licensePlate).orElse(null);
+
+            // Trả về tối giản các trường định danh cơ bản, để FE biết đường mở Form Walk-in
             return ScanVehicleResponse.builder()
                     .licensePlate(licensePlate)
                     .hasBooking(false)
                     .isVehiclePenalized(vehicle != null && isVehiclePenalized(vehicle))
+                    .brandName(vehicle != null ? vehicle.getBrandName() : null)
+                    .color(vehicle != null ? vehicle.getColor() : null)
                     .build();
         }
 
+        // TRƯỜNG HỢP 2: TÌM THẤY LỊCH ĐẶT TRƯỚC HỢP LỆ (ONLINE/APP)
         Booking booking = bookingOtp.get();
         Vehicle vehicle = booking.getVehicle();
 
-        Customer customer = customerRepository.findById(booking.getCustomer().getId()).orElse(null);
-        String customerName = customer != null ? customer.getFullName() : null;
-        List<BookingSlot> slots = bookingSlotAllocationRepository.findBookingSLotsByBookingId(booking.getId());
-        //tính ra khung giờ đặt, khung giờ kết thúc
-        LocalTime slotStartTime = slots.isEmpty() ? null : slots.get(0).getStartTime();
-        LocalTime slotEndTime = slots.isEmpty() ? null : slots.get(slots.size() - 1).getEndTime();
+        // Lấy thông tin khách hàng & phân hạng thành viên
+        Customer customer = booking.getCustomer();
+        String customerName = customer != null ? customer.getFullName() : "Customer no have name(WALK_IN customer)";
+        String customerTier = (customer != null && customer.getCustomerTier().getTierName() != null) ? customer.getCustomerTier().getTierName() : "MEMBER";
 
+        // Lấy thông tin khung giờ (Slot) phục vụ
+        List<BookingSlot> slots = bookingSlotAllocationRepository.findBookingSLotsByBookingId(booking.getId());
+        LocalTime startTime = slots.isEmpty() ? null : slots.get(0).getStartTime();
+        LocalTime endTime = slots.isEmpty() ? null : slots.get(slots.size() - 1).getEndTime();
+
+        //  TRUY VẾT STATION THÔNG QUA BOOKING SLOT
+        String stationName = "None";
+        String stationAddress = "None";
+
+        if (!slots.isEmpty()) {
+            // Lấy slot đầu tiên được phân bổ cho đơn đặt lịch này
+            BookingSlot firstSlot = slots.getFirst();
+            if (firstSlot.getStation() != null) {
+                stationName = firstSlot.getStation().getStationName();
+                stationAddress = firstSlot.getStation().getAddress();
+            }
+        }
+
+
+
+        // 4. Lấy thông tin hóa đơn tài chính chi tiết từ BookingInvoice
+        Optional<BookingInvoice> invoiceOpt = bookingInvoiceRepository.findByBooking_Id(booking.getId());
+
+        BigDecimal totalAmount = booking.getTotalAmount() != null ? booking.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal remainingAmount = totalAmount; // Mặc định thu bằng tổng tiền nếu không tìm thấy invoice
+        BigDecimal servicePrice = booking.getTotalServiceAmount() != null ? booking.getTotalServiceAmount() : BigDecimal.ZERO;
+        BigDecimal voucherDiscountAmount = booking.getVoucherDiscountAmount() != null ? booking.getVoucherDiscountAmount() : BigDecimal.ZERO;
+        String serviceName = booking.getServicePackage() != null
+                ? booking.getServicePackage().getName()
+                : null;
+
+        if (invoiceOpt.isPresent()) {
+            BookingInvoice invoice = invoiceOpt.get();
+            totalAmount = invoice.getRawAmount();
+            remainingAmount = invoice.getFinalAmount(); // Số tiền thực tế cần thu nốt tại quầy (Checkout)
+            servicePrice = invoice.getServiceAmount();
+            voucherDiscountAmount = invoice.getVoucherDiscount() != null ? invoice.getVoucherDiscount() : BigDecimal.ZERO;
+        }
+
+        // TRUY VẾT VOUCHER CODE QUA MỐI QUAN HỆ BẢNG VOUCHER_USAGE
+        Optional<VoucherUsage> voucherUsageOpt = voucherUsageRepository.findByBooking_Id(booking.getId());
+        String voucherCode = null;
+        Integer voucherDiscountPercent = null;
+
+        if (voucherUsageOpt.isPresent()) {
+            VoucherUsage voucherUsage = voucherUsageOpt.get();
+            if (voucherUsage.getVoucher() != null) {
+                voucherCode = voucherUsage.getVoucher().getVoucherCode(); // Bốc mã code thật
+                voucherDiscountPercent = voucherUsage.getVoucher().getDiscountPercentage(); // Bốc % giảm thật
+            }
+        }
+
+        //Đóng dữ liệu
         return ScanVehicleResponse.builder()
                 .bookingId(booking.getId())
                 .licensePlate(licensePlate)
                 .customerName(customerName)
-                .slotStartTime(slotStartTime)
-                .slotEndTime(slotEndTime)
+                .slotStartTime(startTime)
+                .slotEndTime(endTime)
                 .hasBooking(true)
                 .isVehiclePenalized(isVehiclePenalized(vehicle))
+
+                // Điền các trường đồng bộ dữ liệu
+                .appointmentDate(booking.getAppointmentDate())
+                .bookingType(booking.getBookingType())
+                .brandName(vehicle.getBrandName())
+                .color(vehicle.getColor())
+                .customerTier(customerTier)
+
+                .depositAmount(systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT))
+                .depositPaid(booking.getIsDepositPaid() != null && booking.getIsDepositPaid())
+
+                .remainingAmount(remainingAmount)
+                .serviceName(serviceName)
+                .servicePrice(servicePrice)
+
+                // Thông tin chi nhánh trỏ từ thực thể Slot hoặc Booking
+                .stationName(stationName)
+                .stationAddress(stationAddress)
+
+                .status(booking.getStatus())
+                .technicianName(booking.getCheckInEmployee().getFullName() != null ? booking.getCheckInEmployee().getFullName() : "NONE")
+                .totalAmount(totalAmount)
+                .voucherCode(voucherCode)
+                .voucherDiscountAmount(voucherDiscountAmount)
+                .voucherDiscountPercent(voucherDiscountPercent)
                 .build();
     }
 
-    private boolean isVehiclePenalized(Vehicle vehicle){
-        return vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
+    // Hàm phụ check vi phạm của xe giữ nguyên
+    private boolean isVehiclePenalized(Vehicle vehicle) {
+        return vehicle.getViolationCount() != null && vehicle.getViolationCount() > VIOLATION_LIMIT
+                && vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
     }
 
     //AC-02: tính độ lệch thời gian check in so với booking(sớm, trễ)

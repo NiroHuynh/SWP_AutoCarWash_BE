@@ -2,6 +2,8 @@ package com.swp.autocarwash.staff.dto.response;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
@@ -27,5 +29,25 @@ public class ScanVehicleResponse {
     //true nếu xe đang bị khoá đặt lịch (restricted_until > thời điểm hiện tại)
     //UI cần để hiện thị thông tin cảnh báo này
     private boolean isVehiclePenalized;
+
+
+    private LocalDate appointmentDate;
+    private String bookingType;
+    private String brandName;
+    private String color;
+    private String customerTier;
+    private BigDecimal depositAmount;
+    private boolean depositPaid; // Đồng bộ loại bỏ tiền tố "is"
+    private BigDecimal remainingAmount;
+    private String serviceName;
+    private BigDecimal servicePrice;
+    private String stationAddress;
+    private String stationName;
+    private String status;
+    private String technicianName;
+    private BigDecimal totalAmount;
+    private String voucherCode;
+    private BigDecimal voucherDiscountAmount;
+    private Integer voucherDiscountPercent;
 
 }
