@@ -364,8 +364,9 @@ public class BookingServiceImpl implements BookingService {
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
                     .isDepositPaid(booking.getIsDepositPaid())
-                    .checkInAt(booking.getCheckInAt())
-                    .canceledAt(booking.getCanceledAt()).build());
+                    .checkInAt(Instant.parse(booking.getCheckInAt().toString()))
+                    .canceledAt(Instant.parse(booking.getCanceledAt().toString()))
+                    .build());
         }
 
         return getBookingDetail(bookingId);

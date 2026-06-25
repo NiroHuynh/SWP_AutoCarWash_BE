@@ -13,6 +13,11 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    UNAUTHORIZED(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
             "COMMON_002",
