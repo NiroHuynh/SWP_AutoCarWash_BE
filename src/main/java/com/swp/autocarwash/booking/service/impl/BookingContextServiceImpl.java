@@ -4,6 +4,7 @@ import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.response.BookingContextResponse;
 import com.swp.autocarwash.booking.mapper.BookingMapper;
 import com.swp.autocarwash.booking.port.*;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.service.BookingContextService;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
@@ -41,6 +42,7 @@ public class BookingContextServiceImpl implements BookingContextService {
     private final FamilySubscriptionPort familySubscriptionPort;
     private final UnlimitSubscriptionPort unlimitSubscriptionPort;
     private final FamilyGroupPort familyGroupPort;
+    private final BookingRepository bookingRepository;
 
     private final SecurityUtils securityUtils;
 
@@ -95,8 +97,6 @@ public class BookingContextServiceImpl implements BookingContextService {
             throw new BusinessException(ErrorCode.NO_VEHICLE_REGISTERED);
         }
 
-        List<BookingContextResponse.VehicleDTO> vehicleDTOS = getSubscriptionOfVehicles(vehicles);
-
         // AC: compute booking window theo tier
         LocalDate now = LocalDate.now();
         int limitDays = resolveTierLimitDays(customer.getId());
@@ -106,6 +106,8 @@ public class BookingContextServiceImpl implements BookingContextService {
                         .minDate(now)
                         .maxDate(now.plusDays(limitDays))
                         .build();
+
+        List<BookingContextResponse.VehicleDTO> vehicleDTOS = getSubscriptionOfVehicles(vehicles,window);
 
         StationContract station = stationPort.getStationById(stationId);
 
@@ -158,11 +160,11 @@ public class BookingContextServiceImpl implements BookingContextService {
      * @author Phong
      * @version 1.0
      */
-    private List<BookingContextResponse.VehicleDTO> getSubscriptionOfVehicles(List<VehicleContract> vehicleContracts){
+    private List<BookingContextResponse.VehicleDTO> getSubscriptionOfVehicles(List<VehicleContract> vehicleContracts,BookingContextResponse.BookingWindowDTO windowDTO){
         List<BookingContextResponse.VehicleDTO> vehicleDTOS = new ArrayList<>();
         for(VehicleContract vehicleContract : vehicleContracts){
             BookingContextResponse.VehicleDTO vehicleDTO = bookingMapper.toVehicleDTO(vehicleContract);
-            BookingContextResponse.VehicleDTO.ActiveSubscription activeSubscription = getActiveSubscription(vehicleContract);
+            BookingContextResponse.VehicleDTO.ActiveSubscription activeSubscription = getActiveSubscription(vehicleContract,windowDTO);
             vehicleDTO.setActiveSubscription(
                 activeSubscription
             );
@@ -179,24 +181,38 @@ public class BookingContextServiceImpl implements BookingContextService {
      * @author Phong
      * @version 1.0
      */
-    private BookingContextResponse.VehicleDTO.ActiveSubscription getActiveSubscription(VehicleContract vehicleContract){
+    private BookingContextResponse.VehicleDTO.ActiveSubscription getActiveSubscription(VehicleContract vehicleContract, BookingContextResponse.BookingWindowDTO windowDTO){
         Integer servicePackageId = null;
         String type = null;
+        List<LocalDate> usedDates = new ArrayList<>();
 
         Integer familyPackageId = familySubscriptionPort.getActiveServicePackageId(vehicleContract.getId());
         Integer unlimitPackageId = unlimitSubscriptionPort.getActiveServicePackageId(vehicleContract.getId());
         if(familyPackageId!=null){
             type = "FAMILY";
             servicePackageId=familyPackageId;
+            usedDates = bookingRepository.findFamilyUsedDates(
+              vehicleContract.getId(),
+              servicePackageId,
+              windowDTO.getMinDate(),
+              windowDTO.getMaxDate()
+            );
         } else if (unlimitPackageId != null) {
             type = "UNLIMITTED";
             servicePackageId=unlimitPackageId;
+            usedDates = bookingRepository.findUsedUnlimitBookingDates(
+                    vehicleContract.getId(),
+                    servicePackageId,
+                    windowDTO.getMinDate(),
+                    windowDTO.getMaxDate()
+            );
         }
 
         if(unlimitPackageId!=null || familyPackageId!=null){
             return BookingContextResponse.VehicleDTO.ActiveSubscription.builder()
                     .servicePackageId(servicePackageId)
                     .type(type)
+                    .usedDates(usedDates)
                     .build();
         }
 
