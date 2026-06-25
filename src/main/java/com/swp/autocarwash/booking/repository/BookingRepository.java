@@ -53,6 +53,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "JOIN FETCH b.vehicle " +
            "JOIN FETCH b.servicePackage " +
            "LEFT JOIN FETCH b.checkInEmployee " +
+           "LEFT JOIN FETCH b.customer c " +
+           "LEFT JOIN FETCH c.customerTier " +
            "WHERE b.id = :id")
     public Optional<Booking> findDetailById(@Param("id") Long id);
 // Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu

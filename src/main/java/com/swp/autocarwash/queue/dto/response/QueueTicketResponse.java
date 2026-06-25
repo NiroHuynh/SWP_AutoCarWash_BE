@@ -16,14 +16,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueueTicketResponse {
-    /**
-     *     licensePlate  = "LMN-4455"
-     *     customerTier  = "PLATINUM"
-     *     vehicleBrand  = "Audi"
-     *     vehicleColor  = "Metallic Grey"
-     *     serviceName   = "Premium Wash"
-     *     status        = "WAITING"
-     */
 
         private Long id;
         private String ticketNumber;
@@ -33,6 +25,10 @@ public class QueueTicketResponse {
         private Long bookingId;
         private String licensePlate;
         private String customerName;
+        private String customerTier;
+        private String vehicleBrand;
+        private String vehicleColor;
+        private String serviceName;
         private Integer stationId;
         private String stationName;
 
