@@ -38,6 +38,7 @@ public class QueueController {
      * @return {@code 200 OK} với danh sách {@link QueueTicketResponse}
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<List<QueueTicketResponse>>> getActiveQueue() {
         return ResponseEntity.ok(
                 ApiResponse.success("Lấy danh sách hàng chờ thành công", queueService.getActiveQueue())
@@ -57,6 +58,7 @@ public class QueueController {
      * @version 1.0
      */
     @PatchMapping("/{bookingId}/cancel-guest-left")
+    @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<BookingDetailResponse>> cancelGuestLeft(
             @PathVariable Long bookingId,
             @AuthenticationPrincipal UserCustomerDetails principal) {
