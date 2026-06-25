@@ -497,8 +497,6 @@ public class BookingServiceImpl implements BookingService {
                 .totalAmount(subTotal)
                 .build();
 
-        System.out.println(ZoneId.systemDefault());
-        System.out.println(LocalDateTime.now());
 
 //        tạo BookingAddon
         booking = createBookingAddon(booking, request.getAddonServiceIds());
