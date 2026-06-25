@@ -20,21 +20,13 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import com.swp.autocarwash.auth.dto.request.RegisterRequest;
-import com.swp.autocarwash.auth.dto.response.RegisterResponse;
 import com.swp.autocarwash.auth.entity.Role;
-import com.swp.autocarwash.auth.entity.User;
 import com.swp.autocarwash.auth.entity.enums.UserRole;
-import com.swp.autocarwash.auth.mapper.UserMapper;
 import com.swp.autocarwash.auth.port.CustomerPort;
 import com.swp.autocarwash.auth.repository.RoleRepository;
-import com.swp.autocarwash.auth.repository.UserRepository;
 import com.swp.autocarwash.auth.service.AuthService;
-import com.swp.autocarwash.auth.validator.RegisterValidator;
-import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
-import com.swp.autocarwash.customer.entity.Customer;
-import com.swp.autocarwash.customer.repository.custom.CustomerRepository;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import com.swp.autocarwash.loyalty.entity.enums.TierStatus;
 import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
@@ -62,9 +54,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
 
-    private final UserMapper userMapper;
-
-    private final RegisterValidator registerValidator;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -86,9 +75,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AuthenticationManager authenManager;
-
-    @Autowired
-    private CustomerRepository customerRepository;
 
     @Autowired
     private StaffRepository staffRepository;

@@ -84,12 +84,6 @@ public class BookingContextServiceImpl implements BookingContextService {
 
         Integer customerId = getCurrentCustomerId();
 
-        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customerId);
-//        List<VehicleContract> vehicles = null;
-
-        if (vehicles == null || vehicles.isEmpty()) {
-            throw new BusinessException(ErrorCode.NO_VEHICLE_REGISTERED);
-        }
 
         // AC: compute booking window theo tier
         LocalDate now = LocalDate.now();
@@ -104,7 +98,6 @@ public class BookingContextServiceImpl implements BookingContextService {
         return BookingContextResponse.builder()
                 .stationId(stationId)
                 .bookingWindow(window)
-                .vehicles(vehicles.stream().map(bookingMapper::toVehicleDTO).toList())
                 .servicePackages(servicePackagePort.getAllPackages()
                         .stream().map(bookingMapper::toPackage).toList())
                 .addonServices(addonServicePort.getAllAddons()

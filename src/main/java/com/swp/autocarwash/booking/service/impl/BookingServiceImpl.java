@@ -399,12 +399,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public CreateBookingResponse createBooking(CreateBookingRequest request) {
 
-        // 1. VALIDATE VEHICLE
-        VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
-        if (vehicle == null) {
-            throw new BusinessException(ErrorCode.VEHICLE_NOT_FOUND);
-        }
-
         // 2. SERVICE PACKAGE
         var servicePackage = servicePackagePort.getById(request.getServicePackageId());
 
@@ -462,7 +456,6 @@ public class BookingServiceImpl implements BookingService {
 
         // 7. BUILD BOOKING ENTITY (FIXED)
         Booking booking = new Booking();
-        booking.setVehicle(modelMapper.map(vehicle, Vehicle.class));
         booking.setServicePackage(modelMapper.map(servicePackage, ServicePackage.class));
         booking.setAppointmentDate(LocalDate.parse(request.getAppointmentDate()));
         booking.setStatus(BookingStatus.PENDING.toString());

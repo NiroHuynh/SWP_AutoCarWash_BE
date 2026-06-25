@@ -143,11 +143,6 @@ public enum ErrorCode {
             "LOYALTY_001",
             "Customer tier not found"
     ),
-    CUSTOMER_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-            "CUSTOMER_001",
-            "Customer not found"
-    ),;
     BOOKING_INVALID_SLOT(
             HttpStatus.BAD_REQUEST,
             "BOOKING_004",
@@ -157,11 +152,6 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_005",
             "Slot is not available"
-    ),
-    VEHICLE_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-    "VEHICLE_001",
-            "Vehicle not found"
     ),
     VEHICLE_NOT_OWNED(
             HttpStatus.FORBIDDEN,

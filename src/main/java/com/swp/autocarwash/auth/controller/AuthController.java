@@ -2,7 +2,7 @@ package com.swp.autocarwash.auth.controller;
 import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.dto.request.LoginRequest;
 import com.swp.autocarwash.auth.dto.response.LoginResponse;
-import com.swp.autocarwash.auth.service.impl.AuthService;
+import com.swp.autocarwash.auth.service.AuthService;
 import com.swp.autocarwash.common.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,16 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.swp.autocarwash.auth.dto.request.RegisterRequest;
 import com.swp.autocarwash.auth.dto.response.RegisterResponse;
-import com.swp.autocarwash.auth.service.AuthService;
-import com.swp.autocarwash.common.response.ApiResponse;
 import jakarta.validation.Valid;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.ResponseEntity;
-
-import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
