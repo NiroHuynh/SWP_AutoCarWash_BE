@@ -127,7 +127,7 @@ public class BookingValidator {
 
 
         Integer addonDurationMinutes =
-                addonIds != null
+                addonIds != null && !addonIds.isEmpty()
                         ? addonServicePort.getTotalDuration(addonIds)
                         : 0;
 

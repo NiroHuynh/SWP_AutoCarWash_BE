@@ -32,6 +32,7 @@ public class BookingContextResponse {
     private List<AddonServiceDTO> addonServices;
     private List<VoucherDTO> vouchers;
 
+
     /**
      *
      * Chức năng: BookingWindowDTO lưu trữ khoảng thời gian cho phép khách hàng
@@ -85,6 +86,7 @@ public class BookingContextResponse {
         public static class ActiveSubscription{
             private String type;
             private Integer servicePackageId;
+            private List<LocalDate> usedDates;
         }
     }
 
