@@ -42,4 +42,10 @@ public class StationServiceImpl implements StationService {
                 .map(station -> modelMapper.map(station, StationResponse.class))
                 .toList();
     }
+
+    @Override
+    public Station getStationById(Integer stationId) {
+        return stationRepository.findById(stationId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.STATION_NOT_FOUND));
+    }
 }

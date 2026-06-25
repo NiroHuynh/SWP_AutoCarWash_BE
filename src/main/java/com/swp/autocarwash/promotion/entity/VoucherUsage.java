@@ -5,8 +5,7 @@ import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -15,6 +14,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "voucher_usage", schema = "swp_auto_car_wash")
 public class VoucherUsage {
     @Id

@@ -26,16 +26,8 @@ public class BookingPricePreviewResponse {
     private PriceBreakdown breakdown;
 
     private AppliedVoucher appliedVoucher;
+    private boolean isVehicleBookingOnDateAndHasSubscription;
 
-    /**
-     *
-     * Chức năng: PriceBreakdown lưu trữ chi tiết quá trình tính toán giá booking,
-     * bao gồm giá dịch vụ, giá addon, tổng tiền trước giảm giá, giảm giá voucher
-     * và tổng tiền cuối cùng cần thanh toán.
-     *
-     * @author Phong
-     * @version 1.0
-     */
     @Getter
     @Setter
     @NoArgsConstructor

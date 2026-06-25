@@ -31,7 +31,7 @@ public interface CustomerService {
      * @author Phong
      * @version 1.0
      */
-    Customer getCustomerById(Integer id);
+    Customer getCustomerById(Long id);
 
 
 
@@ -52,6 +52,8 @@ public interface CustomerService {
      * @author Phong
      * @version 1.0
      */
-    boolean isEligibleForBooking(Integer id);
+    boolean isEligibleForBooking(Long id);
 
+
+    Customer getCustomerByUserId(Long userId);
 }

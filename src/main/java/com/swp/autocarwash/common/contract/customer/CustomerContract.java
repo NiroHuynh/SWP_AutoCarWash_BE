@@ -9,16 +9,12 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class CustomerContract {
-    
-      private Integer id;
 
-    /**
-     * User id from auth module
-     */
-    private Integer userId;
+    private Long id;
+    private Long userId;
 
 
     /**
@@ -37,11 +33,11 @@ public class CustomerContract {
      * Customer birthday
      */
     private LocalDate birthday;
-  
+
       private Integer violationCount;
     private LocalDateTime restrictedUntil;
 
-    public CustomerContract(Integer userId) {
+    public CustomerContract(Long userId) {
         this.userId = userId;
     }
 }
