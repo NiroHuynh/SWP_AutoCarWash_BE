@@ -40,14 +40,7 @@ public class MockCustomerBookingAdapter implements CustomerPort {
      */
     @Override
     public CustomerContract getCustomerById(Long customerId) {
-        return new CustomerContract(
-                customerId,
-                Long.valueOf(101),
-                "Phong",
-                "Huynh",
-                0,
-                null
-        );
+        return null;
     }
 
     /**

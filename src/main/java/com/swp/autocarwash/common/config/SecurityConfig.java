@@ -60,10 +60,15 @@ public class SecurityConfig {
             //2. chuyển sang STATELESS(ko lưu Session/Cookie trên Server)
             .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             //3. quy định gác cổng, url nào được phép tự do, url nào phải khoá lại
+//                    ====== comment lại để có thể cho mọi api đều gửi đi được
             .authorizeHttpRequests( auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
             //mở toang cửa cho cụm API login
             .anyRequest().authenticated()
             );
+//                    ====== code cho mọi url đi qua
+//            .authorizeHttpRequests(auth ->
+//                auth.anyRequest().permitAll()
+//            );
             //tất cả các API khác đều phải có token
             // nghĩa là tại đây vào đều cần phải có xác thưc
             //khi một request rơi vào ô này thì sẽ bị chặn lại -> thò tay vào SecurityContextHolder
