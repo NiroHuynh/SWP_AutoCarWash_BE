@@ -36,6 +36,10 @@ public class QueueMapper {
                 .bookingId(booking != null ? booking.getId() : null)
                 .licensePlate(vehicle != null ? vehicle.getLicensePlate() : null)
                 .customerName(customer != null ? customer.getFirstName() + " " + customer.getLastName() : null)
+                .customerTier(customer != null && customer.getCustomerTier() != null ? customer.getCustomerTier().getTierName() : null)
+                .vehicleBrand(vehicle != null ? vehicle.getBrandName() : null)
+                .vehicleColor(vehicle != null ? vehicle.getColor() : null)
+                .serviceName(booking != null && booking.getServicePackage() != null ? booking.getServicePackage().getName() : null)
                 .stationId(ticket.getStation() != null ? ticket.getStation().getId() : null)
                 .stationName(ticket.getStation() != null ? ticket.getStation().getStationName() : null)
                 .build();
