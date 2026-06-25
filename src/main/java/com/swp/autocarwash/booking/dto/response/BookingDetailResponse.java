@@ -29,7 +29,11 @@ public class BookingDetailResponse {
     /** Trạng thái nội bộ (CONFIRMED, CHECKED_IN, WASHING, PAID, CANCELLED, NO_SHOW). */
     private String status;
 
+    /** Loại booking (ONLINE, WALK_IN). */
+    private String bookingType;
 
+    /** Hạng thành viên của khách (PLATINUM/GOLD/SILVER...). {@code null} nếu booking không gắn customer (walk-in). */
+    private String customerTier;
 
     // ── Thông tin dịch vụ ────────────────────────────────────────────────────
 

@@ -95,6 +95,9 @@ public class BookingHistoryMapper {
         return BookingDetailResponse.builder()
                 .bookingId(booking.getId())
                 .status(booking.getStatus())
+                .bookingType(booking.getBookingType())
+                .customerTier(booking.getCustomer() != null && booking.getCustomer().getCustomerTier() != null
+                        ? booking.getCustomer().getCustomerTier().getTierName() : null)
                 .serviceName(booking.getServicePackage().getName())
                 .addons(addonInfos)
                 .licensePlate(booking.getVehicle().getLicensePlate())
