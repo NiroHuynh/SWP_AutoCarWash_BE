@@ -204,6 +204,27 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SYSTEM_SETTING_002",
             "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_PACKAGE_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_001",
+            "This service package not exist in the system"
+
+    ),
+    SERVICE_PACKAGE_ADD_ON_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_002",
+            "This service package add on not exist in the system"
+    ),
+    PENALTY_DEPOSIT_NOT_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PENALTY_DEPOSIT_001",
+            "The 20,000 VND penalty deposit has not been confirmed by the staff."
+    ),
+    SERVICE_SLOT_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "The selected service slot does not exist or is no longer available."
     );
 
 

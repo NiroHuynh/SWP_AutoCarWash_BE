@@ -32,4 +32,24 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
         return findActiveSubscription(customerId,vehicleId, SubscriptionStatus.ACTIVE, LocalDate.now());
     }
 
+    /**
+     * Kiểm tra xem khách hàng có đang sở hữu gói Subscription ACTIVE, còn hạn,
+     * và gói đó áp dụng cho đúng mã gói dịch vụ chính (servicePackageId) đang chọn hay không.
+     */
+    @Query("SELECT COUNT(u) > 0 FROM UnlimitSubscription u " +
+            "JOIN u.subscriptionPlan p " + //Đi xuyên qua bảng SubscriptionPlan
+            "WHERE u.customer.id = :customerId " +
+            "AND u.vehicle.id = :vehicleId " +
+            "AND p.servicePackage.id = :servicePackageId " + //check khớp mã gói dịch vụ chính
+            "AND u.status = :status " +
+            "AND :currentDate BETWEEN u.startDate AND u.endDate")
+    boolean hasActiveSubscription(@Param("customerId") Long customerId,
+                                  @Param("vehicleId") Long vehicleId,
+                                  @Param("servicePackageId") Integer servicePackageId,
+                                  @Param("status") String status,
+                                  @Param("currentDate") LocalDate currentDate);
 }
+
+
+
+

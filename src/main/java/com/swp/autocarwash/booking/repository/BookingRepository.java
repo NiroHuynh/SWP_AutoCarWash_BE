@@ -94,18 +94,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Dùng cho Cron Job tịch thu tiền cọc cuối ngày.
      */
 
-//    @Query("""
-//        SELECT b FROM Booking b
-//        WHERE b.appointmentDate = :appointmentDate
-//        AND b.status = :status
-//        AND b.isDepositPaid = true
-//        AND b.depositConfiscatedAt IS NULL
-//        """)
-//    List<Booking> findNoShowBookingsPendingDepositConfiscation(
-//            @Param("appointmentDate") LocalDate appointmentDate,
-//            @Param("status") String status
-//    );
-
     @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.status = :status AND b.isDepositPaid = true AND b.depositConfiscatedAt IS NULL")
     List<Booking> findNoShowBookingsPendingDepositConfiscation(
             @Param("appointmentDate") LocalDate appointmentDate,
@@ -114,13 +102,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
     @Query("SELECT b FROM Booking b " +
-            "WHERE b.vehicle.id = :vehicleId " +
+            "WHERE b.vehicle.licensePlate = :licensePlate " +
             "AND b.appointmentDate = :appointmentDate " +
             "AND b.status = :status " +
             "AND b.isDepositPaid = true " +
             "AND b.depositConfiscatedAt IS NULL")
     Optional<Booking> findBookingToRescueDeposit(
-            @Param("vehicleId") Long vehicleId,
+            @Param("licensePlate") String licensePlate,
             @Param("appointmentDate") LocalDate appointmentDate,
             @Param("status") String status
     );

@@ -2,8 +2,12 @@ package com.swp.autocarwash.staff.controller;
 
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
+import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.BookingSummaryResponse;
 import com.swp.autocarwash.staff.dto.response.CheckPhoneResponse;
+import com.swp.autocarwash.staff.dto.response.CreateWalkInResponse;
+import com.swp.autocarwash.staff.service.impl.WalkInCheckInService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,42 +17,41 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class WalkInCheckInController {
 
+    private final WalkInCheckInService walkInCheckInService;
+
     @GetMapping("/check-phone")
     public ResponseEntity<ApiResponse<CheckPhoneResponse>> checkCustomerPhone(@RequestParam String phone){
-        // Thực tế code chạy: CheckPhoneResponse response = walkInCheckInService.checkPhone(phone);
 
-        // Đoạn code giả lập dữ liệu (Mock Data) để test API trước khi viết Service:
-        CheckPhoneResponse mockResponse = CheckPhoneResponse.builder()
-                .isExisted(true)
-                .customerName("Nguyễn Văn A")
-                .tierName("Hạng Vàng")
-                .build();
-        return ResponseEntity.ok(ApiResponse.success("Check phone successfully", mockResponse));
+        CheckPhoneResponse response = walkInCheckInService.checkPhone(phone);
+
+        String message = response.getExisted()
+                ? "Member customer information found successfully."
+                : "Phone number does not exist in the system. New walk-in customer.";
+
+        return ResponseEntity.ok(ApiResponse.success(message, response));
     }
 
-    //* AC02 + AC03 + AC04: API tính toán hóa đơn tạm tính (Side-panel) theo thời gian thực
+    /**
+     *XEM TRƯỚC HÓA ĐƠN TẠM TÍNH & TỰ ĐỘNG LOAD SLOT TRỐNG REAL-TIME (AC02, AC03, AC04)
+     * * API này gọi liên tục mỗi khi Staff thay đổi gói dịch vụ/addons hoặc gõ biển số xe để preview giá tiền.
+     * * @param request Cục request xem trước (chứa customerId, licensePlate, servicePackageId, addonIds, stationId)
+     * @return BookingSummaryResponse (Bảng tính tiền chi tiết + Rổ danh sách slot trống thời gian thực)
+     */
     @PostMapping("/calculate-invoice")
-    public ResponseEntity<ApiResponse<BookingSummaryResponse>> calculateInvoice(@RequestBody CalculateInvoiceRequest request) {
-        // Thực tế code chạy: BookingSummaryResponse response = walkInCheckInService.calculateInvoice(request);
-
-        // Giả lập dữ liệu hiển thị khung hóa đơn tạm tính bên phải:
-        BookingSummaryResponse mockResponse = BookingSummaryResponse.builder()
-                .rawAmount(new java.math.BigDecimal("150000"))
-                .packageDiscount(java.math.BigDecimal.ZERO)
-                .penaltyDeposit(new java.math.BigDecimal("20000")) // Phát hiện xe bị phạt trễ hẹn (AC02)
-                .transferredCredit(java.math.BigDecimal.ZERO)
-                .remainingBalance(new java.math.BigDecimal("170000"))
-                .systemNotice("Xe bị hạn chế thiết bị do vi phạm. Yêu cầu thu thêm 20,000 VND tiền cọc tại quầy!")
-                .isActionBlock(true) // Khóa nút Check-in chính, ép Staff bấm nút thu cọc trước
-                .build();
-
-        return ResponseEntity.ok(ApiResponse.success("Tính toán hóa đơn tạm tính thành công", mockResponse));
+    public ResponseEntity<ApiResponse<BookingSummaryResponse>> calculateInvoice(@Valid @RequestBody CalculateInvoiceRequest request) {
+        BookingSummaryResponse response = walkInCheckInService.calculateInvoice(request);
+        return ResponseEntity.ok(ApiResponse.success(response.getSystemNotice(), response));
     }
 
+    /**
+     * XÁC NHẬN BẤM NÚT [XÁC NHẬN CHECK-IN] - TẠO ĐƠN THẬT XUỐNG DB
+     * * @param request Cục request tạo đơn chính thức (chứa thêm chosenSlotIds và cờ penaltyDepositCollected)
+     * @return CreateWalkInResponse (Mã booking, mã vé, số thứ tự Wxxx)
+     */
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<String>> createWalkInBooking(@RequestBody CalculateInvoiceRequest finalRequest) {
-        // Thực tế code chạy: walkInCheckInService.createWalkInOrder(finalRequest);
-        return ResponseEntity.ok(ApiResponse.success("Tạo đơn hàng vãng lai thành công. Xe đã vào hàng đợi!", null));
+    public ResponseEntity<ApiResponse<CreateWalkInResponse>> createWalkInBooking(@Valid @RequestBody CreateWalkInRequest request) {
+        CreateWalkInResponse response = walkInCheckInService.createWalkInOrder(request);
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
 
 }
