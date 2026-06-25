@@ -69,7 +69,7 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
         SELECT s
         FROM BookingSlot s
         WHERE s.id IN :ids
-        AND s.status = 'ACTIVE'
+        AND s.status = 'AVAILABLE'
         AND s.bookedCount < s.maxCapacity
     """)
     List<BookingSlot> findAvailableSlots(
