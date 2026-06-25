@@ -75,9 +75,6 @@ public class Booking {
     @Column(name = "is_deposit_paid")
     private Boolean isDepositPaid;
 
-    @Column(name = "deposit_amount", precision = 12, scale = 2)
-    private BigDecimal depositAmount;
-
     @ColumnDefault("0.00")
     @Column(name = "total_service_amount", precision = 12, scale = 2)
     private BigDecimal totalServiceAmount;

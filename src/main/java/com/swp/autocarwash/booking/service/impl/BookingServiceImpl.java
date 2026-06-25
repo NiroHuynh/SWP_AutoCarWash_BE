@@ -5,6 +5,8 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
+import com.swp.autocarwash.booking.event.BookingCanceledEvent;
+import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
@@ -70,7 +72,7 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of("CONFIRMED", "CHECKED_IN", "WASHING");
+            List.of("CONFIRMED", "CHECKED_IN", "WASHING", "PENDING");
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
@@ -84,11 +86,24 @@ public class BookingServiceImpl implements BookingService {
     private static final long CANCEL_THRESHOLD_MINUTES = 120;
 
     /**
+     * Số tiền đặt cọc cố định theo BL-BK-00 (không lưu theo từng booking).
+     */
+    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
+
+    /**
      * Múi giờ hệ thống.
      * Múi giờ Việt Nam (UTC+7) — dùng thay cho LocalDateTime.now() để đảm bảo
      *  đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
      */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    /**
+     * Publisher riêng của module booking, bọc lại ApplicationEventPublisher của Spring.
+     * Khi gọi publishBookingCanceled(), Spring sẽ tìm tất cả class có annotation
+     * @EventListener/@TransactionalEventListener lắng nghe BookingCanceledEvent để thông báo
+     * "có 1 sự kiện vừa diễn ra" — còn làm gì sau khi nghe thông báo thì tự đám listener xử lí.
+     */
+    private final BookingEventPublisher bookingEventPublisher;
 
     private final BookingRepository bookingRepository;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
@@ -224,7 +239,7 @@ public class BookingServiceImpl implements BookingService {
      *   <li>Lấy allocations (slot + station), addons và voucher đã dùng của booking.</li>
      *   <li>Xác định startTime, endTime, station từ slot đầu/cuối (nếu có).</li>
      *   <li>Lấy tên kỹ thuật viên check-in (nếu đã check-in) và thông tin voucher (nếu có).</li>
-     *   <li>Tính remainingAmount = totalAmount - depositAmount.</li>
+     *   <li>Tính remainingAmount = totalAmount - tiền cọc cố định (nếu đã đặt cọc).</li>
      *   <li>Map toàn bộ dữ liệu sang {@link BookingDetailResponse} và trả về.</li>
      * </ol>
      * </p>
@@ -278,18 +293,16 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // Bước 6: Tính số tiền còn lại = tổng tiền - tiền cọc
-        BigDecimal deposit = BigDecimal.ZERO;
-
-        if (booking.getDepositAmount() != null) {
-            deposit = booking.getDepositAmount();
-        }
+        BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
+                ? DEFAULT_DEPOSIT_AMOUNT
+                : BigDecimal.ZERO;
 
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-                technicianName, voucherCode, voucherDiscountPercent, remainingAmount);
+                technicianName, voucherCode, voucherDiscountPercent,deposit, remainingAmount);
     }
 
     /**
@@ -327,6 +340,20 @@ public class BookingServiceImpl implements BookingService {
             slot.setBookedCount(slot.getBookedCount() - 1);
             slotRepository.save(slot);
         }
+        // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
+        // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
+
+        if (booking.getCheckInEmployee() != null) {
+            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                    .vehicleId(booking.getVehicle().getId().intValue())
+                    .bookingId(bookingId)
+                    .canceledByStaffId(null)
+                    .bookingType(booking.getBookingType())
+                    .isDepositPaid(booking.getIsDepositPaid())
+                    .checkInAt(booking.getCheckInAt())
+                    .canceledAt(booking.getCanceledAt()).build());
+        }
 
         return getBookingDetail(bookingId);
     }
@@ -343,7 +370,7 @@ public class BookingServiceImpl implements BookingService {
         List<String> actions;
         switch (booking.getStatus()) {
             case "PAID":
-                actions = List.of("WRITE_REVIEW");
+                actions = List.of("WRITE_REVIEW", "VIEW_DETAILS");
                 break;
             case "CONFIRMED":
                 // Nếu không có giờ thì dùng 00:00 cho an toàn
