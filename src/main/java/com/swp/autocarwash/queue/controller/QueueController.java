@@ -2,8 +2,6 @@ package com.swp.autocarwash.queue.controller;
 
 
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
-import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
-import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
 import com.swp.autocarwash.queue.service.QueueService;
@@ -29,7 +27,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QueueController {
     private final QueueService queueService;
-    private final BookingService bookingService;
 
     /**
      * Chức năng: Lấy danh sách hàng chờ đang active, dùng cho lần load đầu của dashboard
@@ -39,35 +36,54 @@ public class QueueController {
      */
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ApiResponse<List<QueueTicketResponse>>> getActiveQueue() {
+    public ResponseEntity<ApiResponse<List<QueueTicketResponse>>> getActiveQueue(
+            @AuthenticationPrincipal UserCustomerDetails principal) {
         return ResponseEntity.ok(
-                ApiResponse.success("Lấy danh sách hàng chờ thành công", queueService.getActiveQueue())
+                ApiResponse.success("Lấy danh sách hàng chờ thành công",
+                        queueService.getActiveQueue(principal.getUser().getId()))
         );
     }
 
     /**
-     * Chức năng: Staff hủy booking đang CHECKED_IN trong hàng chờ vì khách bỏ về
-     * (BL-QU-05 / FE-27-US-01). actingUserId được suy ra từ JWT principal, không
+     * Chức năng: Staff hủy queue ticket (do khách bỏ về) theo ticketId.
      *
      * <p><b>Ví dụ:</b> {@code PATCH /api/queue/6/cancel-guest-left}</p>
      *
-     * @param bookingId id booking đang CHECKED_IN cần hủy
+     * @param ticketId id của queue ticket cần hủy
      * @param principal staff đang đăng nhập, lấy từ JWT đã xác thực
-     * @return {@code 200 OK} với {@link BookingDetailResponse} (status = CANCELLED)
+     * @return {@code 200 OK} với {@link QueueTicketResponse} (status = CANCELLED)
      * @author KimNgan
      * @version 1.0
      */
-    @PatchMapping("/{bookingId}/cancel-guest-left")
+    @PatchMapping("/{ticketId}/cancel-guest-left")
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ApiResponse<BookingDetailResponse>> cancelGuestLeft(
-            @PathVariable Long bookingId,
+    public ResponseEntity<ApiResponse<QueueTicketResponse>> cancelGuestLeft(
+            @PathVariable Long ticketId,
             @AuthenticationPrincipal UserCustomerDetails principal) {
 
-        BookingDetailResponse result =
-                bookingService.cancelGuestLeftAtCheckIn(bookingId, principal.getUser().getId());
+        return ResponseEntity.ok(
+                ApiResponse.success("Đã hủy do khách bỏ về",
+                        queueService.cancelByTicketId(ticketId, principal.getUser().getId()))
+        );
+    }
+
+    /**
+     * Chức năng: Thêm xe vào làn rửa — chuyển queue ticket từ WAITING sang IN_SERVICE.
+     *
+     * <p><b>Ví dụ:</b> {@code PATCH /api/queue/6/start}</p>
+     *
+     * @param ticketId id của queue ticket cần chuyển sang IN_SERVICE
+     * @return {@code 200 OK} với {@link QueueTicketResponse} (status = IN_SERVICE)
+     * @author KimNgan
+     * @version 1.0
+     */
+    @PatchMapping("/{ticketId}/start")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ApiResponse<QueueTicketResponse>> startService(
+            @PathVariable Long ticketId) {
 
         return ResponseEntity.ok(
-                ApiResponse.success("Đã hủy do khách bỏ về", result)
+                ApiResponse.success("Xe đã vào làn rửa", queueService.startService(ticketId))
         );
     }
 }

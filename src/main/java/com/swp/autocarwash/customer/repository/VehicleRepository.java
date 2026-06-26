@@ -16,7 +16,7 @@ import java.util.Optional;
  * @author Phong
  * @version 1.0
  */
-public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
+public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     /**
      *

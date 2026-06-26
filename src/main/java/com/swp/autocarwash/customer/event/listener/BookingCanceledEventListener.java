@@ -83,7 +83,7 @@ public class BookingCanceledEventListener {
      *
      * @param vehicleId id của vehicle liên quan đến booking bị hủy
      */
-    private void applyVehicleViolation(Integer vehicleId) {
+    private void applyVehicleViolation(Long vehicleId) {
         Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow();
         int count = (vehicle.getViolationCount() == null ? 0 : vehicle.getViolationCount()) + 1;
         vehicle.setViolationCount(count);

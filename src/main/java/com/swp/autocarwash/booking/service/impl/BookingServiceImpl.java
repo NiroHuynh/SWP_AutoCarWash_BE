@@ -4,9 +4,7 @@ import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
-import com.swp.autocarwash.booking.entity.Booking;
-import com.swp.autocarwash.booking.entity.BookingAddon;
-import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
+import com.swp.autocarwash.booking.entity.*;
 import com.swp.autocarwash.booking.event.BookingCanceledEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
@@ -35,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
 import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
-import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
@@ -394,7 +391,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getCheckInEmployee() != null) {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .vehicleId(booking.getVehicle().getId().intValue())
+                    .vehicleId(booking.getVehicle().getId())
                     .bookingId(bookingId)
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
@@ -433,7 +430,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus("CANCELLED");
-        booking.setCanceledAt(Instant.now());
+        booking.setCanceledAt(LocalDateTime.now(ZONE));
         bookingRepository.save(booking);
 
         List<BookingSlotAllocation> allocations =
@@ -453,12 +450,12 @@ public class BookingServiceImpl implements BookingService {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
-                    .vehicleId(booking.getVehicle().getId().intValue())
+                    .vehicleId((long) booking.getVehicle().getId().intValue())
                     .bookingId(bookingId)
                     .bookingType(booking.getBookingType())
                     .isDepositPaid(booking.getIsDepositPaid())
-                    .checkInAt(booking.getCheckInAt())
-                    .canceledAt(booking.getCanceledAt()).build());
+                    .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
+                    .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
         }
 
         return getBookingDetail(bookingId);
