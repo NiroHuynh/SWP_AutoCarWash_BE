@@ -47,7 +47,7 @@ public class VoucherBookingAdapter implements VoucherPort {
      * @version 1.0
      */
     @Override
-    public List<VoucherContract> getValidVouchers(Integer customerId) {
+    public List<VoucherContract> getValidVouchers(Long customerId) {
         return voucherService.getValidVouchers(customerId);
     }
 
@@ -69,7 +69,7 @@ public class VoucherBookingAdapter implements VoucherPort {
      * @version 1.0
      */
     @Override
-    public boolean validate(Integer voucherId, Integer customerId) {
+    public boolean validate(Long voucherId, Long customerId) {
         return voucherService.validate(voucherId, customerId);
     }
 

@@ -11,14 +11,14 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VoucherContract {
-    private Integer id;
+    private Long id;
     private String voucherCode;
     private Integer discountPercentage;
     private BigDecimal minOrderValue;
     private boolean valid;
 
 
-    public VoucherContract(Integer id, String voucherCode, Integer discountPercentage, BigDecimal minOrderValue) {
+    public VoucherContract(Long id, String voucherCode, Integer discountPercentage, BigDecimal minOrderValue) {
         this.id = id;
         this.voucherCode = voucherCode;
         this.discountPercentage = discountPercentage;

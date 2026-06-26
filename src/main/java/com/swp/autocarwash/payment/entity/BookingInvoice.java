@@ -5,17 +5,20 @@ import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "booking_invoice", schema = "swp_auto_car_wash")
 public class BookingInvoice {
     @Id
@@ -51,7 +54,8 @@ public class BookingInvoice {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount", precision = 12, scale = 2)
