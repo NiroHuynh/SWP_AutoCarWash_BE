@@ -5,8 +5,7 @@ import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -14,6 +13,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "customer", schema = "swp_auto_car_wash")
 public class Customer {
     @Id

@@ -25,8 +25,7 @@ import java.util.List;
 @Component
 @Profile("pro")
 @RequiredArgsConstructor
-public class AddonServiceBookingAdapter
-        implements AddonServicePort {
+public class AddonServiceBookingAdapter implements AddonServicePort {
 
 
     private final AddonServiceService addonServiceService;

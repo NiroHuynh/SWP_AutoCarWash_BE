@@ -33,7 +33,7 @@ public interface VoucherService {
      * @author Phong
      * @version 1.0
      */
-    List<VoucherContract> getValidVouchers(Integer customerId);
+    List<VoucherContract> getValidVouchers(Long customerId);
 
     /**
      *
@@ -74,7 +74,7 @@ public interface VoucherService {
      * @author Phong
      * @version 1.0
      */
-    boolean validate(Integer voucherId, Integer customerId);
+    boolean validate(Long voucherId, Long customerId);
 
     /**
      *

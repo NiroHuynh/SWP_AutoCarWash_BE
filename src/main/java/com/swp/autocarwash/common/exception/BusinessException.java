@@ -12,7 +12,6 @@ public class BusinessException
     public BusinessException(
             ErrorCode errorCode
     ){
-
         super(errorCode);
     }
 

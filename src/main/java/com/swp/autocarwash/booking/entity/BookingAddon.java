@@ -3,14 +3,16 @@ package com.swp.autocarwash.booking.entity;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "booking_addon", schema = "swp_auto_car_wash")
 public class BookingAddon {
     @Id
