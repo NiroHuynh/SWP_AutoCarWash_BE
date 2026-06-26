@@ -54,4 +54,10 @@ public class WalkInCheckInController {
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
 
+    @PostMapping("/confirm-penalty-deposit")
+    public ResponseEntity<ApiResponse<CreateWalkInResponse>> confirmPenaltyDeposit(@Valid @RequestBody CreateWalkInRequest request) {
+        CreateWalkInResponse response = walkInCheckInService.confirmPenaltyDeposit(request);
+        return ResponseEntity.ok(ApiResponse.success("Penalty deposit collected. Walk-in booking created successfully!", response));
+    }
+
 }

@@ -31,6 +31,7 @@ import com.swp.autocarwash.station.repository.StationRepository;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.subscription.repository.custom.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -146,7 +147,7 @@ public class WalkInCheckInService {
         }
 
         //Công thức tính số tiền thực tế cần thu tại quầy lúc lấy xe
-        BigDecimal remainingBalance = rawAmount.subtract(packageDiscount).subtract(penaltyDeposit);
+        BigDecimal remainingBalance = rawAmount.subtract(packageDiscount).subtract(penaltyDeposit).subtract(transferredCredit);
         if (remainingBalance.compareTo(BigDecimal.ZERO) < 0) {
             remainingBalance = BigDecimal.ZERO;
         }
@@ -238,7 +239,7 @@ public class WalkInCheckInService {
                 penaltyDeposit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
 
                 //CHỐT CHẶN: Đề phòng Frontend bị bypass nút bấm khi Staff chưa thực sự thu tiền
-                if (!request.isPenaltyDepositCollected()) {
+                if (!request.getPenaltyDepositCollected()) {
                     throw new BusinessException(ErrorCode.PENALTY_DEPOSIT_NOT_CONFIRMED);
                 }
             }
@@ -260,21 +261,39 @@ public class WalkInCheckInService {
         //khấu trừ cái chuỗi slot được chọn tại quầy
         if (request.getChosenSlotIds() != null) {
             for (Integer slotId : request.getChosenSlotIds()) {
+                // 1. Chặn nếu ID không tồn tại dưới DB
                 BookingSlot slot = bookingSlotRepository.findById(slotId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE));
 
+                //2. CHỐT CHẶN BỔ SUNG: Nếu slot tồn tại nhưng đã FULL hoặc BỊ KHÓA, bắt buộc phải ném lỗi chặn lại
+                if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
+                    throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
+                    // (Bạn có thể tự tạo thêm một mã lỗi riêng như ErrorCode.SERVICE_SLOT_FULL nếu muốn thông báo tường minh hơn)
+                }
+
+                // 3. Nếu vượt qua các chốt chặn trên thì mới tiến hành cộng dồn đơn
                 slot.setBookedCount(slot.getBookedCount() + 1);
                 if (slot.getBookedCount() >= slot.getMaxCapacity()) {
-                    slot.setStatus("FULL"); // Tự động khóa slot real-time nếu hết chỗ
+                    slot.setStatus("FULL");
                 }
                 bookingSlotRepository.save(slot);
             }
+        }
+        //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
+        BigDecimal serviceAmount = BigDecimal.ZERO;
+        BigDecimal addonAmount = BigDecimal.ZERO;
+        ServicePackage servicePackage = null;
+
+        if (request.getServicePackageId() != null) {
+            servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
+            serviceAmount = servicePackage.getBasePrice();
         }
 
         //LẬP LỊCH HẸN MỚI (BOOKING) VỚI TRẠNG THÁI CHECKED_IN MẶC ĐỊNH
         Booking newBooking = Booking.builder()
                 .vehicle(finalVehicle)
                 .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
+                .servicePackage(servicePackage)
                 .appointmentDate(LocalDate.now())
                 .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
                 .bookingType("WALK_IN")
@@ -286,14 +305,7 @@ public class WalkInCheckInService {
 
         //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
 
-        //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
-        BigDecimal serviceAmount = BigDecimal.ZERO;
-        BigDecimal addonAmount = BigDecimal.ZERO;
 
-        if (request.getServicePackageId() != null) {
-            ServicePackage servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
-            serviceAmount = servicePackage.getBasePrice();
-        }
 
         if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
             for (Integer addonId : request.getAddonIds()) {
@@ -374,5 +386,25 @@ public class WalkInCheckInService {
                 .build();
     }
 
+    @Transactional
+    public CreateWalkInResponse confirmPenaltyDeposit(CreateWalkInRequest request) {
+
+        // 1. Tìm xem chiếc xe vãng lai này có tồn tại trong hệ thống không
+        Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate())
+                .orElseThrow(() -> new BusinessException(ErrorCode.VEHICLE_NOT_FOUND));
+
+        // 2. Kiểm tra xem xe này có thực sự đang trong diện bị phạt/hạn chế không
+        if (vehicle.getViolationCount() == null || vehicle.getViolationCount() <= 3
+                || vehicle.getRestrictedUntil() == null || vehicle.getRestrictedUntil().isBefore(Instant.now())) {
+            throw new BusinessException(ErrorCode.VEHICLE_NOT_IN_VIOLATION_RESTRICTION);
+        }
+
+        // 3. Set cờ thu tiền lên true
+        request.setPenaltyDepositCollected(true);
+
+        // 4. Gọi lại hàm tạo đơn gốc để chạy tiếp luồng lưu Booking, Invoice và cấp số QueueTicket
+        return this.createWalkInOrder(request);
+        //Staff phải nhập đầy đủ thông tin rồi mới cho ấn nút xác nhận đã thu
+    }
 
 }
