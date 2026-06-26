@@ -58,7 +58,7 @@ public interface BookingSlotAllocationRepository
     FROM BookingSlotAllocation bsa
     WHERE bsa.booking.vehicle.id = :vehicleId
       AND bsa.bookingSlot.id IN :slotIds
-      AND bsa.booking.status <> 'CANCELLED'
+      AND bsa.booking.status <> 'CANCELED'
 """)
     boolean existsConflictSlot(
             @Param("vehicleId") Long vehicleId,
