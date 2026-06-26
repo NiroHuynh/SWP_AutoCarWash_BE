@@ -578,7 +578,7 @@ public class BookingServiceImpl implements BookingService {
                 .vehicle(modelMapper.map(vehicle, Vehicle.class))
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
-                .status(BookingStatus.PENDING.toString())
+                .status(BookingStatus.CONFIRMED.toString())
                 .bookingType("ONLINE")
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
