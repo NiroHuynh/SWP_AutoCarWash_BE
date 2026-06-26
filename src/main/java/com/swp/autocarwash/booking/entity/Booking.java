@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -63,26 +65,25 @@ public class Booking {
     @Column(name = "booking_type", nullable = false, length = 20)
     private String bookingType;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private Instant createdAt;
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "check_in_at")
-    private Instant checkInAt;
+    private LocalDateTime checkInAt;
 
     @Column(name = "check_out_at")
-    private Instant checkOutAt;
+    private LocalDateTime checkOutAt;
 
     @Column(name = "canceled_at")
-    private Instant canceledAt;
+    private LocalDateTime canceledAt;
 
     @Builder.Default
     @ColumnDefault("0")
     @Column(name = "is_deposit_paid")
     private Boolean isDepositPaid = false;
 
-//    @Column(name = "deposit_amount", precision = 12, scale = 2)
-//    private BigDecimal depositAmount;
+
 
     @Builder.Default
     @ColumnDefault("0.00")
@@ -121,5 +122,20 @@ public class Booking {
      */
     @Column(name = "deposit_confiscated_at")
     private LocalDateTime depositConfiscatedAt;
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<BookingAddon> addons = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<BookingSlotAllocation> slotAllocations
+            = new ArrayList<>();
 }

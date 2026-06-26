@@ -1,17 +1,25 @@
 package com.swp.autocarwash.booking.service.impl;
 
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingPricePreviewResponse;
-import com.swp.autocarwash.booking.port.AddonServicePort;
-import com.swp.autocarwash.booking.port.ServicePackagePort;
-import com.swp.autocarwash.booking.port.VoucherPort;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.port.*;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.service.BookingPriceService;
 import com.swp.autocarwash.booking.validator.BookingPriceValidator;
+import com.swp.autocarwash.common.contract.customer.CustomerContract;
+import com.swp.autocarwash.common.contract.promotion.VoucherContract;
+import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
+import com.swp.autocarwash.customer.entity.Customer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
 
 
 /**
@@ -31,7 +39,12 @@ public class BookingPriceServiceImpl implements BookingPriceService {
     private final ServicePackagePort servicePackagePort;
     private final AddonServicePort addonServicePort;
     private final VoucherPort voucherPort;
+    private final FamilySubscriptionPort familySubscriptionPort;
+    private final UnlimitSubscriptionPort unlimitSubscriptionPort;
+    private final BookingRepository bookingRepository;
     private final BookingPriceValidator validator;
+
+
 
     /**
      *
@@ -62,24 +75,17 @@ public class BookingPriceServiceImpl implements BookingPriceService {
         validator.validate(request);
 
         // 1. Service package price
-        var servicePackage = servicePackagePort.getServicePackage(request.getServicePackageId());
-        BigDecimal servicePrice = servicePackage.getBasePrice();
+
+        BigDecimal servicePrice = getServicePackagePrice(
+                request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
         // 2. Addon price
-        BigDecimal addonPrice = BigDecimal.ZERO;
-
-        boolean haveAddons =  request.getAddonServiceIds()!=null && !request.getAddonServiceIds().isEmpty();
-
-        if(haveAddons){
-            addonPrice = addonServicePort.calculateAddonPrice(request.getAddonServiceIds());
-        }
+        BigDecimal addonPrice = getAddonServicePrice(request);
 
         BigDecimal subTotal = servicePrice.add(addonPrice);
 
         // 3. Voucher
-        var voucherOpt = voucherPort.getVoucher(request.getVoucherCode(),subTotal);
-
-
+        Optional<VoucherContract> voucherOpt = voucherPort.getVoucher(request.getVoucherCode(),subTotal);
 
         BigDecimal discount = BigDecimal.ZERO;
         boolean valid = false;
@@ -98,8 +104,12 @@ public class BookingPriceServiceImpl implements BookingPriceService {
 
         BigDecimal finalTotal = subTotal.subtract(discount);
 
+        boolean isVehicleBookingOnDateAndHasSubscription =
+                isVehicleBookingOnDateAndHasSubscription(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
+
         return BookingPricePreviewResponse.builder()
                 .currency("VND")
+                .isVehicleBookingOnDateAndHasSubscription(isVehicleBookingOnDateAndHasSubscription)
                 .breakdown(BookingPricePreviewResponse.PriceBreakdown.builder()
                         .servicePrice(servicePrice)
                         .addonPrice(addonPrice)
@@ -113,5 +123,101 @@ public class BookingPriceServiceImpl implements BookingPriceService {
                         .discountPercentage(percent)
                         .build())
                 .build();
+    }
+
+
+
+
+    /**
+     * Tính giá tiền của service package
+     */
+    private BigDecimal getServicePackagePrice(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate
+    ) {
+        ServicePackageContract servicePackage =
+                servicePackagePort.getServicePackage(servicePackageId);
+
+        boolean isVehicleBookingOnDateAndHasSubscription =
+                isVehicleBookingOnDateAndHasSubscription(vehicleId, servicePackageId, appointmentDate);
+
+        if (isVehicleBookingOnDateAndHasSubscription) {
+            return BigDecimal.ZERO;
+        }
+
+        return servicePackage.getBasePrice();
+    }
+
+    /**
+     * Kiểm tra xe có subscription và đã có booking trong ngày hay chưa
+     */
+    private boolean isVehicleBookingOnDateAndHasSubscription(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate
+    ) {
+
+        boolean hasSubscription =
+                hasSubscription(vehicleId, servicePackageId);
+
+
+        boolean isVehicleBookedOnDate =
+                isVehicleBookedOnDate(vehicleId, appointmentDate);
+
+
+        return hasSubscription && !isVehicleBookedOnDate;
+    }
+
+    /**
+     * Kiểm tra vehicle đã có booking trong ngày
+     */
+    private boolean isVehicleBookedOnDate(
+            Long vehicleId,
+            LocalDate appointmentDate
+    ) {
+
+        return bookingRepository
+                .existsByVehicleIdAndAppointmentDateAndStatusNot(
+                        vehicleId,
+                        appointmentDate,
+                        BookingStatus.CANCELED.toString()
+                );
+    }
+
+    private boolean hasSubscription(
+            Long vehicleId,
+            Integer servicePackageId
+    ) {
+
+        boolean hasFamily =
+                familySubscriptionPort
+                        .hasFamilySubscription(vehicleId, servicePackageId);
+
+        boolean hasUnlimited =
+                unlimitSubscriptionPort
+                        .hasUnlimitSubscription(vehicleId, servicePackageId);
+
+        return hasFamily || hasUnlimited;
+    }
+
+    /**
+     * tính giá tiền của addon service
+     *
+     * @return BigDecimal
+     *
+     * @Author Phong
+     */
+    private BigDecimal getAddonServicePrice(BookingPricePreviewRequest request){
+        BigDecimal addonPrice;
+        boolean haveAddons =  request.getAddonServiceIds()!=null && !request.getAddonServiceIds().isEmpty();
+
+        if(haveAddons){
+            addonPrice = addonServicePort.calculateAddonPrice(request.getAddonServiceIds());
+        }else{
+            addonPrice = BigDecimal.ZERO;
+        }
+
+        return addonPrice;
     }
 }

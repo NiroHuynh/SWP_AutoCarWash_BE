@@ -10,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class BookingSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
@@ -50,6 +51,10 @@ public class BookingSlot {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @OneToMany(
+            mappedBy = "bookingSlot"
+    )
+    private List<BookingSlotAllocation> allocations;
 
     // derived field (KHÔNG lưu DB)
     public int getAvailableCapacity() {

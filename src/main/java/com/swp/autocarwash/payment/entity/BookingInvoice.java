@@ -11,12 +11,14 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-@Entity
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
+@Entity
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "booking_invoice", schema = "swp_auto_car_wash")
 public class BookingInvoice {
     @Id
@@ -53,7 +55,8 @@ public class BookingInvoice {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Builder.Default
     @ColumnDefault("0.00")

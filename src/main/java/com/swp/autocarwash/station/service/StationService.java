@@ -3,6 +3,7 @@ package com.swp.autocarwash.station.service;
 
 
 import com.swp.autocarwash.station.dto.response.StationResponse;
+import com.swp.autocarwash.station.entity.Station;
 
 import java.util.List;
 
@@ -37,4 +38,6 @@ public interface StationService {
      * @version 1.0
      */
     List<StationResponse> getStationsByCommune(Integer communeId);
+
+    Station getStationById(Integer stationId);
 }

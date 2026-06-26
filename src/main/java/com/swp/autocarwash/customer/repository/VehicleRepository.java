@@ -66,4 +66,25 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
     //kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay ko
     boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
 
+    /**
+     *
+     * Kiểm tra biển số xe đã tồn tại
+     *
+     * @param licensePlate biển số
+     * @return true nếu tồn tại
+     */
+    boolean existsByLicensePlate(
+            String licensePlate
+    );
+
+    /**
+     *
+     * Tìm xe theo biển số
+     *
+     * @param licensePlate biển số
+     * @return vehicle
+     */
+    Optional<Vehicle> findByLicensePlate(
+            String licensePlate
+    );
 }

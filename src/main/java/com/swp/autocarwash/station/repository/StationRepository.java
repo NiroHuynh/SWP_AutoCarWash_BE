@@ -35,4 +35,5 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
      * @version 1.0
      */
     List<Station> findByCommuneId(Integer communeId);
+
 }

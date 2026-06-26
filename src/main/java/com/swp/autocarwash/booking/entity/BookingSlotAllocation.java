@@ -1,12 +1,14 @@
 package com.swp.autocarwash.booking.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "booking_slot_allocation", schema = "swp_auto_car_wash")
 public class BookingSlotAllocation {
 
