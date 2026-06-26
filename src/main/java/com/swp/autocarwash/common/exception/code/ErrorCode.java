@@ -229,6 +229,16 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "SERVICE_PACKAGE_002",
             "Service package not found"
+    ),
+    QUEUE_TICKET_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "QUEUE_001",
+            "Queue ticket not found"
+    ),
+    QUEUE_TICKET_NOT_WAITING(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_002",
+            "Queue ticket is not in WAITING status"
     );
 
     private final HttpStatus status;

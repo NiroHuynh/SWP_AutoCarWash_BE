@@ -10,7 +10,7 @@ import java.time.Instant;
 public class BookingCanceledEvent {
 
     private final Long bookingId;
-    private final Integer vehicleId;
+    private final Long vehicleId;
     private final Long customerId;
     private final Long canceledByStaffId;
     private final String bookingType;
