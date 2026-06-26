@@ -38,6 +38,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking not found"
     ),
+    BOOKING_SLOT_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_001",
+            "Booking slot has expired"
+    ),
     BOOKING_CANCELLED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_002",
