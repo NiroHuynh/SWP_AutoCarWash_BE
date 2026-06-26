@@ -225,6 +225,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_SLOT_001",
             "The selected service slot does not exist or is no longer available."
+    ),
+    VEHICLE_NOT_IN_VIOLATION_RESTRICTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_001",
+            "Vehicle not in violation restriction"
     );
 
 

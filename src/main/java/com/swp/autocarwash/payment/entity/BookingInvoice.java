@@ -28,9 +28,9 @@ public class BookingInvoice {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "customer_id", nullable = false)
+    //@NotNull
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
     @NotNull

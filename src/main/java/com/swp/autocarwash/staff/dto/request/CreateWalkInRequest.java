@@ -40,6 +40,7 @@ public class CreateWalkInRequest {
     // Frontend truyền lên để Backend biết đang tạo đơn cho chi nhánh nào
     private Integer stationId;
 
+
     /**
      * AC02 Nhánh 2.1: true nếu Staff ĐÃ bấm nút [Xác nhận đóng cọc 20,000đ]
      * (sau khi khách nộp tiền tại quầy). Service sẽ dùng cờ này để xác nhận
@@ -50,6 +51,6 @@ public class CreateWalkInRequest {
      * để false hay true đều không ảnh hưởng.
      */
     @Builder.Default
-    private boolean penaltyDepositCollected = false;
+    private Boolean penaltyDepositCollected = false;
 
 }

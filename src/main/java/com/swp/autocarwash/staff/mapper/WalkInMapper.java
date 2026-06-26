@@ -25,6 +25,7 @@ public interface WalkInMapper {
     @Mapping(source ="customer.id", target ="customerId")
     CheckPhoneResponse toCheckPhoneResponse(Customer customer, List<CheckPhoneResponse.VehicleDTO> savedVehicles);
 
+    @Mapping(target = "slotId", source = "id")
     BookingSummaryResponse.AvailableSlotDTO toAvailableSlotDTO(BookingSlot slot);
 
     List<BookingSummaryResponse.AvailableSlotDTO> toAvailableSlotDTOList(List<BookingSlot> slots);

@@ -19,7 +19,7 @@ VALUES
     (4,'staff2@gmail.com','0900000004','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',3,true,CURRENT_TIMESTAMP),
     (5,'customer1@gmail.com','0900000010','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP),
     (6,'customer2@gmail.com','0900000011','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP),
-    (7,'customer3@gmail.com','0900000012','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP);
+    (12,'customer3@gmail.com','0900000012','$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK',4,true,CURRENT_TIMESTAMP);
 
 -- PROVINCE
 INSERT IGNORE INTO province(id, province_name)
@@ -63,7 +63,8 @@ INSERT IGNORE INTO customer
 VALUES
     (1, 5, 'Phong', 'Huynh', 1,null,null),
     (2, 6, 'Nam',   'Tran',  2,3,null),
-    (3, 7, 'Linh',  'Le',    3,null,null);
+    (3, 7, 'Linh',  'Le',    3,null,null),
+    (12, 12, 'Tuấn', 'Nguyễn Anh', 3, 0, NULL);
 
 -- VEHICLE
 -- restricted_until dùng timestamp quá khứ thay vì NULL
@@ -74,7 +75,17 @@ VALUES
     (2, 1, '51A-22222', 'Honda',  'Blue',   0, '2020-01-01 00:00:00', false),
     (3, 2, '51B-33333', 'Honda',  'Black',  0, '2020-01-01 00:00:00', false),
     (4, 3, '30A-44444', 'Mazda',  'Red',    0, '2020-01-01 00:00:00', false),
-    (5, 2, '51A-12345', 'Mazda',  'Red',    0, null,  false);
+    (5, 2, '51A-12345', 'Mazda',  'Red',    0, null,  false),
+
+
+
+    (201, NULL, '51G-888.88', 'Kia Morning', 'Đỏ', 4, '2026-12-31 23:59:59', FALSE),
+    (101, 12, '51H-123.45', 'Toyota Cross', 'White', 4, '2026-12-31 23:59:59', FALSE),
+    (202, NULL, '60A-999.99', 'Honda City', 'Trắng', 0, NULL, FALSE);
+
+# (201, NULL, '51G-888.88', 'Kia Morning', 'Đỏ', 4, '2026-12-31 23:59:59', FALSE),
+# (201, NULL, '51G-888.88', 'Audi', 'Black', 4, '2026-12-31 23:59:59', FALSE),
+# (101, 12, '51H-123.45', 'Toyota Cross', 'White', 0, NULL, FALSE)
 #     (5, 2, '51A-12345', 'Mazda',  'Red',    0, DATE_ADD(NOW(), INTERVAL 5 DAY),  false),
 # (5, 2, '51A-12345', 'Mazda',  'Red',    0, null, false);
 -- SERVICE CATEGORY
@@ -89,14 +100,21 @@ INSERT IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id)
 VALUES
     (1, 'Vacuum',  50000, 20, 1),
-    (2, 'Polish', 150000, 40, 2);
+    (2, 'Polish', 150000, 40, 2),
+    (3, 'Interior Ozon Deodorant', 100000.00, 15, 1);
 
+-- Chèn dữ liệu cấu hình gói dài hạn (ID = 2) liên kết tới gói dịch vụ chính (service_package_id = 2)
+INSERT IGNORE INTO subscription_plan
+(id, service_package_id, plan_name, duration_days, price, service_category_id, plan_type, max_vehicle_count, description, is_deleted)
+VALUES
+    (2, 2, 'Gói Unlimited Premium 30 Ngày', 30, 500000.00, 2, 'UNLIMITED', 1, 'Rửa xe cao cấp không giới hạn trong 1 tháng dành cho 1 xe.', FALSE);
 -- SERVICE PACKAGE
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, required_slot, is_deleted)
 VALUES
     (1, 1, 'Normal Wash',  100000, 1, false),
-    (2, 2, 'Premium Wash', 300000, 2, false);
+    (2, 2, 'Premium Wash', 300000, 2, false),
+    (2, 1, 'Premium Car Wash', 200000.00, 2, FALSE);
 
 -- PACKAGE ADDON MAPPING
 INSERT IGNORE INTO package_addon_mapping
@@ -207,9 +225,25 @@ VALUES
 
     (12, 2, 5,  2,CURDATE(), 'CONFIRMED', 'WALK_IN', 2,
      '2026-06-22 08:00:00', null, null, null, false,100000,0, 100000,
-    0,0);
+    0,0),
+    (200, 12, 101, 1,
+     CURDATE(), 'NO_SHOW', 'ONLINE', 1, -- Ngày hẹn là CURDATE() (Hôm nay: 2026-06-26) và trạng thái NO_SHOW
+     NOW(), NULL, NULL, NULL,
+     TRUE, -- Phải đã đóng cọc thành công thì mới có tiền để "cứu"
+     100000, 0, 100000,
+     0, 0),
 
+    (202, 12, 101, 1,
+     CURDATE(), 'NO_SHOW', 'ONLINE', 1, -- Ngày hẹn là hôm nay và trạng thái trễ hẹn
+     NOW(), NULL, NULL, NULL,
+     TRUE, -- Đã đóng cọc đơn cũ thì mới cứu được cọc
+     100000, 0, 100000,
+     0, 0);;
 
+INSERT IGNORE INTO unlimit_subscription
+(id, customer_id, vehicle_id, subscription_plan_id, start_date, end_date, status, last_vehicle_change_at, canceled_at)
+VALUES
+    (1, 12, 101, 2, '2026-06-22', '2026-12-31', 'ACTIVE', NULL, NULL);
 -- BOOKING ADDON
 INSERT IGNORE INTO booking_addon
 (id, booking_id, addon_service_id, price)
@@ -229,7 +263,7 @@ VALUES
     -- Slot cho booking sắp tới
     (1,  1, '08:00', '09:00', 5, '2026-06-20', 2, 'AVAILABLE'),  -- booking 1, 6
     (2,  1, '09:00', '10:00', 5, '2026-06-21', 1, 'AVAILABLE'),  -- booking 2 slot 1
-    (3,  1, '10:00', '11:00', 5, '2026-06-21', 1, 'AVAILABLE'),  -- booking 2 slot 2
+    (3,  1, '10:00', '11:00', 5, '2026-06-26', 5, 'FULL'),  -- booking 2 slot 2
     (4,  1, '10:00', '11:00', 5, '2026-06-22', 1, 'AVAILABLE'),  -- booking 3
     (5,  2, '08:00', '09:00', 5, '2026-06-20', 1, 'AVAILABLE'),  -- booking 6
     (6,  2, '09:00', '10:00', 5, '2026-06-21', 1, 'AVAILABLE'),  -- booking 8 slot 1
