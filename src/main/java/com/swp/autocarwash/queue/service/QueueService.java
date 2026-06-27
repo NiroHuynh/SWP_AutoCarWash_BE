@@ -1,5 +1,6 @@
 package com.swp.autocarwash.queue.service;
 
+import com.swp.autocarwash.queue.dto.response.QueueBoardResponse;
 import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public interface QueueService {
      * @param userId id của user (staff) đang đăng nhập, dùng để tra station
      * @return danh sách ticket, sắp theo độ ưu tiên
      */
-    List<QueueTicketResponse> getActiveQueue(Long userId);
+    QueueBoardResponse getActiveQueue(Long userId);
 
     /**
      * Chức năng: Hủy queue ticket (do khách bỏ về) theo ticketId.
@@ -30,11 +31,19 @@ public interface QueueService {
     QueueTicketResponse cancelByTicketId(Long ticketId, Long actingUserId);
 
     /**
-     * Chức năng: Chuyển queue ticket từ WAITING sang IN_SERVICE (thêm xe vào làn rửa).
-     * Nếu ticket có booking, đồng thời đổi booking sang WASHING.
+     * AC03 — Xác nhận xe vào làn: ticket WAITING→IN_SERVICE, booking→WASHING, 1 làn AVAILABLE→OCCUPIED.
      *
-     * @param ticketId id của queue ticket cần chuyển sang IN_SERVICE
+     * @param ticketId id của queue ticket
      * @return QueueTicketResponse với status=IN_SERVICE
      */
     QueueTicketResponse startService(Long ticketId);
+
+    /**
+     * AC01 — Hoàn tất rửa: ticket IN_SERVICE→COMPLETED, booking WASHING→COMPLETED, 1 làn OCCUPIED→AVAILABLE.
+     *
+     * @param ticketId id của queue ticket
+     * @return QueueTicketResponse với status=COMPLETED
+     */
+    QueueTicketResponse completeService(Long ticketId);
+
 }
