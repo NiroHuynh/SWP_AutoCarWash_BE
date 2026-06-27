@@ -190,8 +190,6 @@ public class BookingController {
                 ApiResponse.success("Hủy lịch đặt thành công", result)
         );
     }
-
-
     /**
      *
      * Chức năng: Tạo mới một booking.
