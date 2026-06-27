@@ -285,6 +285,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VEHICLE_001",
             "Vehicle not in violation restriction"
+    ),
+    VEHICLE_NOT_BELONG_TO_CUSTOMER(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_002",
+            "Vehicle not belong to the customer"
+    ),
+    VEHICLE_ALREADY_BOOKED_THIS_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_003",
+            "Vehicle already booked this slot today"
+    ),
+    INVALID_SLOT_QUANTITY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "Invalid slot required for this service package"
+    ),
+    SLOTS_MUST_BE_CONSECUTIVE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_002",
+            "Slots must be consecutive"
     );
 
 

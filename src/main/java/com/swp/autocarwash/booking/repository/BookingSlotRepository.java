@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -91,12 +92,14 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
 
     //Lấy danh sách slot còn trống của chi nhánh trong ngày
     // dùng để hiển thị cho create_walkin chọn slot
-    @Query("SELECT bs FROM BookingSlot bs " +
-            "WHERE bs.station.id = :stationId " +
-            "AND bs.date = :date " +
-            "AND bs.status = 'AVAILABLE' " +
-            "AND bs.bookedCount < bs.maxCapacity " +
-            "ORDER BY bs.startTime ASC")
-    List<BookingSlot> findAvailableSlotsByStationAndDate(@Param("stationId") Integer stationId,
-                                                         @Param("date") LocalDate date);
+    @Query("SELECT s FROM BookingSlot s WHERE s.station.id = :stationId AND s.date = :date " +
+            "AND s.status <> 'FULL' " + //Trạng thái khác FULL
+            "AND s.bookedCount < s.maxCapacity " + //Số lượng đã đặt phải nhỏ hơn công suất tối đa
+            "AND s.startTime > :currentTime " + //Giờ bắt đầu phải lớn hơn giờ hiện tại
+            "ORDER BY s.startTime ASC") // Sắp xếp giờ từ sớm nhất đến muộn nhất
+    List<BookingSlot> findAvailableSlotsByStationAndDate(
+            @Param("stationId") Integer stationId,
+            @Param("date") LocalDate date,
+            @Param("currentTime") LocalTime currentTime // Tham số nhận giờ thực tế từ Service truyền xuống
+    );
 }

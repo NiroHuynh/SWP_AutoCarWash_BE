@@ -1,5 +1,6 @@
 package com.swp.autocarwash.staff.dto.request;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -35,7 +36,8 @@ public class CreateWalkInRequest {
     private List<Integer> addonIds;
 
     //Trả về danh sách ID của các khung giờ (Slot) được chọn tại quầy
-    private List<Integer> chosenSlotIds;
+    @NotEmpty(message = "Chosen slots must not be empty. Please select at least one slot.")
+    private List<Long> chosenSlotIds;
 
     // Frontend truyền lên để Backend biết đang tạo đơn cho chi nhánh nào
     private Integer stationId;
