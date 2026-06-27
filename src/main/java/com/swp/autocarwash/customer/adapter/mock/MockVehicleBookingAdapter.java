@@ -37,9 +37,9 @@ public class MockVehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public List<VehicleContract> getVehiclesByCustomer(Integer customerId) {
+    public List<VehicleContract> getVehiclesByCustomer(Long customerId) {
         return List.of(
-                new VehicleContract(1, "71A-12345", "Honda City")
+                new VehicleContract(Long.valueOf(1), "71A-12345", "Honda City")
         );
     }
 
@@ -57,8 +57,8 @@ public class MockVehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public Integer getCurrentCustomerId() {
-        return 1;
+    public Long getCurrentCustomerId() {
+        return Long.valueOf(1);
     }
 
     /**
@@ -80,7 +80,7 @@ public class MockVehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public boolean validateVehicleOwnership(Integer vehicleId, Integer customerId) {
+    public boolean validateVehicleOwnership(Long vehicleId, Long customerId) {
         return true;
     }
 
@@ -102,10 +102,10 @@ public class MockVehicleBookingAdapter implements VehiclePort {
      */
 
     @Override
-    public VehicleContract getById(Integer id) {
+    public VehicleContract getById(Long id) {
         VehicleContract v = new VehicleContract();
         v.setId(id);
-        v.setCustomerId(1);
+        v.setCustomerId(Long.valueOf(1));
         return v;
     }
 }

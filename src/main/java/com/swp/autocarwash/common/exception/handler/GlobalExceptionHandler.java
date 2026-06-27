@@ -3,12 +3,16 @@ package com.swp.autocarwash.common.exception.handler;
 import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.exception.AccountDisabledException;
 import com.swp.autocarwash.common.exception.BaseException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +43,16 @@ public class GlobalExceptionHandler {
         errorBody.put("success", "false");
         errorBody.put("message", ex.getMessage());
         errorBody.put("errorCode","AUTH_002");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
+    }
+
+    //Hứng lỗi: user đã login nhưng không đủ quyền (thiếu authority/role yêu cầu bởi @PreAuthorize) -> 403
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String,String>> handleAccessDenied(AccessDeniedException ex){
+        Map<String,String> errorBody = new HashMap<>();
+        errorBody.put("success", "false");
+        errorBody.put("message", "Bạn không có quyền thực hiện hành động này");
+        errorBody.put("errorCode", "AUTH_003");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
     }
 
@@ -82,6 +96,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleException(
             Exception ex
     ){
+        System.out.println(ex.getMessage());
         return ResponseEntity
                 .internalServerError()
                 .body(
@@ -90,6 +105,43 @@ public class GlobalExceptionHandler {
                                 "SYSTEM_ERROR",
                                 null
                         )
+                );
+    }
+
+    /**
+     * Handle DTO validation
+     *
+     * @Valid validation failed
+     */
+    @ExceptionHandler(
+            MethodArgumentNotValidException.class
+    )
+    public ResponseEntity<ApiResponse<Object>> handleValidation(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors =
+                new HashMap<>();
+
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(
+                        error ->
+                                errors.put(
+                                        error.getField(),
+                                        error.getDefaultMessage()
+                                )
+                );
+
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        ApiResponse.error(
+                                "Validation failed",
+                                ErrorCode.VALIDATION_FAILED.getCode(),
+                                errors
+                        )
+
                 );
     }
 }

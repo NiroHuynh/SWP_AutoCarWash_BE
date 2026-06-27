@@ -1,16 +1,21 @@
 package com.swp.autocarwash.booking.controller;
 
+import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.service.BookingService;
+import com.swp.autocarwash.common.exception.ResourceNotFoundException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
+import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
 import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
@@ -41,24 +46,51 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final CustomerRepository customerRepository;
 
     /**
-     * Lấy danh sách lịch đặt sắp tới của khách hàng (tab "Upcoming Appointments").
+     * Suy ra customerId của khách hàng đang đăng nhập từ token
+     *
+     * @param principal thông tin user đang đăng nhập, lấy từ JWT đã xác thực
+     * @return id của customer gắn với user đang đăng nhập
+     */
+    private Long resolveCustomerId(UserCustomerDetails principal) {
+        Customer customer = customerRepository.findByUserId(principal.getUser().getId());
+        if (customer == null) {
+            throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+        return customer.getId();
+    }
+
+    /**
+     * Lấy danh sách lịch đặt sắp tới của khách hàng đang đăng nhập (tab "Upcoming Appointments").
      *
      * <p>Chỉ trả về các booking có trạng thái {@code CONFIRMED}, {@code CHECKED_IN}
      * hoặc {@code WASHING}, sắp xếp theo thời gian hẹn gần nhất lên đầu.
      * Đáp ứng AC-25.1.2 và AC-25.1.3.</p>
      *
-     * <p><b>Ví dụ:</b> {@code GET /api/bookings/upcoming?customerId=1}</p>
+     * <p><b>Ví dụ:</b> {@code GET /api/bookings/upcoming}</p>
      *
-     * @param customerId mã định danh của khách hàng cần lấy danh sách lịch đặt
+     * @param principal khách hàng đang đăng nhập, lấy từ JWT đã xác thực
      * @return {@code 200 OK} với danh sách {@link BookingCardResponse};
      *         trả về danh sách rỗng nếu không có booking nào thỏa điều kiện
      */
+    // Code/Javadoc gốc:
+    // * <p><b>Ví dụ:</b> {@code GET /api/bookings/upcoming?customerId=1}</p>
+    // * @param customerId mã định danh của khách hàng cần lấy danh sách lịch đặt
+    // @GetMapping("/upcoming")
+    // public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getUpcomingBookings(
+    //         @RequestParam Long customerId) {
+    //
+    // Lý do đổi: endpoint nhận customerId trực tiếp từ client (query param), không kiểm tra
+    // customerId đó có thuộc về user đang đăng nhập hay không -> lỗ hổng IDOR (Insecure Direct
+    // Object Reference): user đã login đổi được customerId trên URL để xem lịch sử của người khác.
+    // Sửa lại: customerId luôn suy ra từ token đăng nhập qua resolveCustomerId(principal).
     @GetMapping("/upcoming")
     public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getUpcomingBookings(
-            @RequestParam Long customerId) {
+            @AuthenticationPrincipal UserCustomerDetails principal) {
 
+        Long customerId = resolveCustomerId(principal);
         List<BookingCardResponse> result = bookingService.getUpcomingBookings(customerId);
 
         if (result.isEmpty()) {
@@ -73,22 +105,33 @@ public class BookingController {
     }
 
     /**
-     * Lấy danh sách lịch sử dịch vụ của khách hàng (tab "Past Services").
+     * Lấy danh sách lịch sử dịch vụ của khách hàng đang đăng nhập (tab "Past Services").
      *
      * <p>Chỉ trả về các booking có trạng thái {@code PAID}, {@code CANCELLED}
      * hoặc {@code NO_SHOW}, sắp xếp theo thời gian hẹn mới nhất lên đầu.
      * Đáp ứng AC-25.2.1, AC-25.2.3, AC-25.2.4, AC-25.2.5.</p>
      *
-     * <p><b>Ví dụ:</b> {@code GET /api/bookings/past?customerId=1}</p>
+     * <p><b>Ví dụ:</b> {@code GET /api/bookings/past}</p>
      *
-     * @param customerId mã định danh của khách hàng cần lấy lịch sử dịch vụ
+     * @param principal khách hàng đang đăng nhập, lấy từ JWT đã xác thực
      * @return {@code 200 OK} với danh sách {@link BookingCardResponse};
      *         trả về danh sách rỗng nếu không có lịch sử nào
      */
+    // Code/Javadoc gốc:
+    // * <p><b>Ví dụ:</b> {@code GET /api/bookings/past?customerId=1}</p>
+    // * @param customerId mã định danh của khách hàng cần lấy lịch sử dịch vụ
+    // @GetMapping("/past")
+    // public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getPastBookings(
+    //         @RequestParam Long customerId) {
+    //
+    // Lý do đổi: cùng lý do với getUpcomingBookings() ở trên - endpoint nhận customerId trực tiếp
+    // từ client (query param), không kiểm tra customerId đó có thuộc về user đang đăng nhập hay
+    // không -> lỗ hổng IDOR. Sửa lại: customerId luôn suy ra từ token đăng nhập qua resolveCustomerId(principal).
     @GetMapping("/past")
     public ResponseEntity<ApiResponse<List<BookingCardResponse>>> getPastBookings(
-            @RequestParam Long customerId) {
+            @AuthenticationPrincipal UserCustomerDetails principal) {
 
+        Long customerId = resolveCustomerId(principal);
         List<BookingCardResponse> result = bookingService.getPastBookings(customerId);
 
         if (result.isEmpty()) {
@@ -147,8 +190,6 @@ public class BookingController {
                 ApiResponse.success("Hủy lịch đặt thành công", result)
         );
     }
-
-
     /**
      *
      * Chức năng: Tạo mới một booking.

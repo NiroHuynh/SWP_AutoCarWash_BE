@@ -7,18 +7,23 @@ import com.swp.autocarwash.staff.entity.Staff;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "booking", schema = "swp_auto_car_wash")
 public class Booking {
     @Id
@@ -58,25 +63,22 @@ public class Booking {
     @Column(name = "booking_type", nullable = false, length = 20)
     private String bookingType;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private Instant createdAt;
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "check_in_at")
-    private Instant checkInAt;
+    private LocalDateTime checkInAt;
 
     @Column(name = "check_out_at")
-    private Instant checkOutAt;
+    private LocalDateTime checkOutAt;
 
     @Column(name = "canceled_at")
-    private Instant canceledAt;
+    private LocalDateTime canceledAt;
 
     @ColumnDefault("0")
     @Column(name = "is_deposit_paid")
     private Boolean isDepositPaid;
-
-    @Column(name = "deposit_amount", precision = 12, scale = 2)
-    private BigDecimal depositAmount;
 
     @ColumnDefault("0.00")
     @Column(name = "total_service_amount", precision = 12, scale = 2)
@@ -98,5 +100,20 @@ public class Booking {
     @Column(name = "point_discount_amount", precision = 12, scale = 2)
     private BigDecimal pointDiscountAmount;
 
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<BookingAddon> addons = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<BookingSlotAllocation> slotAllocations
+            = new ArrayList<>();
 }
