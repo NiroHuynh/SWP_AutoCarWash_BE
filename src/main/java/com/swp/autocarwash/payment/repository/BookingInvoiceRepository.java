@@ -21,4 +21,5 @@ public interface BookingInvoiceRepository
             Long bookingId
     );
 
+    Optional<BookingInvoice> findByBooking_Id(Long bookingId);
 }

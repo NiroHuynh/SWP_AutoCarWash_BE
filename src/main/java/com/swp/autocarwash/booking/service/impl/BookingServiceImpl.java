@@ -4,9 +4,12 @@ import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
+import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.*;
 import com.swp.autocarwash.booking.event.BookingCanceledEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
+import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper;
 import com.swp.autocarwash.booking.port.*;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
@@ -38,6 +41,7 @@ import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
 import com.swp.autocarwash.booking.port.VehiclePort;
 import com.swp.autocarwash.booking.port.VoucherPort;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
@@ -133,6 +137,7 @@ public class BookingServiceImpl implements BookingService {
     private final SecurityUtils securityUtils;
     private final VoucherUsagePort voucherUsagePort;
     private final BookingInvoicePort bookingInvoicePort;
+    private final SystemSettingPort systemSettingPort;
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();

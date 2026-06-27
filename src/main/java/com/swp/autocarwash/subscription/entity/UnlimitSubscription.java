@@ -2,6 +2,7 @@ package com.swp.autocarwash.subscription.entity;
 
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

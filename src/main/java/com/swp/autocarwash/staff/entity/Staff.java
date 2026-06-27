@@ -38,5 +38,10 @@ public class Staff {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
+    @Transient
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
 
 }

@@ -11,9 +11,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "vehicle", schema = "swp_auto_car_wash")
 public class Vehicle {
     @Id
@@ -45,9 +45,8 @@ public class Vehicle {
     @Column(name = "restricted_until")
     private Instant restrictedUntil;
 
-    @ColumnDefault("0")
+    @Builder.Default
     @Column(name = "is_deleted")
-    private Boolean isDeleted;
-
+    private Boolean isDeleted = false;
 
 }
