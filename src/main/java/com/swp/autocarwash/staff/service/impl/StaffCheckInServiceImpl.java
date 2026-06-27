@@ -208,7 +208,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .stationAddress(stationAddress)
 
                 .status(booking.getStatus())
-                .technicianName(booking.getCheckInEmployee().getFullName() != null ? booking.getCheckInEmployee().getFullName() : "NONE")
+                .technicianName(booking.getCheckInEmployee() != null ? booking.getCheckInEmployee().getFullName() : "NONE")
                 .totalAmount(totalAmount)
                 .voucherCode(voucherCode)
                 .voucherDiscountAmount(voucherDiscountAmount)
