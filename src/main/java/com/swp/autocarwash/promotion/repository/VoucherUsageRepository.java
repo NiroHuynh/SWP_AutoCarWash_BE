@@ -47,5 +47,17 @@ public interface VoucherUsageRepository extends JpaRepository<VoucherUsage, Long
      * @author Phong
      * @version 1.0
      */
-    long countByVoucherIdAndCustomerId(Integer voucherId, Integer customerId);
+    long countByVoucherIdAndCustomerId(Long voucherId, Long customerId);
+
+    /**
+     * kiểm tra xem customer này có dùng voucher này trước đó hay chưa
+     *
+     * @param voucherId
+     * @param customerId
+     * @return boolean
+     */
+    boolean existsByVoucherIdAndCustomerId(
+            Long voucherId,
+            Long customerId
+    );
 }

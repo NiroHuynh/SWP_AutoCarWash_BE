@@ -1,9 +1,14 @@
 package com.swp.autocarwash.booking.validator;
 
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
+import com.swp.autocarwash.booking.port.CustomerPort;
+import com.swp.autocarwash.booking.port.VehiclePort;
+import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,8 +23,11 @@ import org.springframework.stereotype.Component;
  * @version 1.0
  */
 @Component
+@RequiredArgsConstructor
 public class BookingPriceValidator {
-
+    private final CustomerPort customerPort;
+    private final SecurityUtils securityUtils;
+    private final VehiclePort vehiclePort;
     /**
      *
      * Chức năng: Kiểm tra dữ liệu request trước khi thực hiện tính toán giá booking.
@@ -38,9 +46,25 @@ public class BookingPriceValidator {
      * @version 1.0
      */
     public void validate(BookingPricePreviewRequest request) {
-
+        CustomerContract customer = getCustomer();
         if (request.getServicePackageId() == null) {
             throw new BusinessException(ErrorCode.BOOKING_PRICE_CALCULATION_FAILED);
         }
+        
+        vehiclePort.validateVehicleOwnership(request.getVehicleId(), customer.getId());
+
+    }
+
+    /**
+     * lấy customerContract từ token
+     *
+     * @return CustomerContract
+     *
+     * @Author Phong
+     */
+    private CustomerContract getCustomer() {
+        Long userId = securityUtils.getCurrentUserId();
+        CustomerContract customer = customerPort.getCustomerByUserId(userId);
+        return customer;
     }
 }

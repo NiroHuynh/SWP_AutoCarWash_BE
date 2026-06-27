@@ -42,11 +42,11 @@ public class MockVoucherBookingAdapter implements VoucherPort {
      * @version 1.0
      */
     @Override
-    public List<VoucherContract> getValidVouchers(Integer customerId) {
+    public List<VoucherContract> getValidVouchers(Long customerId) {
         return List.of(
-                new VoucherContract(1, "NEW10", 10, new BigDecimal("50000")),
-                new VoucherContract(2, "GOLD20", 20, new BigDecimal("150000")),
-                new VoucherContract(3, "WELCOME5", 5, new BigDecimal("30000"))
+                new VoucherContract(Long.valueOf(1), "NEW10", 10, new BigDecimal("50000")),
+                new VoucherContract(Long.valueOf(2), "GOLD20", 20, new BigDecimal("150000")),
+                new VoucherContract(Long.valueOf(3), "WELCOME5", 5, new BigDecimal("30000"))
         );
     }
 
@@ -68,7 +68,7 @@ public class MockVoucherBookingAdapter implements VoucherPort {
      * @version 1.0
      */
     @Override
-    public boolean validate(Integer voucherId, Integer customerId) {
+    public boolean validate(Long voucherId, Long customerId) {
         return false;
     }
 

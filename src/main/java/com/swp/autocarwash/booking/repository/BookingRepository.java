@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,10 +54,69 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "JOIN FETCH b.vehicle " +
            "JOIN FETCH b.servicePackage " +
            "LEFT JOIN FETCH b.checkInEmployee " +
+           "LEFT JOIN FETCH b.customer c " +
+           "LEFT JOIN FETCH c.customerTier " +
            "WHERE b.id = :id")
     public Optional<Booking> findDetailById(@Param("id") Long id);
 // Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu
     //không có thì là hộp rỗng và bắt buộc phải ném exception
 
+    //    kiểm tra xem xe đó có booking vào ngày đặt chưa
+    boolean existsByVehicleIdAndAppointmentDateAndStatusNot(
+            Long vehicleId,
+            LocalDate date,
+            String status
+    );
 
+
+    //    trả ra những ngày mà vehicle đã sử dụng gói unlimit, tìm trên 1 khoảng thời gian
+    @Query("""
+                SELECT b.appointmentDate
+                FROM Booking b
+                JOIN UnlimitSubscription us
+                    ON us.vehicle.id = b.vehicle.id
+                JOIN SubscriptionPlan sp
+                    ON sp.id = us.subscriptionPlan.id
+                WHERE b.vehicle.id = :vehicleId
+                AND sp.servicePackage.id = :servicePackageId
+                AND b.servicePackage.id = :servicePackageId
+                AND b.appointmentDate BETWEEN :fromDate AND :toDate
+                AND b.appointmentDate 
+                    BETWEEN us.startDate AND us.endDate
+                AND b.status NOT IN ('CANCELED')
+                AND us.status = 'ACTIVE'
+                ORDER BY b.appointmentDate
+            """)
+    List<LocalDate> findUsedUnlimitBookingDates(
+            @Param("vehicleId") Long vehicleId,
+            @Param("servicePackageId") Integer servicePackageId,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate
+    );
+
+    //    trả ra những ngày mà vehicle đã sử dụng gói family, tìm trên 1 khoảng thời gian
+    @Query("""
+                SELECT b.appointmentDate AS bookingDate
+                FROM Booking b
+                JOIN FamilyMember fm
+                    ON fm.vehicle.id = b.vehicle.id
+                JOIN FamilySubscription fs
+                    ON fs.familyGroup.id = fm.familyGroup.id
+                JOIN SubscriptionPlan sp
+                    ON sp.id = fs.subscriptionPlan.id
+                WHERE b.vehicle.id = :vehicleId
+                AND sp.servicePackage.id = :servicePackageId
+                AND b.servicePackage.id = :servicePackageId
+                AND b.appointmentDate BETWEEN :fromDate AND :toDate
+                AND b.appointmentDate BETWEEN fs.startDate AND fs.endDate
+                AND fs.status = 'ACTIVE'
+                AND b.status NOT IN ('CANCELED')
+                ORDER BY b.appointmentDate
+            """)
+    List<LocalDate> findFamilyUsedDates(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate fromDate,
+            LocalDate toDate
+    );
 }

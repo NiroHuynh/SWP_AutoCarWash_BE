@@ -5,6 +5,7 @@ import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.contract.promotion.VoucherContract;
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
+import com.swp.autocarwash.common.contract.station.StationContract;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,10 @@ public class BookingMapper {
      */
     public BookingContextResponse.VehicleDTO toVehicleDTO(VehicleContract c) {
         return modelMapper.map(c, BookingContextResponse.VehicleDTO.class);
+    }
+
+    public BookingContextResponse.StationDTO toStationDTO(StationContract c){
+        return modelMapper.map(c,BookingContextResponse.StationDTO.class);
     }
 
     /**

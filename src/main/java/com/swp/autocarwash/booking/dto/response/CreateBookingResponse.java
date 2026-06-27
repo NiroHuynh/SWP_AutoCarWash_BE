@@ -26,5 +26,5 @@ public class CreateBookingResponse {
     private Long bookingId;
     private String status;
     private BigDecimal totalAmount;
-    private List<Integer> slotIds;
+    private List<Long> slotIds;
 }

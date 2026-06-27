@@ -13,6 +13,11 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    UNAUTHORIZED(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
             "COMMON_002",
@@ -37,6 +42,27 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_002",
             "Booking already cancelled"
+    ),
+
+    BOOKING_NOT_CHECKED_IN(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_006",
+            "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
+    ),
+    VEHICLE_ALREADY_BOOKED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_003",
+            "Vehicle already has a booking on this date"
+    ),
+    BOOKING_SLOT_ALREADY_USED(
+            HttpStatus.CONFLICT,
+            "BOOKING_004",
+            "Booking slot already used"
+    ),
+    BOOKING_INVOICE_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "BOOKING_001",
+            "Booking already has an invoice"
     ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -103,6 +129,46 @@ public enum ErrorCode {
             "PAYMENT_001",
             "Payment failed"
     ),
+    VALIDATION_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_003",
+                    "Validation failed"
+    ),
+    EMAIL_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_001",
+                    "Email already exists"
+    ),
+    PHONE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_002",
+                    "Phone already exists"
+    ),
+    INVALID_PASSWORD(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_003",
+                    "Password is invalid"
+    ),
+    ROLE_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH_004",
+            "Role not found"
+    ),
+    LICENSE_PLATE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+        "VEHICLE_001",
+                "Biển số xe đã tồn tại trong hệ thống"
+    ),
+    VEHICLE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "VEHICLE_002",
+                "Vehicle not found"
+    ),
+    TIER_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "LOYALTY_001",
+            "Customer tier not found"
+    ),
     BOOKING_INVALID_SLOT(
             HttpStatus.BAD_REQUEST,
             "BOOKING_004",
@@ -112,11 +178,6 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_005",
             "Slot is not available"
-    ),
-    VEHICLE_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-    "VEHICLE_001",
-            "Vehicle not found"
     ),
     VEHICLE_NOT_OWNED(
             HttpStatus.FORBIDDEN,
@@ -168,6 +229,16 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "SERVICE_PACKAGE_002",
             "Service package not found"
+    ),
+    QUEUE_TICKET_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "QUEUE_001",
+            "Queue ticket not found"
+    ),
+    QUEUE_TICKET_NOT_WAITING(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_002",
+            "Queue ticket is not in WAITING status"
     );
 
     private final HttpStatus status;
