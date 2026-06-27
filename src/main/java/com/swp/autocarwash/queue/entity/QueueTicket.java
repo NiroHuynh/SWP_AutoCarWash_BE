@@ -6,9 +6,7 @@ import com.swp.autocarwash.station.entity.Station;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -18,6 +16,8 @@ import java.time.Instant;
 @Setter
 @Entity
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "queue_ticket", schema = "swp_auto_car_wash")
 public class QueueTicket {
     @Id
@@ -54,7 +54,7 @@ public class QueueTicket {
     @Builder.Default
     @ColumnDefault("0")
     @Column(name = "priority_score")
-    private Integer priorityScore;
+    private Integer priorityScore = 0;
 
 
 }

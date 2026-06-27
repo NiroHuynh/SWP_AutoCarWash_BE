@@ -13,7 +13,7 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
-import com.swp.autocarwash.payment.repository.custom.BookingInvoiceRepository;
+import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.queue.entity.QueueTicket;
@@ -21,7 +21,6 @@ import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;
-import com.swp.autocarwash.system.service.SystemSettingService;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
 import com.swp.autocarwash.wash.repository.custom.WashLaneRepository;
@@ -279,7 +278,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
      */
     private CheckInResultResponse doCheckIn(Booking booking, BookingSlot slot, int minutesDeviation, String message) {
         booking.setStatus(BookingStatus.CHECK_IN.toString());
-        booking.setCheckInAt(Instant.now());
+        booking.setCheckInAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
         QueueTicket ticket = QueueTicket.builder()

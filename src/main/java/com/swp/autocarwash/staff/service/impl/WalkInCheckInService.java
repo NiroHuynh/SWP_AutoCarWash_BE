@@ -1,9 +1,13 @@
 package com.swp.autocarwash.staff.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlot;
+import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
+import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
@@ -12,7 +16,7 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
-import com.swp.autocarwash.payment.repository.custom.BookingInvoiceRepository;
+import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueTicketService;
@@ -29,7 +33,7 @@ import com.swp.autocarwash.staff.mapper.WalkInMapper;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
-import com.swp.autocarwash.subscription.repository.custom.UnlimitSubscriptionRepository;
+import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +64,8 @@ public class WalkInCheckInService {
     private final QueueTicketService queueTicketService;
     private final StationRepository stationRepository;
     private final QueueTicketRepository queueTicketRepository;
+    private final BookingAddonRepository bookingAddonRepository;
+    private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
 
 
     //Kiểm tra sdt để phân loại đối tượng khách cũ/mới(SELECT)
@@ -153,7 +161,13 @@ public class WalkInCheckInService {
         }
 
         //AUTO LOAD REAL-TIME: Tự động quét và đóng gói các Slot thực sự còn trống để trả về cho Front-end hiển thị
-        List<BookingSlot> dbSlots = bookingSlotRepository.findAvailableSlotsByStationAndDate(request.getStationId(), LocalDate.now());
+        //TỰ ĐỘNG LỌC SLOT CÒN TRỐNG VÀ PHẢI Ở TƯƠNG LAI
+        // Lấy giờ thực tế ngay tại thời điểm nhân viên đang xem màn hình tính tiền
+        LocalTime currentSystemTime = LocalTime.now();
+        if (request.getStationId() == null) {
+            throw new BusinessException(ErrorCode.STATION_NOT_FOUND);
+        }
+        List<BookingSlot> dbSlots = bookingSlotRepository.findAvailableSlotsByStationAndDate(request.getStationId(), LocalDate.now(), currentSystemTime);
 
         List<BookingSummaryResponse.AvailableSlotDTO> availableSlots = walkinMapper.toAvailableSlotDTOList(dbSlots);
 
@@ -191,10 +205,62 @@ public class WalkInCheckInService {
         //khởi tạo và cộng dồn tổng tiền dịch vụ gốc
         BigDecimal rawAmount = BigDecimal.ZERO;
         // Cộng dồn tiền Gói dịch vụ chính
+        ServicePackage servicePackage = null;
         if (request.getServicePackageId() != null) {
-            ServicePackage servicePackage = servicePackageRepository.findById(request.getServicePackageId())
+            servicePackage = servicePackageRepository.findById(request.getServicePackageId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_PACKAGE_NOT_EXIST));
             rawAmount = rawAmount.add(servicePackage.getBasePrice());
+        }
+
+        //Đăng ký hoặc cập nhật thông tin phương tiện (Lấy thực thể xe lên trước để validate)
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
+
+        // LOGIC: VALIDATE XE CÓ THUỘC CUSTOMER ĐÓ HAY KHÔNG
+        if (request.getCustomerId() != null && vehicleOpt.isPresent()) {
+            Vehicle vehicle = vehicleOpt.get();
+            if (vehicle.getCustomer() != null && !vehicle.getCustomer().getId().equals(request.getCustomerId())) {
+                throw new BusinessException(ErrorCode.VEHICLE_NOT_BELONG_TO_CUSTOMER);
+            }
+        }
+
+        //LOGIC: MỘT XE KHÔNG THỂ ĐẶT TRÙNG KHUNG GIỜ NHIỀU ĐƠN TRONG NGÀY
+        if (request.getChosenSlotIds() != null && !request.getChosenSlotIds().isEmpty() && vehicleOpt.isPresent()) {
+            boolean isDuplicateBooking = bookingRepository.existsByVehicleIdAndDateAndSlotIds(
+                    vehicleOpt.get().getId(),
+                    LocalDate.now(),
+                    request.getChosenSlotIds()
+            );
+            if (isDuplicateBooking) {
+                throw new BusinessException(ErrorCode.VEHICLE_ALREADY_BOOKED_THIS_SLOT);
+            }
+        }
+
+        // Lấy danh sách các Slot thực tế từ Database để kiểm tra tính liên tiếp và thời gian
+        List<BookingSlot> selectedSlots = bookingSlotRepository.findAllById(request.getChosenSlotIds());
+        if (selectedSlots.size() != request.getChosenSlotIds().size()) {
+            throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
+        }
+
+        //LOGIC: BẮT BUỘC CHỌN CÁC SLOT LIÊN TIẾP NHAU (1 SLOT = 15 PHÚT)
+        if (servicePackage != null) {
+            int requiredSlotCount = servicePackage.getRequiredSlot();
+            if (selectedSlots.size() != requiredSlotCount) {
+                throw new BusinessException(ErrorCode.INVALID_SLOT_QUANTITY);
+            }
+
+            // Sắp xếp các slot đã chọn theo thời gian bắt đầu tăng dần
+            List<BookingSlot> sortedSlots = selectedSlots.stream()
+                    .sorted((s1, s2) -> s1.getStartTime().compareTo(s2.getStartTime()))
+                    .toList();
+
+            for (int i = 0; i < sortedSlots.size() - 1; i++) {
+                LocalTime currentEnd = sortedSlots.get(i).getEndTime();
+                LocalTime nextStart = sortedSlots.get(i + 1).getStartTime();
+                // Nếu thời gian kết thúc của ô trước KHÔNG TRÙNG với thời gian bắt đầu ô sau -> Bị rời rạc
+                if (!currentEnd.equals(nextStart)) {
+                    throw new BusinessException(ErrorCode.SLOTS_MUST_BE_CONSECUTIVE);
+                }
+            }
         }
 
         // Cộng dồn tiền các Addon đính kèm lẻ (nếu có)
@@ -208,7 +274,7 @@ public class WalkInCheckInService {
 
         //Kiểm tra quyền lợi gói membership unlimited (nếu là member)
         BigDecimal packageDiscount = BigDecimal.ZERO;
-        Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
+        //Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
 
         if (request.getCustomerId() != null && vehicleOpt.isPresent() && request.getServicePackageId() != null) {
 
@@ -258,62 +324,6 @@ public class WalkInCheckInService {
             return vehicleRepository.save(newVehicle);
         });
 
-        //khấu trừ cái chuỗi slot được chọn tại quầy
-        if (request.getChosenSlotIds() != null) {
-            for (Integer slotId : request.getChosenSlotIds()) {
-                // 1. Chặn nếu ID không tồn tại dưới DB
-                BookingSlot slot = bookingSlotRepository.findById(slotId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE));
-
-                //2. CHỐT CHẶN BỔ SUNG: Nếu slot tồn tại nhưng đã FULL hoặc BỊ KHÓA, bắt buộc phải ném lỗi chặn lại
-                if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
-                    throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
-                    // (Bạn có thể tự tạo thêm một mã lỗi riêng như ErrorCode.SERVICE_SLOT_FULL nếu muốn thông báo tường minh hơn)
-                }
-
-                // 3. Nếu vượt qua các chốt chặn trên thì mới tiến hành cộng dồn đơn
-                slot.setBookedCount(slot.getBookedCount() + 1);
-                if (slot.getBookedCount() >= slot.getMaxCapacity()) {
-                    slot.setStatus("FULL");
-                }
-                bookingSlotRepository.save(slot);
-            }
-        }
-        //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
-        BigDecimal serviceAmount = BigDecimal.ZERO;
-        BigDecimal addonAmount = BigDecimal.ZERO;
-        ServicePackage servicePackage = null;
-
-        if (request.getServicePackageId() != null) {
-            servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
-            serviceAmount = servicePackage.getBasePrice();
-        }
-
-        //LẬP LỊCH HẸN MỚI (BOOKING) VỚI TRẠNG THÁI CHECKED_IN MẶC ĐỊNH
-        Booking newBooking = Booking.builder()
-                .vehicle(finalVehicle)
-                .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
-                .servicePackage(servicePackage)
-                .appointmentDate(LocalDate.now())
-                .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
-                .bookingType("WALK_IN")
-                .createdAt(Instant.now())
-                .checkInAt(Instant.now())
-                .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0)
-                .build();
-        Booking savedBooking = bookingRepository.save(newBooking);
-
-        //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
-
-
-
-        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
-            for (Integer addonId : request.getAddonIds()) {
-                AddonService addon = addonServiceRepository.findById(addonId).get();
-                addonAmount = addonAmount.add(addon.getPrice());
-            }
-        }
-
         //Tính toán tổng số tiền được giảm giá (discount_amount)
         // Tổng giảm giá ở bước Check-in = Tiền giảm trừ gói Unlimited + Tiền cọc phạt thu trước + Tiền cứu cọc trễ hẹn
         // (Bản chất penaltyDeposit và creditFromOld Booking thu trước đều làm giảm số tiền phải thu lúc Checkout)
@@ -326,7 +336,71 @@ public class WalkInCheckInService {
             remainingBalanceAtCheckout = BigDecimal.ZERO;
         }
 
+        //LẬP LỊCH HẸN MỚI (BOOKING) VỚI TRẠNG THÁI CHECKED_IN MẶC ĐỊNH
+        Booking newBooking = Booking.builder()
+                .vehicle(finalVehicle)
+                .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
+                .servicePackage(servicePackage)
+                .appointmentDate(LocalDate.now())
+                .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
+                .bookingType("WALK_IN")
+                .createdAt(LocalDateTime.now())
+                .checkInAt(LocalDateTime.now())
+                .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0)
+                .build();
+        Booking savedBooking = bookingRepository.save(newBooking);
+
+        //LOGIC: KHẤU TRỪ CÔNG SUẤT SLOT VÀ LƯU BẢNG BOOKING_SLOT_ALLOCATION
+        for (BookingSlot slot : selectedSlots) {
+            if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
+                throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
+            }
+            slot.setBookedCount(slot.getBookedCount() + 1);
+            if (slot.getBookedCount() >= slot.getMaxCapacity()) {
+                slot.setStatus("FULL");
+            }
+            bookingSlotRepository.save(slot);
+
+            // Thực hiện ghi nhận phân bổ ô giờ đặt lịch cho Đơn hàng này
+            BookingSlotAllocation allocation = BookingSlotAllocation.builder()
+                    .booking(savedBooking)
+                    .bookingSlot(slot)
+                    .build();
+            bookingSlotAllocationRepository.save(allocation);
+        }
+
+        //LOGIC: LƯU DATA CHI TIẾT XUỐNG BẢNG BOOKING_ADDON (NẾU CÓ)
+        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+            for (Integer addonId : request.getAddonIds()) {
+                AddonService addon = addonServiceRepository.findById(addonId).get();
+                BookingAddon bookingAddon = BookingAddon.builder()
+                        .booking(savedBooking)
+                        .addonService(addon)
+                        .price(addon.getPrice()) // Lưu snapshot giá
+                        .build();
+                bookingAddonRepository.save(bookingAddon);
+            }
+        }
+
+        //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
+        BigDecimal serviceAmount = BigDecimal.ZERO;
+        BigDecimal addonAmount = BigDecimal.ZERO;
+        //ServicePackage servicePackage = null;
+        if (request.getServicePackageId() != null) {
+            servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
+            serviceAmount = servicePackage.getBasePrice();
+        }
+
+        //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
+        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+            for (Integer addonId : request.getAddonIds()) {
+                AddonService addon = addonServiceRepository.findById(addonId).get();
+                addonAmount = addonAmount.add(addon.getPrice());
+            }
+        }
+
         //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
+        //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
         BookingInvoice invoice = BookingInvoice.builder()
                 .booking(savedBooking) // Khóa ngoại duy nhất trỏ tới Booking (booking_id)
                 .customer(savedBooking.getCustomer()) // Khóa ngoại khách hàng (customer_id), tự động lấy từ booking (có thể null nếu khách vãng lai mới)
@@ -347,7 +421,6 @@ public class WalkInCheckInService {
         // Thực hiện lưu chính thức xuống bảng booking_invoice dưới DB
         bookingInvoiceRepository.save(invoice);
 
-
         //CẤP PHÁT SỐ VÉ THỨ TỰ HÀNG ĐỢI VẬT LÝ (QueueTicket)
         //Sinh số thứ tự vé tiếp theo dựa vào stationId và diện khách Walk-In (false)
         String nextTicketNumber = queueTicketService.generateTicketNumber(request.getStationId(), false);
@@ -362,7 +435,6 @@ public class WalkInCheckInService {
                 .station(currentStation) //Vé thuộc chi nhánh nào (station_id - NOT NULL)
                 .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
                 .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
-
                 //Trạng thái và Phân loại
                 .status("CHECKED_IN")    // Trạng thái vé (status - NOT NULL)
                 .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
