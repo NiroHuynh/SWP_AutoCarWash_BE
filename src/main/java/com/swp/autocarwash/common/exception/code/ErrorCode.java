@@ -13,6 +13,11 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    UNAUTHORIZED(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
             "COMMON_002",
@@ -48,6 +53,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_007",
             "Booking chưa ở trạng thái COMPLETED, chưa thể thu tiền"
+    ),
+    VEHICLE_ALREADY_BOOKED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_003",
+            "Vehicle already has a booking on this date"
+    ),
+    BOOKING_SLOT_ALREADY_USED(
+            HttpStatus.CONFLICT,
+            "BOOKING_004",
+            "Booking slot already used"
+    ),
+    BOOKING_INVOICE_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "BOOKING_001",
+            "Booking already has an invoice"
     ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -119,6 +139,46 @@ public enum ErrorCode {
             "PAYMENT_002",
             "Số tiền khách đưa không đủ để thanh toán"
     ),
+    VALIDATION_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_003",
+                    "Validation failed"
+    ),
+    EMAIL_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_001",
+                    "Email already exists"
+    ),
+    PHONE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_002",
+                    "Phone already exists"
+    ),
+    INVALID_PASSWORD(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_003",
+                    "Password is invalid"
+    ),
+    ROLE_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH_004",
+            "Role not found"
+    ),
+    LICENSE_PLATE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+        "VEHICLE_001",
+                "Biển số xe đã tồn tại trong hệ thống"
+    ),
+    VEHICLE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "VEHICLE_002",
+                "Vehicle not found"
+    ),
+    TIER_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "LOYALTY_001",
+            "Customer tier not found"
+    ),
     BOOKING_INVALID_SLOT(
             HttpStatus.BAD_REQUEST,
             "BOOKING_004",
@@ -128,11 +188,6 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_005",
             "Slot is not available"
-    ),
-    VEHICLE_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-    "VEHICLE_001",
-            "Vehicle not found"
     ),
     VEHICLE_NOT_OWNED(
             HttpStatus.FORBIDDEN,
@@ -184,9 +239,107 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "SERVICE_PACKAGE_002",
             "Service package not found"
+    ),
+
+    EARLY_ARRIVAL_SLOT_FULL(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_001",
+            "Booking is too early. Please wait until your scheduled time or check available slots later"
+    ),
+    NO_ALLOCATED_TIME_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_002",
+            "Booking has no allocated time slot"
+    ),
+    VEHICLE_CHECKIN_RESTRICTED(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_003",
+            "Vehicle is currently restricted due to past violations. Please collect 20,000 VND deposit at the counter before check-in."
+    ),
+    PENALTY_ONLY_FOR_WALK_IN(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_004",
+            "Penalty deposit only applies to WALK_IN bookings"
+    ),
+    VEHICLE_CLEAR_NO_PENALTY(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_005",
+            "This vehicle is not currently restricted - no penalty deposit required"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found for key. Please ask Admin to configure"
+    ),
+    INVALID_CONFIG_VALUE_FORMAT(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_002",
+            "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_PACKAGE_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_001",
+            "This service package not exist in the system"
+
+    ),
+    SERVICE_PACKAGE_ADD_ON_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_002",
+            "This service package add on not exist in the system"
+    ),
+    PENALTY_DEPOSIT_NOT_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PENALTY_DEPOSIT_001",
+            "The 20,000 VND penalty deposit has not been confirmed by the staff."
+    ),
+    SERVICE_SLOT_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "The selected service slot does not exist or is no longer available."
+    ),
+    VEHICLE_NOT_IN_VIOLATION_RESTRICTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_001",
+            "Vehicle not in violation restriction"
+    ),
+    VEHICLE_NOT_BELONG_TO_CUSTOMER(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_002",
+            "Vehicle not belong to the customer"
+    ),
+    VEHICLE_ALREADY_BOOKED_THIS_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_003",
+            "Vehicle already booked this slot today"
+    ),
+    INVALID_SLOT_QUANTITY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "Invalid slot required for this service package"
+    ),
+    SLOTS_MUST_BE_CONSECUTIVE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_002",
+            "Slots must be consecutive"
+    ),
+    QUEUE_TICKET_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "QUEUE_001",
+            "Queue ticket not found"
+    ),
+    QUEUE_TICKET_NOT_WAITING(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_002",
+            "Queue ticket is not in WAITING status"
     );
+
+
+
 
     private final HttpStatus status;
     private final String code;
     private final String message;
+
+
+
 }

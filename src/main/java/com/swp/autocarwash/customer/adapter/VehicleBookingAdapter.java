@@ -44,7 +44,7 @@ public class VehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public List<VehicleContract> getVehiclesByCustomer(Integer customerId) {
+    public List<VehicleContract> getVehiclesByCustomer(Long customerId) {
         return vehicleService.getVehiclesByCustomer(customerId);
     }
 
@@ -65,7 +65,7 @@ public class VehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public Integer getCurrentCustomerId() {
+    public Long getCurrentCustomerId() {
         // TODO: integrate Spring Security later
         throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -88,7 +88,7 @@ public class VehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public boolean validateVehicleOwnership(Integer vehicleId, Integer customerId) {
+    public boolean validateVehicleOwnership(Long vehicleId, Long customerId) {
         return vehicleService.validateVehicleOwnership(vehicleId, customerId);
     }
 
@@ -109,7 +109,7 @@ public class VehicleBookingAdapter implements VehiclePort {
      * @version 1.0
      */
     @Override
-    public VehicleContract getById(Integer id) {
+    public VehicleContract getById(Long id) {
         return vehicleService.getById(id);
     }
 }

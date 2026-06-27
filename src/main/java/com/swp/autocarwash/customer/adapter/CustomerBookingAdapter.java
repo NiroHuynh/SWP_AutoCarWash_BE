@@ -57,15 +57,18 @@ public class CustomerBookingAdapter implements CustomerPort {
      */
     @Override
     public CustomerContract getCustomerById(
-            Integer customerId){
+            Long customerId){
 
         Customer customer = customerService
                 .getCustomerById(customerId);
         return modelMapper.map(customer, CustomerContract.class);
     }
 
-
-
+    @Override
+    public CustomerContract getCustomerByUserId(Long userId) {
+        Customer customer = customerService.getCustomerByUserId(userId);
+        return modelMapper.map(customer,CustomerContract.class);
+    }
 
 
     /**
@@ -86,7 +89,7 @@ public class CustomerBookingAdapter implements CustomerPort {
      */
     @Override
     public boolean isEligibleForBooking(
-            Integer customerId){
+            Long customerId){
 
 
         return customerService
@@ -113,9 +116,8 @@ public class CustomerBookingAdapter implements CustomerPort {
      * @version 1.0
      */
     @Override
-    public CustomerTierContract getTierOfCustomer(Integer customerId) {
+    public CustomerTierContract getTierOfCustomer(Long customerId) {
         Customer customer = customerService.getCustomerById(customerId);
-        System.out.println(customer.getFirstName());
         return modelMapper.map(customer.getCustomerTier(), CustomerTierContract.class);
     }
 

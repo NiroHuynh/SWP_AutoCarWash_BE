@@ -3,6 +3,7 @@ package com.swp.autocarwash.customer.repository;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -13,7 +14,7 @@ import java.util.List;
  * @author Phong
  * @version 1.0
  */
-public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
+public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     /**
      *
@@ -53,4 +54,37 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
      * @version 1.0
      */
     boolean existsByIdAndCustomerId(Integer vehicleId, Integer customerId);
+
+    Optional<Vehicle> findByLicensePlateAndIsDeletedFalse(String licensePlate);
+
+    //lấy ta danh sách vehicle của thuộc 1 customer
+//    @Query("SELECT v FROM Vehicle v WHERE v.customer.id = :customerId AND v.isDeleted = false")
+//    List<Vehicle> findByCustomerIdAndIsDeletedFalse(@Param("customerId") Long customerId);
+
+    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
+
+    //kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay ko
+    boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
+
+    /**
+     *
+     * Kiểm tra biển số xe đã tồn tại
+     *
+     * @param licensePlate biển số
+     * @return true nếu tồn tại
+     */
+    boolean existsByLicensePlate(
+            String licensePlate
+    );
+
+    /**
+     *
+     * Tìm xe theo biển số
+     *
+     * @param licensePlate biển số
+     * @return vehicle
+     */
+    Optional<Vehicle> findByLicensePlate(
+            String licensePlate
+    );
 }

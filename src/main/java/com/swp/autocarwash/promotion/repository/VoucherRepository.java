@@ -2,6 +2,9 @@ package com.swp.autocarwash.promotion.repository;
 
 import com.swp.autocarwash.promotion.entity.Voucher;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.Optional;
 
 /**
@@ -51,4 +54,17 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
      * @version 1.0
      */
     boolean existsByVoucherCode(String code);
+
+    @Modifying
+    @Query("""
+        UPDATE Voucher v
+        SET v.usedCount = v.usedCount + 1
+        WHERE v.id = :id
+        AND v.usedCount < v.usageLimit
+    """)
+    int increaseUsedCount(
+            Long id
+    );
+
+    Voucher findVoucherById(Long id);
 }

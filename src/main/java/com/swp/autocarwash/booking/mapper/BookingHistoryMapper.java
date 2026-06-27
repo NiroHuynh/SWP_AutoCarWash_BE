@@ -5,6 +5,7 @@ import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.station.entity.Station;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,9 @@ import java.util.List;
  */
 @Component
 public class BookingHistoryMapper {
+
+    /** Gom thông tin subscription plan để truyền vào mapper mà không cần nhiều tham số rời. */
+    public record SubscriptionInfo(String planName, String planType, Integer durationDays) {}
 
     /**
      * Chuyển đổi một {@link Booking} cùng thông tin giờ slot và danh sách hành động
@@ -83,7 +87,8 @@ public class BookingHistoryMapper {
             String voucherCode,
             Integer voucherDiscountPercent,
             BigDecimal depositAmount,
-            BigDecimal remainingAmount) {
+            BigDecimal remainingAmount,
+            SubscriptionInfo subscriptionInfo) {
 
         List<AddonInfo> addonInfos = addons.stream()
                 .map(ba -> AddonInfo.builder()
@@ -98,6 +103,9 @@ public class BookingHistoryMapper {
                 .bookingType(booking.getBookingType())
                 .customerTier(booking.getCustomer() != null && booking.getCustomer().getCustomerTier() != null
                         ? booking.getCustomer().getCustomerTier().getTierName() : null)
+                .subscriptionPlanName(subscriptionInfo != null ? subscriptionInfo.planName() : null)
+                .subscriptionPlanType(subscriptionInfo != null ? subscriptionInfo.planType() : null)
+                .subscriptionDurationDays(subscriptionInfo != null ? subscriptionInfo.durationDays() : null)
                 .serviceName(booking.getServicePackage().getName())
                 .addons(addonInfos)
                 .licensePlate(booking.getVehicle().getLicensePlate())

@@ -2,6 +2,9 @@ package com.swp.autocarwash.customer.repository;
 
 import com.swp.autocarwash.customer.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.Optional;
 
 
@@ -36,6 +39,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
      */
     Optional<Customer> findById(Long id);
 
+    Optional<Customer> findCustomerByUserId(Long userId);
 
     Customer findByUserId(Long userId);
+
+    @Query("SELECT c FROM Customer c WHERE c.user.phone = :phone")
+    Optional<Customer> findByUserPhone(@Param("phone") String phone);
+
 }

@@ -16,7 +16,7 @@ import java.util.List;
  * @author Phong
  * @version 1.0
  */
-public interface StationRepository extends JpaRepository<Station, Long> {
+public interface StationRepository extends JpaRepository<Station, Integer> {
 
     /**
      *
@@ -35,4 +35,5 @@ public interface StationRepository extends JpaRepository<Station, Long> {
      * @version 1.0
      */
     List<Station> findByCommuneId(Integer communeId);
+
 }
