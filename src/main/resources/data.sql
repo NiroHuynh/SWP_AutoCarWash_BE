@@ -587,8 +587,21 @@ VALUES
 #     (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
 #     (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
--- DDL mode=update: DB persists between restarts. Reset CHECKED_IN bookings cancelled during testing.
-UPDATE booking SET status='CHECKED_IN', canceled_at=NULL WHERE id IN (21,22,23,24,25,26,27) AND status='CANCELLED';
+-- Queue bookings: referenced by queue_ticket seed rows #6-#9, #13-#15
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    (21, 3,    3,  3, CURDATE(), 'CHECKED_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+    (22, 6,    6,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (23, 4,    4,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+    (25, 1,    1,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+    (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
 -- =====================================================================
 -- BOOKING ADDON (15)
