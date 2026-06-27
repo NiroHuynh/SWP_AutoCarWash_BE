@@ -230,6 +230,88 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_002",
             "Service package not found"
     ),
+
+    EARLY_ARRIVAL_SLOT_FULL(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_001",
+            "Booking is too early. Please wait until your scheduled time or check available slots later"
+    ),
+    NO_ALLOCATED_TIME_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_002",
+            "Booking has no allocated time slot"
+    ),
+    VEHICLE_CHECKIN_RESTRICTED(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_003",
+            "Vehicle is currently restricted due to past violations. Please collect 20,000 VND deposit at the counter before check-in."
+    ),
+    PENALTY_ONLY_FOR_WALK_IN(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_004",
+            "Penalty deposit only applies to WALK_IN bookings"
+    ),
+    VEHICLE_CLEAR_NO_PENALTY(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_005",
+            "This vehicle is not currently restricted - no penalty deposit required"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found for key. Please ask Admin to configure"
+    ),
+    INVALID_CONFIG_VALUE_FORMAT(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_002",
+            "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_PACKAGE_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_001",
+            "This service package not exist in the system"
+
+    ),
+    SERVICE_PACKAGE_ADD_ON_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_002",
+            "This service package add on not exist in the system"
+    ),
+    PENALTY_DEPOSIT_NOT_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PENALTY_DEPOSIT_001",
+            "The 20,000 VND penalty deposit has not been confirmed by the staff."
+    ),
+    SERVICE_SLOT_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "The selected service slot does not exist or is no longer available."
+    ),
+    VEHICLE_NOT_IN_VIOLATION_RESTRICTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_001",
+            "Vehicle not in violation restriction"
+    ),
+    VEHICLE_NOT_BELONG_TO_CUSTOMER(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_002",
+            "Vehicle not belong to the customer"
+    ),
+    VEHICLE_ALREADY_BOOKED_THIS_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_003",
+            "Vehicle already booked this slot today"
+    ),
+    INVALID_SLOT_QUANTITY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "Invalid slot required for this service package"
+    ),
+    SLOTS_MUST_BE_CONSECUTIVE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_002",
+            "Slots must be consecutive"
+    ),
     QUEUE_TICKET_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "QUEUE_001",
@@ -241,7 +323,13 @@ public enum ErrorCode {
             "Queue ticket is not in WAITING status"
     );
 
+
+
+
     private final HttpStatus status;
     private final String code;
     private final String message;
+
+
+
 }
