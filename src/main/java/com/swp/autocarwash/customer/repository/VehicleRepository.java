@@ -5,8 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-
-
 /**
  *
  * Chức năng: VehicleRepository cung cấp các phương thức truy cập dữ liệu
@@ -35,7 +33,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      * @author Phong
      * @version 1.0
      */
-    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
+    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Integer customerId);
 
     /**
      *
@@ -55,8 +53,18 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      * @author Phong
      * @version 1.0
      */
-    boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
+    boolean existsByIdAndCustomerId(Integer vehicleId, Integer customerId);
 
+    Optional<Vehicle> findByLicensePlateAndIsDeletedFalse(String licensePlate);
+
+    //lấy ta danh sách vehicle của thuộc 1 customer
+//    @Query("SELECT v FROM Vehicle v WHERE v.customer.id = :customerId AND v.isDeleted = false")
+//    List<Vehicle> findByCustomerIdAndIsDeletedFalse(@Param("customerId") Long customerId);
+
+    List<Vehicle> findByCustomerIdAndIsDeletedFalse(Long customerId);
+
+    //kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay ko
+    boolean existsByIdAndCustomerId(Long vehicleId, Long customerId);
 
     /**
      *
@@ -69,7 +77,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             String licensePlate
     );
 
-
     /**
      *
      * Tìm xe theo biển số
@@ -80,5 +87,4 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Optional<Vehicle> findByLicensePlate(
             String licensePlate
     );
-
 }
