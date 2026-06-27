@@ -30,18 +30,19 @@ public class BookingInvoice {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "customer_id", nullable = false)
+    //@NotNull
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
     @NotNull
     @Column(name = "raw_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal rawAmount;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "discount_amount", precision = 12, scale = 2)
-    private BigDecimal discountAmount;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @NotNull
     @Column(name = "final_amount", nullable = false, precision = 12, scale = 2)
@@ -57,24 +58,26 @@ public class BookingInvoice {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount", precision = 12, scale = 2)
-    private BigDecimal voucherDiscount;
+    private BigDecimal voucherDiscount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "point_discount", precision = 12, scale = 2)
-    private BigDecimal pointDiscount;
+    private BigDecimal pointDiscount = BigDecimal.ZERO;
 
     @NotNull
     @Column(name = "service_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal serviceAmount;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "addon_amount", precision = 12, scale = 2)
-    private BigDecimal addonAmount;
+    private BigDecimal addonAmount = BigDecimal.ZERO ;
 
     @Column(name = "paid_at")
     private Instant paidAt;
-
 
 }

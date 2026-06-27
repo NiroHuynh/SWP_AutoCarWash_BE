@@ -1,5 +1,7 @@
 package com.swp.autocarwash.booking.entity;
 
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
@@ -22,8 +24,8 @@ import java.util.List;
 @Setter
 @Entity
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "booking", schema = "swp_auto_car_wash")
 public class Booking {
     @Id
@@ -76,30 +78,50 @@ public class Booking {
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
+    @Builder.Default
     @ColumnDefault("0")
     @Column(name = "is_deposit_paid")
-    private Boolean isDepositPaid;
+    private Boolean isDepositPaid = false;
 
+
+
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_service_amount", precision = 12, scale = 2)
-    private BigDecimal totalServiceAmount;
+    private BigDecimal totalServiceAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_addon_amount", precision = 12, scale = 2)
-    private BigDecimal totalAddonAmount;
+    private BigDecimal totalAddonAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "total_amount", precision = 12, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "voucher_discount_amount", precision = 12, scale = 2)
-    private BigDecimal voucherDiscountAmount;
+    private BigDecimal voucherDiscountAmount = BigDecimal.ZERO;
 
+    @Builder.Default
     @ColumnDefault("0.00")
     @Column(name = "point_discount_amount", precision = 12, scale = 2)
-    private BigDecimal pointDiscountAmount;
+    private BigDecimal pointDiscountAmount = BigDecimal.ZERO;
 
+    /**
+     * GIẢ ĐỊNH BỔ SUNG (không có trong schema gốc): thời điểm Scheduler (Subtask 4.1)
+     * đã xử lý tịch thu cọc của booking này. Dùng để đảm bảo idempotent - không xử lý
+     * lại nếu job vô tình chạy 2 lần trong cùng 1 ngày (lỗi/restart server).
+     *
+     * Số tiền cọc bị tịch thu KHÔNG lưu ở đây - vì mức cọc là 1 con số CỐ ĐỊNH chung
+     * cho toàn hệ thống, được đọc trực tiếp từ bảng system_setting
+     * (xem SystemSettingService.KEY_DEFAULT_DEPOSIT_AMOUNT) mỗi khi cần dùng,
+     * không cần lưu thêm 1 bản sao trên Booking.
+     */
+    @Column(name = "deposit_confiscated_at")
+    private LocalDateTime depositConfiscatedAt;
     @OneToMany(
             mappedBy = "booking",
             cascade = CascadeType.ALL,
