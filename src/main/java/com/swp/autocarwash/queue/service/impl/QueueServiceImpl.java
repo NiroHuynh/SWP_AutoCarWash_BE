@@ -14,9 +14,9 @@ import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueService;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
-import com.swp.autocarwash.station.entity.WashLane;
-import com.swp.autocarwash.station.entity.enums.WashLaneStatus;
-import com.swp.autocarwash.station.repository.WashLaneRepository;
+import com.swp.autocarwash.wash.entity.WashLane;
+import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
+import com.swp.autocarwash.station.repository.StationWashLaneRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class QueueServiceImpl implements QueueService {
     private final StaffRepository staffRepository;
     private final BookingService bookingService;
     private final BookingRepository bookingRepository;
-    private final WashLaneRepository washLaneRepository;
+    private final StationWashLaneRepository washLaneRepository;
 
     @Override
     @Transactional
@@ -46,7 +46,7 @@ public class QueueServiceImpl implements QueueService {
                 .stream().map(queueMapper::toResponse).toList();
 
         long availableLaneCount = washLaneRepository
-                .countByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE_VALUE);
+                .countByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name());
 
         return QueueBoardResponse.builder()
                 .availableLaneCount(availableLaneCount)
@@ -92,7 +92,7 @@ public class QueueServiceImpl implements QueueService {
 
         // AC03 — phải còn làn trống mới cho xe vào làn.
         WashLane lane = washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE_VALUE)
+                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
                 .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
 
         ticket.setStatus("IN_SERVICE");
@@ -104,7 +104,7 @@ public class QueueServiceImpl implements QueueService {
             bookingRepository.save(booking);
         }
 
-        lane.setStatus(WashLaneStatus.OCCUPIED_VALUE);
+        lane.setStatus(WashLaneStatus.WASHING.name());
         washLaneRepository.save(lane);
 
         return queueMapper.toResponse(ticket);
@@ -139,9 +139,9 @@ public class QueueServiceImpl implements QueueService {
         // Giải phóng 1 làn OCCUPIED -> AVAILABLE; GET /api/queue kế tiếp sẽ thấy availableLaneCount > 0
         // và đẩy xe vị trí #1 sang trạng thái chờ xác nhận (AC01 -> AC02).
         washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.OCCUPIED_VALUE)
+                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
                 .ifPresent(lane -> {
-                    lane.setStatus(WashLaneStatus.AVAILABLE_VALUE);
+                    lane.setStatus(WashLaneStatus.AVAILABLE.name());
                     washLaneRepository.save(lane);
                 });
 
