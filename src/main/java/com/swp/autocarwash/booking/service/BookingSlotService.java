@@ -34,4 +34,5 @@ public interface BookingSlotService {
      * @version 1.0
      */
     BookingSlotResponse getAvailableSlots(Integer stationId, BookingSlotRequest request);
+
 }

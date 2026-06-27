@@ -27,4 +27,7 @@ public interface BookingAddonRepository extends JpaRepository<BookingAddon, Long
            "JOIN FETCH ba.addonService " +
            "WHERE ba.booking.id = :bookingId")
     public List<BookingAddon> findByBookingId(@Param("bookingId") Long bookingId);
+
+    void deleteByBookingId(Long bookingId);
+
 }

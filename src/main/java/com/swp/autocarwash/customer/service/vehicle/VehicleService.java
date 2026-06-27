@@ -1,8 +1,13 @@
 package com.swp.autocarwash.customer.service.vehicle;
 
+import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
+import org.springframework.transaction.annotation.Transactional;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 
 import java.util.List;
+
+
 
 /**
  *
@@ -32,7 +37,7 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    List<VehicleContract> getVehiclesByCustomer(Integer customerId);
+    List<VehicleContract> getVehiclesByCustomer(Long customerId);
 
     /**
      *
@@ -51,7 +56,7 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    VehicleContract getById(Integer id);
+    VehicleContract getById(Long id);
 
     /**
      *
@@ -71,5 +76,17 @@ public interface VehicleService {
      * @author Phong
      * @version 1.0
      */
-    boolean validateVehicleOwnership(Integer vehicleId, Integer customerId);
+    boolean validateVehicleOwnership(Long vehicleId, Long customerId);
+
+    /**
+     *
+     * Thêm phương tiện mới cho customer
+     *
+     * @param request thông tin vehicle
+     * @return vehicle response
+     */
+    CreateVehicleResponse createVehicle(
+            Long userId,
+            CreateVehicleRequest request
+    );
 }

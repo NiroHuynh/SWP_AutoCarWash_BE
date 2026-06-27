@@ -10,6 +10,13 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Setter
 @Entity
+/**
+ * Bảng cấu hình dạng key-value dùng chung cho toàn hệ thống.
+ * Dùng để lưu các con số CỐ ĐỊNH (không đổi theo từng booking/khách hàng),
+ * ví dụ: mức cọc mặc định, số lần vi phạm tối đa, số ngày bị khóa...
+ * Lưu trong DB (thay vì hardcode trong code Java) để Admin có thể chỉnh
+ * mà không cần build lại / deploy lại ứng dụng.
+ */
 @Table(name = "system_setting", schema = "swp_auto_car_wash")
 public class SystemSetting {
     @Id
@@ -17,18 +24,16 @@ public class SystemSetting {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 50)
-    @NotNull
-    @Column(name = "setting_key", nullable = false, length = 50)
+    /** Khóa định danh duy nhất của setting, ví dụ "DEFAULT_DEPOSIT_AMOUNT". */
+    @Column(name = "setting_key", nullable = false, unique = true, length = 100)
     private String settingKey;
 
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "setting_value", nullable = false)
+    /** Giá trị lưu dưới dạng chuỗi - Service sẽ tự parse sang kiểu cần dùng (BigDecimal, Integer...). */
+    @Column(name = "setting_value", nullable = false, length = 255)
     private String settingValue;
 
-    @Size(max = 255)
-    @Column(name = "description")
+    /** Mô tả ý nghĩa của setting này, giúp Admin dễ hiểu khi chỉnh trong DB. */
+    @Column(name = "description", length = 255)
     private String description;
 
     @Size(max = 20)

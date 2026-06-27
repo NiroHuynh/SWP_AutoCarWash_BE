@@ -32,7 +32,25 @@ public interface CustomerPort {
      * @author Phong
      * @version 1.0
      */
-    CustomerContract getCustomerById(Integer customerId);
+    CustomerContract getCustomerById(Long customerId);
+
+    /**
+     *
+     * Chức năng: Lấy thông tin customer dựa trên userId.
+     *
+     * Quy trình:
+     * - Nhận userId của tài khoản đang đăng nhập.
+     * - Tìm kiếm customer có liên kết với user tương ứng.
+     * - Trả về thông tin customer nếu tồn tại.
+     *
+     * @param userId id của user cần lấy thông tin customer
+     *
+     * @return customer tương ứng với userId
+     *
+     * @author Phong
+     * @version 1.0
+     */
+    CustomerContract getCustomerByUserId(Long userId);
 
     /**
      *
@@ -50,7 +68,7 @@ public interface CustomerPort {
      * @author Phong
      * @version 1.0
      */
-    boolean isEligibleForBooking(Integer customerId);
+    boolean isEligibleForBooking(Long customerId);
 
     /**
      *
@@ -68,5 +86,7 @@ public interface CustomerPort {
      * @author Phong
      * @version 1.0
      */
-    CustomerTierContract getTierOfCustomer(Integer customerId);
+    CustomerTierContract getTierOfCustomer(Long customerId);
+
+
 }

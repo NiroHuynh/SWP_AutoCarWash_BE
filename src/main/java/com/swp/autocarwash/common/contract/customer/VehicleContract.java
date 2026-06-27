@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleContract {
-    private Integer id;
+    private Long id;
     private String licensePlate;
     private String brandName;
-    private Integer customerId;
+    private Long customerId;
 
-    public VehicleContract(Integer id, String licensePlate, String brandName) {
+    public VehicleContract(Long id, String licensePlate, String brandName) {
         this.id = id;
         this.licensePlate = licensePlate;
         this.brandName = brandName;

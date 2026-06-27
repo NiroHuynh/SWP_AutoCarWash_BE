@@ -60,4 +60,6 @@ public interface ServicePackageRepository
             Integer id
     );
 
+    Optional<ServicePackage> findById(int id);
+
 }

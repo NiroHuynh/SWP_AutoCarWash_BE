@@ -4,9 +4,11 @@ import com.swp.autocarwash.booking.entity.BookingSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -19,7 +21,7 @@ import java.util.List;
  * @version 1.0
  */
 @Repository
-public interface BookingSlotRepository extends JpaRepository<BookingSlot, Integer> {
+public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> {
 
     /**
      *
@@ -61,7 +63,43 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Intege
      * @author Phong
      * @version 1.0
      */
-    List<BookingSlot> findByIdIn(List<Integer> ids);
+    List<BookingSlot> findByIdIn(List<Long> ids);
 
 
+    @Query("""
+        SELECT s
+        FROM BookingSlot s
+        WHERE s.id IN :ids
+        AND s.status = 'AVAILABLE'
+        AND s.bookedCount < s.maxCapacity
+    """)
+    List<BookingSlot> findAvailableSlots(
+            @Param("ids") List<Long> ids
+    );
+
+
+
+    @Modifying
+    @Query("""
+        UPDATE BookingSlot s
+        SET s.bookedCount = s.bookedCount + 1
+        WHERE s.id = :id
+        AND s.bookedCount < s.maxCapacity
+    """)
+    int increaseBookedCount(
+            Long id
+    );
+
+    //Lấy danh sách slot còn trống của chi nhánh trong ngày
+    // dùng để hiển thị cho create_walkin chọn slot
+    @Query("SELECT s FROM BookingSlot s WHERE s.station.id = :stationId AND s.date = :date " +
+            "AND s.status <> 'FULL' " + //Trạng thái khác FULL
+            "AND s.bookedCount < s.maxCapacity " + //Số lượng đã đặt phải nhỏ hơn công suất tối đa
+            "AND s.startTime > :currentTime " + //Giờ bắt đầu phải lớn hơn giờ hiện tại
+            "ORDER BY s.startTime ASC") // Sắp xếp giờ từ sớm nhất đến muộn nhất
+    List<BookingSlot> findAvailableSlotsByStationAndDate(
+            @Param("stationId") Integer stationId,
+            @Param("date") LocalDate date,
+            @Param("currentTime") LocalTime currentTime // Tham số nhận giờ thực tế từ Service truyền xuống
+    );
 }
