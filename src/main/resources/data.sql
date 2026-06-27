@@ -107,21 +107,21 @@ VALUES
 INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
 VALUES
-    (1,  1,  'Lane 1', 'ACTIVE',   3, false),
-    (2,  1,  'Lane 2', 'ACTIVE',   3, false),
-    (3,  2,  'Lane 1', 'ACTIVE',   3, false),
-    (4,  2,  'Lane 2', 'ACTIVE',   3, false),
-    (5,  2,  'Lane 3', 'INACTIVE', 3, false),
-    (6,  3,  'Lane 1', 'ACTIVE',   3, false),
-    (7,  3,  'Lane 2', 'ACTIVE',   2, false),
-    (8,  4,  'Lane 1', 'ACTIVE',   3, false),
-    (9,  5,  'Lane 1', 'ACTIVE',   3, false),
-    (10, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (11, 6,  'Lane 2', 'ACTIVE',   4, false),
-    (12, 7,  'Lane 1', 'ACTIVE',   3, false),
-    (13, 8,  'Lane 1', 'ACTIVE',   3, false),
-    (14, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (15, 7,  'Lane 1', 'INACTIVE', 3, false);
+    (1,  1,  'Lane 1', 'AVAILABLE', 3, false),
+    (2,  1,  'Lane 2', 'AVAILABLE', 3, false),
+    (3,  2,  'Lane 1', 'AVAILABLE', 3, false),
+    (4,  2,  'Lane 2', 'AVAILABLE', 3, false),
+    (5,  2,  'Lane 3', 'INACTIVE',  3, false),
+    (6,  3,  'Lane 1', 'AVAILABLE', 3, false),
+    (7,  3,  'Lane 2', 'AVAILABLE', 2, false),
+    (8,  4,  'Lane 1', 'AVAILABLE', 3, false),
+    (9,  5,  'Lane 1', 'AVAILABLE', 3, false),
+    (10, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (11, 6,  'Lane 2', 'AVAILABLE', 4, false),
+    (12, 7,  'Lane 1', 'AVAILABLE', 3, false),
+    (13, 8,  'Lane 1', 'AVAILABLE', 3, false),
+    (14, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (15, 7,  'Lane 1', 'AVAILABLE',  3, false);
 
 -- =====================================================================
 -- STAFF (12)
