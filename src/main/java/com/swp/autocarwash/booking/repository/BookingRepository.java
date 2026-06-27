@@ -35,9 +35,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @return danh sách {@link Booking} thỏa điều kiện, đã eager-fetch quan hệ liên quan
      */
     @Query("SELECT DISTINCT b FROM Booking b " +
-            "JOIN FETCH b.vehicle " +
-            "JOIN FETCH b.servicePackage " +
-            "WHERE b.customer.id = :customerId AND b.status IN :statuses")
+           "JOIN FETCH b.vehicle " +
+           "JOIN FETCH b.servicePackage " +
+           "WHERE b.customer.id = :customerId AND b.status IN :statuses")
     public List<Booking> findByCustomerIdAndStatuses(
             @Param("customerId") Long customerId,
             @Param("statuses") List<String> statuses
@@ -49,13 +49,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      *
      * @param id mã định danh của lịch đặt
      * @return {@link Optional} chứa {@link Booking} đã eager-fetch,
-     * hoặc rỗng nếu không tìm thấy
+     *         hoặc rỗng nếu không tìm thấy
      */
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.vehicle " +
-            "JOIN FETCH b.servicePackage " +
-            "LEFT JOIN FETCH b.checkInEmployee " +
-            "WHERE b.id = :id")
+           "JOIN FETCH b.vehicle " +
+           "JOIN FETCH b.servicePackage " +
+           "LEFT JOIN FETCH b.checkInEmployee " +
+           "LEFT JOIN FETCH b.customer c " +
+           "LEFT JOIN FETCH c.customerTier " +
+           "WHERE b.id = :id")
     public Optional<Booking> findDetailById(@Param("id") Long id);
 // Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu
     //không có thì là hộp rỗng và bắt buộc phải ném exception

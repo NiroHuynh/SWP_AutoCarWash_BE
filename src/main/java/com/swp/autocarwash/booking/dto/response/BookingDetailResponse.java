@@ -29,7 +29,20 @@ public class BookingDetailResponse {
     /** Trạng thái nội bộ (CONFIRMED, CHECKED_IN, WASHING, PAID, CANCELLED, NO_SHOW). */
     private String status;
 
+    /** Loại booking (ONLINE, WALK_IN). */
+    private String bookingType;
 
+    /** Hạng thành viên của khách (PLATINUM/GOLD/SILVER...). {@code null} nếu booking không gắn customer (walk-in). */
+    private String customerTier;
+
+    /** Tên gói subscription (Unlimited/Family). {@code null} nếu không có subscription. */
+    private String subscriptionPlanName;
+
+    /** Loại gói: "UNLIMITED" hoặc "FAMILY". {@code null} nếu không có subscription. */
+    private String subscriptionPlanType;
+
+    /** Số ngày của gói. {@code null} nếu không có subscription. */
+    private Integer subscriptionDurationDays;
 
     // ── Thông tin dịch vụ ────────────────────────────────────────────────────
 

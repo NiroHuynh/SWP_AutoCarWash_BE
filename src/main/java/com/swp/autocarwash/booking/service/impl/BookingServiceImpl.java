@@ -23,11 +23,15 @@ import com.swp.autocarwash.common.contract.promotion.VoucherContract;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
+import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
+import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import com.swp.autocarwash.booking.calculator.SlotAvailabilityCalculator;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
@@ -136,6 +140,10 @@ public class BookingServiceImpl implements BookingService {
     private final SystemSettingPort systemSettingPort;
 
     private final ModelMapper modelMapper;
+    private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
+    private final QueueTicketRepository queueTicketRepository;
+    private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
+    private final FamilySubscriptionRepository familySubscriptionRepository;
     private final BookingSlotRepository bookingSlotRepository;
 
 
@@ -320,10 +328,31 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
 
+        // Bước 6.5: Lấy thông tin subscription plan nếu customer có gói ACTIVE cho xe này
+        SubscriptionInfo subscriptionInfo = null;
+        if (booking.getCustomer() != null) {
+            Long cId = booking.getCustomer().getId();
+            Long vId = booking.getVehicle().getId();
+            subscriptionInfo = unlimitSubscriptionRepository
+                    .findActiveByCustomerAndVehicle(cId, vId)
+                    .map(u -> new SubscriptionInfo(
+                            u.getSubscriptionPlan().getPlanName(),
+                            u.getSubscriptionPlan().getPlanType(),
+                            u.getSubscriptionPlan().getDurationDays()))
+                    .orElseGet(() -> familySubscriptionRepository
+                            .findActiveByCustomerAndVehicle(cId, vId)
+                            .map(f -> new SubscriptionInfo(
+                                    f.getSubscriptionPlan().getPlanName(),
+                                    f.getSubscriptionPlan().getPlanType(),
+                                    f.getSubscriptionPlan().getDurationDays()))
+                            .orElse(null));
+        }
+
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
-                technicianName, voucherCode, voucherDiscountPercent,deposit, remainingAmount);
+                technicianName, voucherCode, voucherDiscountPercent, deposit, remainingAmount,
+                subscriptionInfo);
     }
 
     /**
@@ -367,7 +396,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getCheckInEmployee() != null) {
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .vehicleId(booking.getVehicle().getId().intValue())
+                    .vehicleId(booking.getVehicle().getId())
                     .bookingId(bookingId)
                     .canceledByStaffId(null)
                     .bookingType(booking.getBookingType())
@@ -375,6 +404,63 @@ public class BookingServiceImpl implements BookingService {
                     .checkInAt(Instant.parse(booking.getCheckInAt().toString()))
                     .canceledAt(Instant.parse(booking.getCanceledAt().toString()))
                     .build());
+        }
+
+        return getBookingDetail(bookingId);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Luồng xử lý:
+     * <ol>
+     *   <li>Validate booking đang ở trạng thái CHECKED_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
+     *   <li>Đổi status booking sang CANCELLED, ghi nhận canceledAt.</li>
+     *   <li>Giải phóng slot đã đặt (giảm bookedCount).</li>
+     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELLED .</li>
+     *   <li>Resolve Staff thực hiện hành động từ actingUserId, publish BookingCanceledEvent
+     *       để các listener xử lý tịch thu cọc / cộng điểm vi phạm / cập nhật dashboard.</li>
+     * </ol>
+     * </p>
+     */
+
+    @Override
+    @Transactional
+    public BookingDetailResponse cancelGuestLeftAtCheckIn(Long bookingId, Long actingUserId) {
+        Booking booking = bookingRepository.findDetailById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if(!"CHECKED_IN".equals(booking.getStatus())){
+            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
+        }
+
+        booking.setStatus("CANCELLED");
+        booking.setCanceledAt(LocalDateTime.now(ZONE));
+        bookingRepository.save(booking);
+
+        List<BookingSlotAllocation> allocations =
+                bookingSlotAllocationRepository.findByBookingId(bookingId);
+        for (BookingSlotAllocation allocation : allocations) {
+            BookingSlot slot = allocation.getBookingSlot();
+            slot.setBookedCount(slot.getBookedCount() - 1);
+            slotRepository.save(slot);
+        }
+        // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
+        // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
+        queueTicketRepository.findQueueTicketByBookingId(bookingId).ifPresent(ticket -> {
+            ticket.setStatus("CANCELLED");
+            queueTicketRepository.save(ticket);
+        });
+        if (booking.getCheckInEmployee() != null) {
+            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                    .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
+                    .vehicleId((long) booking.getVehicle().getId().intValue())
+                    .bookingId(bookingId)
+                    .bookingType(booking.getBookingType())
+                    .isDepositPaid(booking.getIsDepositPaid())
+                    .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
+                    .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
         }
 
         return getBookingDetail(bookingId);
