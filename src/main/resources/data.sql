@@ -197,7 +197,8 @@ VALUES
     (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
 
 -- =====================================================================
--- VEHICLE (15)
+-- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
+-- guest with no registered account (FE shows "Guest" badge for this).
 -- =====================================================================
 INSERT IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
@@ -526,14 +527,18 @@ VALUES
     (15, 12, 3,  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY),  'CANCELLED');
 
 -- =====================================================================
--- BOOKING (20)
+-- BOOKING (25)
 -- appointment_date is always relative to CURDATE()/NOW() so "upcoming"
 -- bookings stay in the future and "past" bookings stay in the past no
 -- matter when this script runs. Nullable timestamps that have not
 -- happened yet use NULL instead of a fixed placeholder date.
 -- PENDING/CONFIRMED (future): 1,2,3,4,5
--- CHECKED_IN/WASHING (today): 6,7,8,9,10
+-- CHECKED_IN/WASHING (today, already in a wash lane): 6,7,8,9,10
 -- PAID (past): 11,12,13,14   CANCELLED (past): 15,16,17   NO_SHOW (past): 18,19,20
+-- CHECKED_IN waiting in queue (today, covers FE-27-US-01 AC02-AC04):
+--   21 ONLINE+deposit/GOLD (AC02), 22 WALK_IN registered/SILVER (AC04),
+--   23 ONLINE+no-deposit subscription/PLATINUM (AC03),
+--   24 WALK_IN anonymous guest/no customer (AC04), 25 ONLINE+deposit/MEMBER (AC02)
 -- =====================================================================
 INSERT IGNORE INTO booking
 (id, customer_id, vehicle_id, service_package_id,
@@ -569,6 +574,21 @@ VALUES
     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
 
     (99, 101, 203, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
+    (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
+
+    -- waiting-in-queue bookings (today, CHECKED_IN) — cover FE-27-US-01 AC02-AC04
+    (21, 3,    3,  3, CURDATE(), 'CHECKED_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+    (22, 6,    6,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (23, 4,    4,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+    (24, NULL, 16, 1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (25, 1,    1,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+
+    -- demo thêm cho station 1 (staff1@gmail.com) — CHECKED_IN, chờ trong queue
+    (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
+
+-- DDL mode=update: DB persists between restarts. Reset CHECKED_IN bookings cancelled during testing.
+UPDATE booking SET status='CHECKED_IN', canceled_at=NULL WHERE id IN (21,22,23,24,25,26,27) AND status='CANCELLED';
 
 -- =====================================================================
 -- BOOKING ADDON (15)
@@ -820,8 +840,18 @@ VALUES
     (15, 9,  7,  'READ',   DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 20 MINUTE));
 
 -- =====================================================================
--- QUEUE TICKET (12) — today's queue
+-- QUEUE TICKET (13) — today's queue
+-- WAITING tickets (6,7,8,9,13) are all linked to a real CHECKED_IN booking
+-- (21-25) so the Queue Dashboard / cancel-guest-left flow has full vehicle,
+-- customer tier, and package data to render — covers FE-27-US-01 AC02-AC04:
+--   #6  booking21 ONLINE+deposit,        customer tier GOLD     -> AC02
+--   #7  booking22 WALK_IN (registered),  customer tier SILVER   -> AC04
+--   #8  booking23 ONLINE+no-deposit,     customer tier PLATINUM -> AC03
+--   #9  booking24 WALK_IN (anonymous),   no customer ("Guest")  -> AC04
+--   #13 booking25 ONLINE+deposit,        customer tier MEMBER   -> AC02
 -- =====================================================================
+-- Reset queue tickets on every startup (status can be changed by cancelGuestLeft during testing)
+DELETE FROM queue_ticket;
 INSERT IGNORE INTO queue_ticket
 (id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
 VALUES
@@ -830,13 +860,21 @@ VALUES
     (3,  3, 8,    'A003', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  3),
     (4,  1, 9,    'A004', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  3),
     (5,  4, 10,   'A005', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  3),
-    (6,  1, NULL, 'A006', 'WAITING',    DATE_SUB(NOW(), INTERVAL 20 MINUTE), false, 1),
-    (7,  1, NULL, 'A007', 'WAITING',    DATE_SUB(NOW(), INTERVAL 10 MINUTE), false, 1),
-    (8,  2, NULL, 'A008', 'WAITING',    DATE_SUB(NOW(), INTERVAL 15 MINUTE), false, 1),
-    (9,  3, NULL, 'A009', 'WAITING',    DATE_SUB(NOW(), INTERVAL 5 MINUTE),  false, 1),
+    (6,  1, 21,   'A006', 'WAITING',    DATE_SUB(NOW(), INTERVAL 20 MINUTE), true,  3),
+    (7,  1, 22,   'A007', 'WAITING',    DATE_SUB(NOW(), INTERVAL 10 MINUTE), true,  3),
+    (8,  2, 23,   'A008', 'WAITING',    DATE_SUB(NOW(), INTERVAL 15 MINUTE), true,  3),
+    (9,  3, 24,   'A009', 'WAITING',    DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
     (10, 4, NULL, 'A010', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
     (11, 1, NULL, 'A011', 'CANCELLED',  DATE_SUB(NOW(), INTERVAL 2 HOUR),    false, 1),
-    (12, 2, NULL, 'A012', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 4 HOUR),    false, 1);
+    (12, 2, NULL, 'A012', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 4 HOUR),    false, 1),
+    (13, 2, 25,   'A013', 'WAITING',    DATE_SUB(NOW(), INTERVAL 8 MINUTE),  true,  3),
+
+    -- demo thêm cho station 1 — WAITING with booking_id (not null)
+    (14, 1, 26,   'A014', 'WAITING',   DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
+    (15, 1, 27,   'A015', 'WAITING',   DATE_SUB(NOW(), INTERVAL 3 MINUTE),  true,  3),
+    -- COMPLETED without booking_id (null)
+    (16, 1, NULL, 'A016', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
+    (17, 1, NULL, 'A017', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 90 MINUTE), false, 1);
 
 -- =====================================================================
 -- SYSTEM SETTING (10)
