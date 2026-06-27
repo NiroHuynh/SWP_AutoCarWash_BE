@@ -118,7 +118,7 @@ VALUES
     (2,  1,  'Lane 2', 'AVAILABLE', 3, false),
     (3,  2,  'Lane 1', 'AVAILABLE', 3, false),
     (4,  2,  'Lane 2', 'AVAILABLE', 3, false),
-    (5,  2,  'Lane 3', 'INACTIVE',  3, false),
+    (5,  2,  'Lane 3', 'WASHING',  3, false),
     (6,  3,  'Lane 1', 'AVAILABLE', 3, false),
     (7,  3,  'Lane 2', 'AVAILABLE', 2, false),
     (8,  4,  'Lane 1', 'AVAILABLE', 3, false),
@@ -555,7 +555,7 @@ VALUES
     (5,  6,  6,  1,  DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
 
     (6,  7,  7,  3,  CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
-    (7,  8,  8,  1,  CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
+    (7,  8,  8,  1,  CURDATE(), 'WASHING', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
     (8,  9,  9,  2,  CURDATE(), 'CHECKED_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
     (9,  10, 10, 1,  CURDATE(), 'WASHING',    'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 100000, 90000,  190000, 0,     5000),
     (10, 11, 11, 2,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
