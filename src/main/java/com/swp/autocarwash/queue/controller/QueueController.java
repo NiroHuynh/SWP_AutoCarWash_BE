@@ -3,6 +3,7 @@ package com.swp.autocarwash.queue.controller;
 
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.common.response.ApiResponse;
+import com.swp.autocarwash.queue.dto.response.QueueBoardResponse;
 import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
 import com.swp.autocarwash.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class QueueController {
      */
     @GetMapping
     @PreAuthorize("hasAuthority('STAFF')")
-    public ResponseEntity<ApiResponse<List<QueueTicketResponse>>> getActiveQueue(
+    public ResponseEntity<ApiResponse<QueueBoardResponse>> getActiveQueue(
             @AuthenticationPrincipal UserCustomerDetails principal) {
         return ResponseEntity.ok(
                 ApiResponse.success("Lấy danh sách hàng chờ thành công",
@@ -44,6 +45,19 @@ public class QueueController {
         );
     }
 
+
+    /**
+     * AC01 — Hoàn tất rửa: ticket IN_SERVICE→COMPLETED, booking WASHING→COMPLETED, 1 làn OCCUPIED→AVAILABLE.
+     * <p>{@code PATCH /api/queue/{ticketId}/complete}</p>
+     */
+    @PatchMapping("/{ticketId}/complete")
+    @PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ApiResponse<QueueTicketResponse>> completeService(
+            @PathVariable Long ticketId) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Đã hoàn tất rửa xe", queueService.completeService(ticketId))
+        );
+    }
     /**
      * Chức năng: Staff hủy queue ticket (do khách bỏ về) theo ticketId.
      *

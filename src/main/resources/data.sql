@@ -114,21 +114,21 @@ VALUES
 INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
 VALUES
-    (1,  1,  'Lane 1', 'ACTIVE',   3, false),
-    (2,  1,  'Lane 2', 'ACTIVE',   3, false),
-    (3,  2,  'Lane 1', 'ACTIVE',   3, false),
-    (4,  2,  'Lane 2', 'ACTIVE',   3, false),
-    (5,  2,  'Lane 3', 'INACTIVE', 3, false),
-    (6,  3,  'Lane 1', 'ACTIVE',   3, false),
-    (7,  3,  'Lane 2', 'ACTIVE',   2, false),
-    (8,  4,  'Lane 1', 'ACTIVE',   3, false),
-    (9,  5,  'Lane 1', 'ACTIVE',   3, false),
-    (10, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (11, 6,  'Lane 2', 'ACTIVE',   4, false),
-    (12, 7,  'Lane 1', 'ACTIVE',   3, false),
-    (13, 8,  'Lane 1', 'ACTIVE',   3, false),
-    (14, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (15, 7,  'Lane 1', 'INACTIVE', 3, false);
+    (1,  1,  'Lane 1', 'AVAILABLE', 3, false),
+    (2,  1,  'Lane 2', 'AVAILABLE', 3, false),
+    (3,  2,  'Lane 1', 'AVAILABLE', 3, false),
+    (4,  2,  'Lane 2', 'AVAILABLE', 3, false),
+    (5,  2,  'Lane 3', 'WASHING',  3, false),
+    (6,  3,  'Lane 1', 'AVAILABLE', 3, false),
+    (7,  3,  'Lane 2', 'AVAILABLE', 2, false),
+    (8,  4,  'Lane 1', 'AVAILABLE', 3, false),
+    (9,  5,  'Lane 1', 'AVAILABLE', 3, false),
+    (10, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (11, 6,  'Lane 2', 'AVAILABLE', 4, false),
+    (12, 7,  'Lane 1', 'AVAILABLE', 3, false),
+    (13, 8,  'Lane 1', 'AVAILABLE', 3, false),
+    (14, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (15, 7,  'Lane 1', 'AVAILABLE',  3, false);
 
 -- =====================================================================
 -- STAFF (12)
@@ -555,7 +555,7 @@ VALUES
     (5,  6,  6,  1,  DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
 
     (6,  7,  7,  3,  CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
-    (7,  8,  8,  1,  CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
+    (7,  8,  8,  1,  CURDATE(), 'WASHING', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
     (8,  9,  9,  2,  CURDATE(), 'CHECKED_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
     (9,  10, 10, 1,  CURDATE(), 'WASHING',    'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 100000, 90000,  190000, 0,     5000),
     (10, 11, 11, 2,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
@@ -587,8 +587,21 @@ VALUES
 #     (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
 #     (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
--- DDL mode=update: DB persists between restarts. Reset CHECKED_IN bookings cancelled during testing.
-UPDATE booking SET status='CHECKED_IN', canceled_at=NULL WHERE id IN (21,22,23,24,25,26,27) AND status='CANCELLED';
+-- Queue bookings: referenced by queue_ticket seed rows #6-#9, #13-#15
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    (21, 3,    3,  3, CURDATE(), 'CHECKED_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+    (22, 6,    6,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (23, 4,    4,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+    (25, 1,    1,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+    (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
 -- =====================================================================
 -- BOOKING ADDON (15)
