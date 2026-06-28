@@ -49,6 +49,11 @@ public enum ErrorCode {
             "BOOKING_006",
             "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
     ),
+    BOOKING_NOT_COMPLETED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "Booking chưa ở trạng thái COMPLETED, chưa thể thu tiền"
+    ),
     VEHICLE_ALREADY_BOOKED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_003",
@@ -128,6 +133,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
             "Payment failed"
+    ),
+    INSUFFICIENT_PAYMENT_AMOUNT(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_002",
+            "Số tiền khách đưa không đủ để thanh toán"
     ),
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
