@@ -14,6 +14,9 @@ import com.swp.autocarwash.common.exception.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -26,8 +29,7 @@ public class BookingValidator {
     private final AddonServicePort addonServicePort;
     private final CustomerPort customerPort;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
-    private final FamilySubscriptionPort familySubscriptionPort;
-    private final UnlimitSubscriptionPort unlimitSubscriptionPort;
+    private final BookingSlotRepository bookingSlotRepository;
 
     private final SecurityUtils securityUtils;
     private final SlotAvailabilityCalculator slotCalculator;
@@ -102,7 +104,10 @@ public class BookingValidator {
             Long vehicleId,
             List<Long> slotIds
     ) {
+//        kiểm tra hết hạn
+        validateSlotAlreadyBooked(vehicleId,slotIds);
 
+//        kiểm tra đã booking slot này trước đó chưa
         validateSlotAlreadyBooked(vehicleId, slotIds);
 
         List<BookingSlot> slots =
@@ -164,5 +169,34 @@ public class BookingValidator {
         }
     }
 
+    private void validateSlotNotExpired(
+            List<Long> slotIds
+    ) {
+
+        if (slotIds == null || slotIds.isEmpty()) {
+            return;
+        }
+
+        LocalDate today = LocalDate.now(
+                ZoneId.of("Asia/Ho_Chi_Minh")
+        );
+
+        LocalTime now = LocalTime.now(
+                ZoneId.of("Asia/Ho_Chi_Minh")
+        );
+
+
+        boolean expired =
+                bookingSlotRepository.existsExpiredSlot(
+                        slotIds,
+                        today,
+                        now
+                );
+
+
+        if (expired) {
+            throw new BusinessException(ErrorCode.BOOKING_SLOT_EXPIRED);
+        }
+    }
 
 }

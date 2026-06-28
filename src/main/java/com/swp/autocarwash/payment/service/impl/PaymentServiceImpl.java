@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * Triển khai nghiệp vụ thanh toán tiền mặt định nghĩa trong {@link PaymentService}.
@@ -115,7 +116,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Bước 4: Khách đã thanh toán xong -> chuyển booking sang CHECK_OUT
         booking.setStatus("CHECK_OUT");
-        booking.setCheckOutAt(Instant.now());
+        booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
         return CashPaymentResponse.builder()
