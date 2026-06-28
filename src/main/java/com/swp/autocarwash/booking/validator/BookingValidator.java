@@ -105,7 +105,7 @@ public class BookingValidator {
             List<Long> slotIds
     ) {
 //        kiểm tra hết hạn
-        validateSlotAlreadyBooked(vehicleId,slotIds);
+        validateSlotNotExpired(slotIds);
 
 //        kiểm tra đã booking slot này trước đó chưa
         validateSlotAlreadyBooked(vehicleId, slotIds);
