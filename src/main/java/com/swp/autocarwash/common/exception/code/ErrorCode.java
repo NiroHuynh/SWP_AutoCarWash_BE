@@ -52,12 +52,13 @@ public enum ErrorCode {
     BOOKING_NOT_CHECKED_IN(
             HttpStatus.BAD_REQUEST,
             "BOOKING_006",
-            "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
+            "The booking is not in check-in status and cannot be cancelled through this flow."
     ),
+
     BOOKING_NOT_COMPLETED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_007",
-            "Booking chưa ở trạng thái COMPLETED, chưa thể thu tiền"
+            "The booking is not in COMPLETED status and payment cannot be collected yet."
     ),
     VEHICLE_ALREADY_BOOKED(
             HttpStatus.BAD_REQUEST,
@@ -92,7 +93,7 @@ public enum ErrorCode {
     NO_AVAILABLE_SLOTS_FOR_DATE(
             HttpStatus.BAD_REQUEST,
             "NO_AVAILABLE_SLOTS_FOR_DATE",
-            "Không còn khung giờ trống trong ngày đã chọn. Vui lòng đổi ngày, đổi trạm hoặc đổi gói dịch vụ khác."
+            "No available time slots for the selected date. Please choose another date, station, or service package."
     ),
     SLOT_CAPACITY_EXCEEDED(
             HttpStatus.BAD_REQUEST,
@@ -102,7 +103,7 @@ public enum ErrorCode {
     NO_VEHICLE_REGISTERED(
             HttpStatus.BAD_REQUEST,
             "NO_VEHICLE_REGISTERED",
-            "Bạn chưa có phương tiện nào. Vui lòng thêm xe trước khi đặt lịch."
+            "You have no registered vehicles. Please add a vehicle before booking an appointment."
     ),
     CUSTOMER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -142,7 +143,7 @@ public enum ErrorCode {
     INSUFFICIENT_PAYMENT_AMOUNT(
             HttpStatus.BAD_REQUEST,
             "PAYMENT_002",
-            "Số tiền khách đưa không đủ để thanh toán"
+            "The payment amount provided is insufficient."
     ),
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -171,8 +172,8 @@ public enum ErrorCode {
     ),
     LICENSE_PLATE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
-        "VEHICLE_001",
-                "Biển số xe đã tồn tại trong hệ thống"
+            "VEHICLE_001",
+            "The license plate already exists in the system."
     ),
     VEHICLE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -345,12 +346,13 @@ public enum ErrorCode {
     WASH_LANE_NONE_AVAILABLE(
             HttpStatus.BAD_REQUEST,
             "STATION_002",
-            "Không còn làn rửa trống"
+            "No available wash lanes."
     ),
+
     BOOKING_NOT_WASHING(
             HttpStatus.BAD_REQUEST,
             "BOOKING_007",
-            "Booking chưa ở trạng thái WASHING"
+            "The booking is not in WASHING status."
     );
 
 
