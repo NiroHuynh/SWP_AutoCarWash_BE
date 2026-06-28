@@ -1,6 +1,7 @@
 package com.swp.autocarwash.booking.repository;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,9 +35,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @return danh sách {@link Booking} thỏa điều kiện, đã eager-fetch quan hệ liên quan
      */
     @Query("SELECT DISTINCT b FROM Booking b " +
-            "JOIN FETCH b.vehicle " +
-            "JOIN FETCH b.servicePackage " +
-            "WHERE b.customer.id = :customerId AND b.status IN :statuses")
+           "JOIN FETCH b.vehicle " +
+           "JOIN FETCH b.servicePackage " +
+           "WHERE b.customer.id = :customerId AND b.status IN :statuses")
     public List<Booking> findByCustomerIdAndStatuses(
             @Param("customerId") Long customerId,
             @Param("statuses") List<String> statuses
@@ -48,13 +49,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      *
      * @param id mã định danh của lịch đặt
      * @return {@link Optional} chứa {@link Booking} đã eager-fetch,
-     * hoặc rỗng nếu không tìm thấy
+     *         hoặc rỗng nếu không tìm thấy
      */
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.vehicle " +
-            "JOIN FETCH b.servicePackage " +
-            "LEFT JOIN FETCH b.checkInEmployee " +
-            "WHERE b.id = :id")
+           "JOIN FETCH b.vehicle " +
+           "JOIN FETCH b.servicePackage " +
+           "LEFT JOIN FETCH b.checkInEmployee " +
+           "LEFT JOIN FETCH b.customer c " +
+           "LEFT JOIN FETCH c.customerTier " +
+           "WHERE b.id = :id")
     public Optional<Booking> findDetailById(@Param("id") Long id);
 // Optional như một cái hộp: nếu có hàng bên trong . ( booking ) thì lấy ra xài bình thường còn nếu
     //không có thì là hộp rỗng và bắt buộc phải ném exception
@@ -66,6 +69,58 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             String status
     );
 
+
+    //Vbinh
+    //Tìm booking ở trạng thái CONFIRMED, check biển số xe và là booking của ngày hiện tại
+    //1 xe chỉ có tối đa 1 booking CONFIRMED trong cùng 1 ngày
+
+    //entity đang dùng fetch.lazy, tại đây join fetch ép k được dùng lazy trong đoạn lệnh này
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN FETCH b.vehicle v
+            WHERE v.licensePlate = :licensePlate
+                  AND b.status = :status
+                  AND b.appointmentDate = :appointmentDate
+           """
+    )
+
+    Optional<Booking> findConfirmedBookingByLicensePlate(
+        @Param("licensePlate") String licensePlate,
+        @Param("status") String status,
+        @Param("appointmentDate") LocalDate appointmentDate
+    );
+
+    //tự lấy status CONFIRMED và ngày hiện tại
+    default Optional<Booking> findConfirmedBookingTodayByLicensePlate(String licensePlate){
+        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED.toString(), LocalDate.now());
+    }
+
+    /**
+     * Subtask 4.1: Tìm các Booking NO_SHOW trong ngày, có is_deposit_paid = true
+     * (tức khách có đóng cọc, mới có gì để tịch thu), và chưa được Scheduler xử lý
+     * tịch thu trước đó (deposit_confiscated_at IS NULL) - tránh xử lý trùng nếu
+     * job vô tình chạy lại 2 lần trong cùng 1 ngày.
+     * Dùng cho Cron Job tịch thu tiền cọc cuối ngày.
+     */
+
+    @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.status = :status AND b.isDepositPaid = true AND b.depositConfiscatedAt IS NULL")
+    List<Booking> findNoShowBookingsPendingDepositConfiscation(
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
+
+    //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.vehicle.licensePlate = :licensePlate " +
+            "AND b.appointmentDate = :appointmentDate " +
+            "AND b.status = :status " +
+            "AND b.isDepositPaid = true " +
+            "AND b.depositConfiscatedAt IS NULL")
+    Optional<Booking> findBookingToRescueDeposit(
+            @Param("licensePlate") String licensePlate,
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
 
     //    trả ra những ngày mà vehicle đã sử dụng gói unlimit, tìm trên 1 khoảng thời gian
     @Query("""
@@ -117,6 +172,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LocalDate fromDate,
             LocalDate toDate
     );
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b " +
+            "JOIN BookingSlotAllocation bsa ON bsa.booking.id = b.id " + // Nối sang bảng phân bổ slot
+            "WHERE b.vehicle.id = :vehicleId " +
+            "AND b.appointmentDate = :date " +
+            //CHẶN TẤT CẢ các trạng thái đang xử lý hoặc đã hoàn thành, chỉ bỏ qua trạng thái CANCELLED
+            "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'WASHING', 'COMPLETED') " +
+            "AND bsa.bookingSlot.id IN :slotIds") // Dính vào bất kỳ slot nào trong danh sách đang chọn là chặn liền
+    boolean existsByVehicleIdAndDateAndSlotIds(
+            @Param("vehicleId") Long vehicleId,
+            @Param("date") LocalDate date,
+            @Param("slotIds") List<Long> slotIds
+    );
+
+
 
 
 }

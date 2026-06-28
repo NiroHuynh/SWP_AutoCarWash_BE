@@ -7,18 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface BookingInvoiceRepository
-        extends JpaRepository<BookingInvoice, Long> {
+public interface BookingInvoiceRepository extends JpaRepository<BookingInvoice, Long> {
 
+    boolean existsByBookingId(Long bookingId);
 
+    Optional<BookingInvoice> findByBookingId(Long bookingId);
 
-    boolean existsByBookingId(
-            Long bookingId
-    );
-
-
-    Optional<BookingInvoice> findByBookingId(
-            Long bookingId
-    );
-
+    Optional<BookingInvoice> findByBooking_Id(Long bookingId);
 }
