@@ -48,6 +48,17 @@ public enum ErrorCode {
             "BOOKING_002",
             "Booking already cancelled"
     ),
+
+    BOOKING_NOT_CHECKED_IN(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_006",
+            "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
+    ),
+    BOOKING_NOT_COMPLETED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "Booking chưa ở trạng thái COMPLETED, chưa thể thu tiền"
+    ),
     VEHICLE_ALREADY_BOOKED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_003",
@@ -127,6 +138,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PAYMENT_001",
             "Payment failed"
+    ),
+    INSUFFICIENT_PAYMENT_AMOUNT(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_002",
+            "Số tiền khách đưa không đủ để thanh toán"
     ),
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -228,9 +244,126 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "SERVICE_PACKAGE_002",
             "Service package not found"
+    ),
+
+    EARLY_ARRIVAL_SLOT_FULL(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_001",
+            "Booking is too early. Please wait until your scheduled time or check available slots later"
+    ),
+    NO_ALLOCATED_TIME_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_002",
+            "Booking has no allocated time slot"
+    ),
+    VEHICLE_CHECKIN_RESTRICTED(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_003",
+            "Vehicle is currently restricted due to past violations. Please collect 20,000 VND deposit at the counter before check-in."
+    ),
+    PENALTY_ONLY_FOR_WALK_IN(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_004",
+            "Penalty deposit only applies to WALK_IN bookings"
+    ),
+    VEHICLE_CLEAR_NO_PENALTY(
+            HttpStatus.BAD_REQUEST,
+            "CHECK_IN_QUEUE_005",
+            "This vehicle is not currently restricted - no penalty deposit required"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found for key. Please ask Admin to configure"
+    ),
+    INVALID_CONFIG_VALUE_FORMAT(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_002",
+            "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_PACKAGE_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_001",
+            "This service package not exist in the system"
+
+    ),
+    SERVICE_PACKAGE_ADD_ON_NOT_EXIST(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_002",
+            "This service package add on not exist in the system"
+    ),
+    PENALTY_DEPOSIT_NOT_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PENALTY_DEPOSIT_001",
+            "The 20,000 VND penalty deposit has not been confirmed by the staff."
+    ),
+    SERVICE_SLOT_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "The selected service slot does not exist or is no longer available."
+    ),
+    VEHICLE_NOT_IN_VIOLATION_RESTRICTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_001",
+            "Vehicle not in violation restriction"
+    ),
+    VEHICLE_NOT_BELONG_TO_CUSTOMER(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_002",
+            "Vehicle not belong to the customer"
+    ),
+    VEHICLE_ALREADY_BOOKED_THIS_SLOT(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_003",
+            "Vehicle already booked this slot today"
+    ),
+    INVALID_SLOT_QUANTITY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_001",
+            "Invalid slot required for this service package"
+    ),
+    SLOTS_MUST_BE_CONSECUTIVE(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_SLOT_002",
+            "Slots must be consecutive"
+    ),
+    QUEUE_TICKET_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "QUEUE_001",
+            "Queue ticket not found"
+    ),
+    QUEUE_TICKET_NOT_WAITING(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_002",
+            "Queue ticket is not in WAITING status"
+    ),
+    QUEUE_TICKET_NOT_IN_SERVICE(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_003",
+            "Queue ticket is not in IN_SERVICE status"
+    ),
+    WASH_LANE_NONE_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_002",
+            "Không còn làn rửa trống"
+    ),
+    BOOKING_NOT_WASHING(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "Booking chưa ở trạng thái WASHING"
     );
+
+
+
+
+
+
+
 
     private final HttpStatus status;
     private final String code;
     private final String message;
+
+
+
 }

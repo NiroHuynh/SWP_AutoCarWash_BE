@@ -64,8 +64,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 System.out.println("=== [FILTER LOG] Xác thực thành công cho user: " + userEmail + " với Role: " + userDetails.getAuthorities());
             }
-            filterChain.doFilter(request, response);
-        }
 
+        }
+        filterChain.doFilter(request, response);
     }
 }

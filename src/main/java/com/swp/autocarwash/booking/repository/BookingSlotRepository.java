@@ -28,6 +28,8 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
      * Chức năng: Lấy danh sách booking slot của một station trong một ngày cụ thể
      * và sắp xếp theo thời gian bắt đầu tăng dần (ngoài ra chỉ hiển thị slot từ thời điểm hiện tại).
      *
+     * @author Phong
+     * @version 1.0
      */
     @Query("""
                 SELECT s
@@ -87,6 +89,18 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
             Long id
     );
 
+    //Lấy danh sách slot còn trống của chi nhánh trong ngày
+    // dùng để hiển thị cho create_walkin chọn slot
+    @Query("SELECT s FROM BookingSlot s WHERE s.station.id = :stationId AND s.date = :date " +
+            "AND s.status <> 'FULL' " + //Trạng thái khác FULL
+            "AND s.bookedCount < s.maxCapacity " + //Số lượng đã đặt phải nhỏ hơn công suất tối đa
+            "AND s.startTime > :currentTime " + //Giờ bắt đầu phải lớn hơn giờ hiện tại
+            "ORDER BY s.startTime ASC") // Sắp xếp giờ từ sớm nhất đến muộn nhất
+    List<BookingSlot> findAvailableSlotsByStationAndDate(
+            @Param("stationId") Integer stationId,
+            @Param("date") LocalDate date,
+            @Param("currentTime") LocalTime currentTime // Tham số nhận giờ thực tế từ Service truyền xuống
+    );
 
 //    kiểm tra xem slot đã hết hạn chưa
     @Query("""

@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -45,6 +46,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
     }
 
+    //Hứng lỗi: user đã login nhưng không đủ quyền (thiếu authority/role yêu cầu bởi @PreAuthorize) -> 403
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String,String>> handleAccessDenied(AccessDeniedException ex){
+        Map<String,String> errorBody = new HashMap<>();
+        errorBody.put("success", "false");
+        errorBody.put("message", "Bạn không có quyền thực hiện hành động này");
+        errorBody.put("errorCode", "AUTH_003");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
+    }
+
     //Hứng lỗi: không lường trước được
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRunTimeException(RuntimeException ex){
@@ -65,21 +76,35 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBaseException(
-            BaseException ex,
-            HttpServletRequest request
-    ){
-        var error = ex.getErrorCode();
-        return ResponseEntity
-                .status(error.getStatus())
-                .body(
-                        ApiResponse.error(
-                                error.getMessage(),
-                                error.getCode(),
-                                null
-                        )
-                );
+    public ResponseEntity<?> handleBaseException(BaseException ex){
+        //base exception nên chứa errorCode bên trong
+        var errorCode = ex.getErrorCode();
+
+        //Đóng gói JSON lỗi -> trả về cho Front end
+        Map<String, Object> errorBody = Map.of(
+                "success", "false",
+                "message", errorCode.getMessage(),
+                "errorCode", errorCode.getCode()
+        );
+        return new ResponseEntity<>(errorBody, errorCode.getStatus());
     }
+
+//    @ExceptionHandler(BaseException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleBaseException(
+//            BaseException ex,
+//            HttpServletRequest request
+//    ){
+//        var error = ex.getErrorCode();
+//        return ResponseEntity
+//                .status(error.getStatus())
+//                .body(
+//                        ApiResponse.error(
+//                                error.getMessage(),
+//                                error.getCode(),
+//                                null
+//                        )
+//                );
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(
