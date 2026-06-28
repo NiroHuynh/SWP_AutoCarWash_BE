@@ -331,7 +331,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "QUEUE_002",
             "Queue ticket is not in WAITING status"
+    ),
+    QUEUE_TICKET_NOT_IN_SERVICE(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_003",
+            "Queue ticket is not in IN_SERVICE status"
+    ),
+    WASH_LANE_NONE_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_002",
+            "Không còn làn rửa trống"
+    ),
+    BOOKING_NOT_WASHING(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "Booking chưa ở trạng thái WASHING"
     );
+
+
+
+
 
 
 

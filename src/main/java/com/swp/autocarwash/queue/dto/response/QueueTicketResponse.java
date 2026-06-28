@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
+
 /**
  * Chức năng: QueueTicketResponse chứa thông tin 1 ticket trong hàng chờ,
  * dùng để trả về cho FE Queue Dashboard.
@@ -33,3 +36,6 @@ public class QueueTicketResponse {
         private String stationName;
 
 }
+
+
+
