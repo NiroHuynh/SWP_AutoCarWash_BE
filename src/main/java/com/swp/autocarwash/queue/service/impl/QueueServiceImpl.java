@@ -31,7 +31,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class QueueServiceImpl implements QueueService {
-    private static final List<String> ACTIVE_STATUSES = List.of(QueueStatus.WAITING.name(), QueueStatus.WASHING.name(), QueueStatus.COMPLETED.name());
+    // Filter board bằng booking.status (nguồn sự thật); CHECK_IN tương đương cột Waiting
+    private static final List<String> ACTIVE_STATUSES = List.of(
+            BookingStatus.CHECK_IN.name(),
+            BookingStatus.WASHING.name(),
+            BookingStatus.COMPLETED.name()
+    );
     private final QueueTicketRepository queueTicketRepository;
     private final QueueMapper queueMapper;
     private final StaffRepository staffRepository;
@@ -44,9 +49,92 @@ public class QueueServiceImpl implements QueueService {
     @Transactional
     public QueueBoardResponse getActiveQueue(Long userId) {
         Staff staff = staffRepository.findByUserId(userId);
-        Integer stationId = staff.getStation().getId();
+        return buildBoard(staff.getStation().getId());
+    }
+
+    @Override
+    @Transactional
+    public QueueBoardResponse cancelByBookingId(Long bookingId, Long actingUserId) {
+        QueueTicket ticket = queueTicketRepository.findQueueTicketByBookingId(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
+
+        Booking booking = ticket.getBooking();
+        if (!BookingStatus.CHECK_IN.name().equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
+        }
+
+        Integer stationId = ticket.getStation().getId();
+        // cancelGuestLeftAtCheckIn: booking→CANCELED, slot freeing, event, ticket→CANCELED
+        bookingService.cancelGuestLeftAtCheckIn(bookingId, actingUserId);
+
+        return buildBoard(stationId);
+    }
+
+    @Override
+    @Transactional
+    public QueueBoardResponse startService(Long bookingId) {
+        QueueTicket ticket = queueTicketRepository.findQueueTicketByBookingId(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
+
+        Booking booking = ticket.getBooking();
+        if (!BookingStatus.CHECK_IN.name().equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
+        }
+
+        Integer stationId = ticket.getStation().getId();
+
+        // AC03 — phải còn làn trống mới cho xe vào làn.
+        WashLane lane = washLaneRepository
+                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
+                .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
+
+        // booking là nguồn sự thật; ticket mirror theo
+        booking.setStatus(BookingStatus.WASHING.name());
+        bookingRepository.save(booking);
+
+        ticket.setStatus(QueueStatus.WASHING.name());
+        queueTicketRepository.save(ticket);
+
+        lane.setStatus(WashLaneStatus.WASHING.name());
+        washLaneRepository.save(lane);
+
+        return buildBoard(stationId);
+    }
+
+    @Override
+    @Transactional
+    public QueueBoardResponse completeService(Long bookingId) {
+        QueueTicket ticket = queueTicketRepository.findQueueTicketByBookingId(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
+
+        Booking booking = ticket.getBooking();
+        if (!BookingStatus.WASHING.name().equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.BOOKING_NOT_WASHING);
+        }
+
+        Integer stationId = ticket.getStation().getId();
+
+        // booking là nguồn sự thật; ticket mirror theo
+        booking.setStatus(BookingStatus.COMPLETED.name());
+        booking.setCheckOutAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        ticket.setStatus(QueueStatus.COMPLETED.name());
+        queueTicketRepository.save(ticket);
+
+        washLaneRepository
+                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
+                .ifPresent(lane -> {
+                    lane.setStatus(WashLaneStatus.AVAILABLE.name());
+                    washLaneRepository.save(lane);
+                });
+
+        return buildBoard(stationId);
+    }
+
+    private QueueBoardResponse buildBoard(Integer stationId) {
         List<QueueTicketResponse> queue = queueTicketRepository
-                .findActiveQueueByStation(stationId, ACTIVE_STATUSES) // vẫn WAITING, IN_SERVICE, COMPLETED
+                .findActiveQueueByStation(stationId, ACTIVE_STATUSES)
                 .stream().map(queueMapper::toResponse).toList();
 
         long availableLaneCount = washLaneRepository
@@ -68,99 +156,5 @@ public class QueueServiceImpl implements QueueService {
                 .lanes(lanes)
                 .queue(queue)
                 .build();
-    }
-
-    @Override
-    @Transactional
-    public QueueTicketResponse cancelByTicketId(Long ticketId, Long actingUserId) {
-        QueueTicket ticket = queueTicketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
-
-        if (!(QueueStatus.WAITING.name()).equals(ticket.getStatus())) {
-            throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
-        }
-
-        if (ticket.getBooking() != null) {
-            // cancelGuestLeftAtCheckIn handles: booking CANCELED, slot freeing, event publishing,
-            // AND sets this queue ticket to CANCELED via findQueueTicketByBookingId internally
-            bookingService.cancelGuestLeftAtCheckIn(ticket.getBooking().getId(), actingUserId);
-        } else {
-            // Walk-in ticket without booking: just cancel the ticket
-            ticket.setStatus(QueueStatus.CANCELED.name());
-            queueTicketRepository.save(ticket);
-        }
-
-        ticket.setStatus(QueueStatus.CANCELED.name());
-        return queueMapper.toResponse(ticket);
-    }
-
-    @Override
-    @Transactional
-    public QueueTicketResponse startService(Long ticketId) {
-        QueueTicket ticket = queueTicketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
-
-        if (!(QueueStatus.WAITING.name()).equals(ticket.getStatus())) {
-            throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
-        }
-
-        Integer stationId = ticket.getStation().getId();
-
-        // AC03 — phải còn làn trống mới cho xe vào làn.
-        WashLane lane = washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
-                .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
-
-        ticket.setStatus(QueueStatus.WASHING.name());
-        queueTicketRepository.save(ticket);
-
-        if (ticket.getBooking() != null) {
-            Booking booking = ticket.getBooking();
-            booking.setStatus(BookingStatus.WASHING.name());
-            bookingRepository.save(booking);
-        }
-
-        lane.setStatus(WashLaneStatus.WASHING.name());
-        washLaneRepository.save(lane);
-
-        return queueMapper.toResponse(ticket);
-    }
-
-    @Override
-    @Transactional
-    public QueueTicketResponse completeService(Long ticketId) {
-        QueueTicket ticket = queueTicketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
-
-        if (!(QueueStatus.WASHING.name()).equals(ticket.getStatus())) {
-            throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_IN_SERVICE);
-        }
-
-        Integer stationId = ticket.getStation().getId();
-
-        // Ticket nhảy sang cột COMPLETED trên board (không bị loại — ACTIVE_STATUSES vẫn chứa COMPLETED).
-        ticket.setStatus(QueueStatus.COMPLETED.name());
-        queueTicketRepository.save(ticket);
-
-        if (ticket.getBooking() != null) {
-            Booking booking = ticket.getBooking();
-            if (!(BookingStatus.WASHING.name()).equals(booking.getStatus())) {
-                throw new BusinessException(ErrorCode.BOOKING_NOT_WASHING);
-            }
-            booking.setStatus(BookingStatus.COMPLETED.name());
-            booking.setCheckOutAt(LocalDateTime.now());
-            bookingRepository.save(booking);
-        }
-
-        // Giải phóng 1 làn OCCUPIED -> AVAILABLE; GET /api/queue kế tiếp sẽ thấy availableLaneCount > 0
-        // và đẩy xe vị trí #1 sang trạng thái chờ xác nhận (AC01 -> AC02).
-        washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
-                .ifPresent(lane -> {
-                    lane.setStatus(WashLaneStatus.AVAILABLE.name());
-                    washLaneRepository.save(lane);
-                });
-
-        return queueMapper.toResponse(ticket);
     }
 }
