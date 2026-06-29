@@ -8,6 +8,7 @@ import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.queue.dto.response.QueueBoardResponse;
 import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
+import com.swp.autocarwash.queue.dto.response.WashLaneResponse;
 import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.mapper.QueueMapper;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
@@ -48,8 +49,20 @@ public class QueueServiceImpl implements QueueService {
         long availableLaneCount = washLaneRepository
                 .countByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name());
 
+        List<WashLaneResponse> lanes = washLaneRepository
+                .findByStation_IdAndIsDeletedFalseOrderById(stationId)
+                .stream()
+                .map(lane -> WashLaneResponse.builder()
+                        .id(lane.getId())
+                        .laneName(lane.getLaneName())
+                        .status(lane.getStatus())
+                        .build())
+                .toList();
+
         return QueueBoardResponse.builder()
                 .availableLaneCount(availableLaneCount)
+                .activeLaneCount(lanes.size())
+                .lanes(lanes)
                 .queue(queue)
                 .build();
     }
