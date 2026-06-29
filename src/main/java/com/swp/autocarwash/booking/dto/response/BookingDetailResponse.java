@@ -115,6 +115,12 @@ public class BookingDetailResponse {
     /** Số tiền được giảm bởi voucher. {@code 0} nếu không dùng voucher. */
     private BigDecimal voucherDiscountAmount;
 
+    /** Số tiền được giảm bởi điểm tích lũy. {@code 0} nếu không dùng điểm. */
+    private BigDecimal pointDiscountAmount;
+
+    /** Tổng số tiền được giảm (voucher + điểm tích lũy). */
+    private BigDecimal discountAmount;
+
     /** Tổng tiền sau khi áp dụng tất cả giảm giá. */
     private BigDecimal totalAmount;
 

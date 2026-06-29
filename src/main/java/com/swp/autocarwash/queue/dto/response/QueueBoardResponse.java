@@ -22,5 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 public class QueueBoardResponse {
     private long availableLaneCount;
+    private long activeLaneCount; // số làn đang hoạt động (is_deleted=false) — FE dựa vào đây để biết số ô làn
+    private List<WashLaneResponse> lanes; // các làn đang hoạt động (chưa bị xoá) của chi nhánh
     private List<QueueTicketResponse> queue; // đã sắp xếp: priorityScore DESC, issuedAt ASC
 }
