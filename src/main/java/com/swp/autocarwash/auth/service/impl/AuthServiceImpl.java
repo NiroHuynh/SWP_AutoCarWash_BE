@@ -9,6 +9,7 @@ import com.swp.autocarwash.auth.exception.AccountDisabledException;
 import com.swp.autocarwash.auth.repository.UserRepository;
 import com.swp.autocarwash.auth.security.jwt.JwtProvider;
 import com.swp.autocarwash.auth.validator.IdentityValidator;
+import com.swp.autocarwash.auth.validator.RegisterValidator;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.staff.entity.Staff;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 
 
 /**
@@ -57,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final CustomerPort customerPort;
+    private final RegisterValidator registerValidator;
 
     private final RoleRepository roleRepository;
 
@@ -93,6 +95,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public boolean register(RegisterRequest request) {
+
+        registerValidator.validate(request);
+
         Role customerRole =
                 roleRepository.findByName(UserRole.CUSTOMER.name())
                         .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
@@ -107,6 +112,7 @@ public class AuthServiceImpl implements AuthService {
                 .phone(request.getPhone())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(customerRole)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         user = userRepository.save(user);
