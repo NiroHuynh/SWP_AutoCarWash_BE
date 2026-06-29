@@ -8,8 +8,6 @@ INSERT IGNORE INTO role (id, name)
 VALUES
     (4, 'ADMIN'),
     (2, 'STAFF'),
-    (3, 'CUSTOMER'),
-
     (1, 'CUSTOMER');
 
 

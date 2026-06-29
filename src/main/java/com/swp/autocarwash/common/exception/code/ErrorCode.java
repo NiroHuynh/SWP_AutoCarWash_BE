@@ -65,6 +65,11 @@ public enum ErrorCode {
             "BOOKING_003",
             "Vehicle already has a booking on this date"
     ),
+    VEHICLE_ALREADY_BOOKED_TODAY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_008",
+            "Vehicle already has a booking today"
+    ),
     BOOKING_SLOT_ALREADY_USED(
             HttpStatus.CONFLICT,
             "BOOKING_004",
