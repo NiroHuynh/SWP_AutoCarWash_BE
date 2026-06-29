@@ -219,10 +219,11 @@ VALUES
     (14, 2,  '51B-14141', 'Toyota',   'Yellow', 0, NULL, false),
     (15, 3,  '51C-15151', 'Kia',      'Orange', 0, NULL, false),
 
-    (201, 100, '51G-111.11', 'Toyota Vios', 'Đen', 0, NULL, false),
+    (205, 100, '51G-111.11', 'Toyota Vios', 'Đen', 0, NULL, false),
     (202, NULL, '51G-222.22', 'Kia Morning', 'Đỏ', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
 
-    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE);
+    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE),
+    (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE);
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
@@ -548,7 +549,7 @@ INSERT IGNORE INTO booking
  total_service_amount, total_addon_amount, total_amount,
  voucher_discount_amount, point_discount_amount)
 VALUES
-    (1,  1,  1,  1,  DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, NULL, NULL, true,  100000, 70000,  170000, 0,     0),
+    (98,  1,  1,  1,  DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, NULL, NULL, true,  100000, 70000,  170000, 0,     0),
     (2,  2,  2,  3,  DATE_ADD(CURDATE(), INTERVAL 5 DAY), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  300000, 330000, 630000, 30000, 0),
     (3,  3,  3,  1,  DATE_ADD(CURDATE(), INTERVAL 2 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
     (4,  5,  5,  2,  DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'CONFIRMED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0,      150000, 0,     0),
@@ -573,7 +574,8 @@ VALUES
     (19, 8,  8,  3,  DATE_SUB(CURDATE(), INTERVAL 6 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  NULL, NULL, NULL, true, 300000, 330000, 630000, 0, 0),
     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
 
-    (99, 101, 203, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
+    (99, 101, 203, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0),
+    (1, 100, 201, 1, CURDATE(), 'CONFIRMED', 'ONLINE', TRUE, NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
 #     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
 #
 #     -- waiting-in-queue bookings (today, CHECKED_IN) — cover FE-27-US-01 AC02-AC04
@@ -679,9 +681,10 @@ VALUES
     (35, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 3 DAY),  0, 'AVAILABLE'),
     (36, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 6 DAY),  1, 'COMPLETED'),
 
-    (10, 1, '16:00:00', '16:15:00', 5, CURDATE(), 0, 'AVAILABLE'),
+    (100, 1, '16:00:00', '16:15:00', 5, CURDATE(), 0, 'AVAILABLE'),
     (11, 1, '16:15:00', '16:30:00', 5, CURDATE(), 0, 'AVAILABLE'),
-    (12, 1, '16:30:00', '16:45:00', 5, CURDATE(), 0, 'AVAILABLE')
+    (12, 1, '16:30:00', '16:45:00', 5, CURDATE(), 0, 'AVAILABLE'),
+    (10, 1, '21:00:00', '21:15:00', 5, CURDATE(), 1, 'AVAILABLE')
     ;
 
 -- =====================================================================
@@ -690,7 +693,7 @@ VALUES
 INSERT IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
 VALUES
-    (1,  1),
+#     (1,  1),
     (2,  2),  (2,  3),
     (3,  4),
     (4,  5),
@@ -716,7 +719,8 @@ VALUES
     (12, 33),
     (14, 34),
     (16, 35),
-    (19, 36);
+    (19, 36),
+    (1, 10);
 
 -- =====================================================================
 -- LOYALTY POINT TRANSACTION (15)
