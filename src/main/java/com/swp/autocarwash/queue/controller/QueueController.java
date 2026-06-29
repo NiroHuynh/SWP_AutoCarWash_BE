@@ -65,7 +65,7 @@ public class QueueController {
      *
      * @param ticketId id của queue ticket cần hủy
      * @param principal staff đang đăng nhập, lấy từ JWT đã xác thực
-     * @return {@code 200 OK} với {@link QueueTicketResponse} (status = CANCELLED)
+     * @return {@code 200 OK} với {@link QueueTicketResponse} (status = CANCELED)
      * @author KimNgan
      * @version 1.0
      */

@@ -26,7 +26,7 @@ public class BookingDetailResponse {
     /** Mã định danh của lịch đặt. */
     private Long bookingId;
 
-    /** Trạng thái nội bộ (CONFIRMED, CHECKED_IN, WASHING, PAID, CANCELLED, NO_SHOW). */
+    /** Trạng thái nội bộ (CONFIRMED, CHECK_IN, WASHING, PAID, CANCELED, NO_SHOW). */
     private String status;
 
     /** Loại booking (ONLINE, WALK_IN). */
