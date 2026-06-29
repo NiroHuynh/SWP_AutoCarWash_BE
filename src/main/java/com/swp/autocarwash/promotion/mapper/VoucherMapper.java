@@ -6,6 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -73,7 +74,7 @@ public class VoucherMapper {
      */
     private boolean isValid(Voucher voucher) {
 
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
 
         return voucher.getStatus().equals("ACTIVE")
                 && voucher.getStartDate().isBefore(now)
