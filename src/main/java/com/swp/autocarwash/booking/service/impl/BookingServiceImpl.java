@@ -88,13 +88,18 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of("CONFIRMED", "CHECK_IN", "WASHING", "PENDING");
+            List.of(BookingStatus.CONFIRMED.name(),
+                    BookingStatus.CHECK_IN.name(),
+                    BookingStatus.WASHING.name(),
+                    BookingStatus.PENDING.name());
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
      */
     private static final List<String> PAST_STATUSES =
-            List.of("PAID", "CANCELED", "NO_SHOW");
+            List.of(BookingStatus.CHECK_OUT.name(),
+                    BookingStatus.CANCELED.name(),
+                    BookingStatus.NO_SHOW.name());
 
     /**
      * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
