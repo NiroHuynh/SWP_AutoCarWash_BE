@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,7 +55,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional(readOnly = true)
     public List<VoucherContract> getValidVouchers(Long customerId) {
 
-        List<Voucher> vouchers = voucherRepository.findAll();
+        List<Voucher> vouchers = voucherRepository.findAvailableVouchers(LocalDateTime.now());
 
         return vouchers.stream()
                 .map(voucherMapper::toContract)
@@ -89,7 +90,7 @@ public class VoucherServiceImpl implements VoucherService {
                         new BusinessException(ErrorCode.VOUCHER_NOT_FOUND)
                 );
 
-        if (voucher.getExpiryDate().isBefore(Instant.now())) {
+        if (voucher.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new BusinessException(ErrorCode.VOUCHER_EXPIRED);
         }
 

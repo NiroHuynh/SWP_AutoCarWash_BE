@@ -4,7 +4,10 @@ import com.swp.autocarwash.promotion.entity.Voucher;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,22 +41,20 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     Optional<Voucher> findByVoucherCode(String code);
 
     /**
-     *
-     * Chức năng: Kiểm tra voucher code đã tồn tại trong hệ thống hay chưa.
-     *
-     * Quy trình:
-     * - Nhận voucherCode cần kiểm tra.
-     * - Truy vấn database theo voucherCode.
-     * - Trả về kết quả tồn tại hoặc không tồn tại.
-     *
-     * @param code mã voucher cần kiểm tra
-     *
-     * @return true nếu voucher code đã tồn tại, false nếu chưa tồn tại
-     *
-     * @author Phong
-     * @version 1.0
+     * lấy tất cả các voucher đang còn hạn
+     * @param now
+     * @return
      */
-    boolean existsByVoucherCode(String code);
+    @Query("""
+        SELECT v 
+        FROM Voucher v
+        WHERE v.status = 'ACTIVE'
+        AND v.startDate <= :now
+        AND v.expiryDate >= :now
+        AND v.usedCount < v.usageLimit
+    """)
+    List<Voucher> findAvailableVouchers(@Param("now") LocalDateTime now);
+
 
     @Modifying
     @Query("""
