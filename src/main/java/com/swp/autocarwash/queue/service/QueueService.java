@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface QueueService {
     /**
-     * Chức năng: Lấy danh sách ticket (trừ CANCELLED) thuộc station của staff đang đăng nhập.
+     * Chức năng: Lấy danh sách ticket (trừ CANCELED) thuộc station của staff đang đăng nhập.
      *
      * @param userId id của user (staff) đang đăng nhập, dùng để tra station
      * @return danh sách ticket, sắp theo độ ưu tiên
@@ -26,7 +26,7 @@ public interface QueueService {
      *
      * @param ticketId id của queue ticket cần hủy
      * @param actingUserId id của staff thực hiện hủy
-     * @return QueueTicketResponse với status=CANCELLED
+     * @return QueueTicketResponse với status=CANCELED
      */
     QueueTicketResponse cancelByTicketId(Long ticketId, Long actingUserId);
 

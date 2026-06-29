@@ -177,8 +177,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN BookingSlotAllocation bsa ON bsa.booking.id = b.id " + // Nối sang bảng phân bổ slot
             "WHERE b.vehicle.id = :vehicleId " +
             "AND b.appointmentDate = :date " +
-            //CHẶN TẤT CẢ các trạng thái đang xử lý hoặc đã hoàn thành, chỉ bỏ qua trạng thái CANCELLED
-            "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'WASHING', 'COMPLETED') " +
+            //CHẶN TẤT CẢ các trạng thái đang xử lý hoặc đã hoàn thành, chỉ bỏ qua trạng thái CANCELED
+            "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECK_IN', 'WASHING', 'COMPLETED') " +
             "AND bsa.bookingSlot.id IN :slotIds") // Dính vào bất kỳ slot nào trong danh sách đang chọn là chặn liền
     boolean existsByVehicleIdAndDateAndSlotIds(
             @Param("vehicleId") Long vehicleId,

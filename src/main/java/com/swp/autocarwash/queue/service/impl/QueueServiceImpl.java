@@ -1,6 +1,7 @@
 package com.swp.autocarwash.queue.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.exception.BusinessException;
@@ -10,6 +11,7 @@ import com.swp.autocarwash.queue.dto.response.QueueBoardResponse;
 import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
 import com.swp.autocarwash.queue.dto.response.WashLaneResponse;
 import com.swp.autocarwash.queue.entity.QueueTicket;
+import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.mapper.QueueMapper;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueService;
@@ -29,13 +31,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class QueueServiceImpl implements QueueService {
-    private static final List<String> ACTIVE_STATUSES = List.of("WAITING", "IN_SERVICE", "COMPLETED");
+    private static final List<String> ACTIVE_STATUSES = List.of(QueueStatus.WAITING.name(), QueueStatus.WASHING.name(), QueueStatus.COMPLETED.name());
     private final QueueTicketRepository queueTicketRepository;
     private final QueueMapper queueMapper;
     private final StaffRepository staffRepository;
     private final BookingService bookingService;
     private final BookingRepository bookingRepository;
     private final StationWashLaneRepository washLaneRepository;
+
 
     @Override
     @Transactional
@@ -73,21 +76,21 @@ public class QueueServiceImpl implements QueueService {
         QueueTicket ticket = queueTicketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
 
-        if (!"WAITING".equals(ticket.getStatus())) {
+        if (!(QueueStatus.WAITING.name()).equals(ticket.getStatus())) {
             throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
         }
 
         if (ticket.getBooking() != null) {
-            // cancelGuestLeftAtCheckIn handles: booking CANCELLED, slot freeing, event publishing,
-            // AND sets this queue ticket to CANCELLED via findQueueTicketByBookingId internally
+            // cancelGuestLeftAtCheckIn handles: booking CANCELED, slot freeing, event publishing,
+            // AND sets this queue ticket to CANCELED via findQueueTicketByBookingId internally
             bookingService.cancelGuestLeftAtCheckIn(ticket.getBooking().getId(), actingUserId);
         } else {
             // Walk-in ticket without booking: just cancel the ticket
-            ticket.setStatus("CANCELLED");
+            ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         }
 
-        ticket.setStatus("CANCELLED");
+        ticket.setStatus(QueueStatus.CANCELED.name());
         return queueMapper.toResponse(ticket);
     }
 
@@ -97,7 +100,7 @@ public class QueueServiceImpl implements QueueService {
         QueueTicket ticket = queueTicketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
 
-        if (!"WAITING".equals(ticket.getStatus())) {
+        if (!(QueueStatus.WAITING.name()).equals(ticket.getStatus())) {
             throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_WAITING);
         }
 
@@ -108,12 +111,12 @@ public class QueueServiceImpl implements QueueService {
                 .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
                 .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
 
-        ticket.setStatus("IN_SERVICE");
+        ticket.setStatus(QueueStatus.WASHING.name());
         queueTicketRepository.save(ticket);
 
         if (ticket.getBooking() != null) {
             Booking booking = ticket.getBooking();
-            booking.setStatus("WASHING");
+            booking.setStatus(BookingStatus.WASHING.name());
             bookingRepository.save(booking);
         }
 
@@ -129,22 +132,22 @@ public class QueueServiceImpl implements QueueService {
         QueueTicket ticket = queueTicketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
 
-        if (!"IN_SERVICE".equals(ticket.getStatus())) {
+        if (!(QueueStatus.WASHING.name()).equals(ticket.getStatus())) {
             throw new BusinessException(ErrorCode.QUEUE_TICKET_NOT_IN_SERVICE);
         }
 
         Integer stationId = ticket.getStation().getId();
 
         // Ticket nhảy sang cột COMPLETED trên board (không bị loại — ACTIVE_STATUSES vẫn chứa COMPLETED).
-        ticket.setStatus("COMPLETED");
+        ticket.setStatus(QueueStatus.COMPLETED.name());
         queueTicketRepository.save(ticket);
 
         if (ticket.getBooking() != null) {
             Booking booking = ticket.getBooking();
-            if (!"WASHING".equals(booking.getStatus())) {
+            if (!(BookingStatus.WASHING.name()).equals(booking.getStatus())) {
                 throw new BusinessException(ErrorCode.BOOKING_NOT_WASHING);
             }
-            booking.setStatus("COMPLETED");
+            booking.setStatus(BookingStatus.COMPLETED.name());
             booking.setCheckOutAt(LocalDateTime.now());
             bookingRepository.save(booking);
         }
