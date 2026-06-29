@@ -105,10 +105,13 @@ public class BookingValidator {
             List<Long> slotIds
     ) {
 //        kiểm tra hết hạn
-        validateSlotAlreadyBooked(vehicleId,slotIds);
+        validateSlotNotExpired(slotIds);
 
-//        kiểm tra đã booking slot này trước đó chưa
-        validateSlotAlreadyBooked(vehicleId, slotIds);
+////        kiểm tra đã booking slot này trước đó chưa
+//        validateSlotAlreadyBooked(vehicleId, slotIds);
+
+//        kiểm tra xem vehicle đã booking vào hôm nay chưa
+        validateVehicleBookedInSlotDate(vehicleId,slotIds);
 
         List<BookingSlot> slots =
                 slotRepository.findByIdIn(slotIds);
@@ -151,6 +154,35 @@ public class BookingValidator {
             );
         }
     }
+
+    private void validateVehicleBookedInSlotDate(
+            Long vehicleId,
+            List<Long> slotIds
+    ) {
+
+        List<BookingSlot> slots =
+                bookingSlotRepository.findAllById(slotIds);
+
+
+        for (BookingSlot slot : slots) {
+
+            boolean exists =
+                    bookingSlotAllocationRepository
+                            .existsVehicleBookedOnSlotDate(
+                                    vehicleId,
+                                    slot.getDate()
+                            );
+
+            if (exists) {
+                throw new BusinessException(
+                        ErrorCode.VEHICLE_ALREADY_BOOKED_TODAY
+                );
+            }
+        }
+    }
+
+
+
 
     private void validateSlotAlreadyBooked(
             Long vehicleId,
