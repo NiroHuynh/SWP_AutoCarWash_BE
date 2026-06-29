@@ -122,6 +122,12 @@ public class BookingHistoryMapper {
                 .voucherCode(voucherCode)
                 .voucherDiscountPercent(voucherDiscountPercent)
                 .voucherDiscountAmount(booking.getVoucherDiscountAmount())
+                .pointDiscountAmount(booking.getPointDiscountAmount())
+                .discountAmount(
+                        (booking.getVoucherDiscountAmount() != null
+                                ? booking.getVoucherDiscountAmount() : BigDecimal.ZERO)
+                        .add(booking.getPointDiscountAmount() != null
+                                ? booking.getPointDiscountAmount() : BigDecimal.ZERO))
                 .totalAmount(booking.getTotalAmount())
                 .isDepositPaid(booking.getIsDepositPaid())
                 .depositAmount(depositAmount)
