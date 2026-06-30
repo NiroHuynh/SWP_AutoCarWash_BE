@@ -53,7 +53,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      */
     @Query("SELECT b FROM Booking b " +
            "JOIN FETCH b.vehicle " +
-           "JOIN FETCH b.servicePackage " +
+           "JOIN FETCH b.servicePackage sp " +
+           "JOIN FETCH sp.serviceCategory " +
            "LEFT JOIN FETCH b.checkInEmployee " +
            "LEFT JOIN FETCH b.customer c " +
            "LEFT JOIN FETCH c.customerTier " +

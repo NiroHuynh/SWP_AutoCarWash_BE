@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -26,6 +27,9 @@ public class BookingDetailResponse {
     /** Mã định danh của lịch đặt. */
     private Long bookingId;
 
+    /** Họ tên khách hàng. {@code null} nếu walk-in ẩn danh. */
+    private String customerName;
+
     /** Trạng thái nội bộ (CONFIRMED, CHECK_IN, WASHING, PAID, CANCELED, NO_SHOW). */
     private String status;
 
@@ -45,6 +49,9 @@ public class BookingDetailResponse {
     private Integer subscriptionDurationDays;
 
     // ── Thông tin dịch vụ ────────────────────────────────────────────────────
+
+    /** Tên loại dịch vụ (ServiceCategory). */
+    private String serviceCategoryName;
 
     /** Tên gói dịch vụ chính. */
     private String serviceName;
@@ -81,6 +88,12 @@ public class BookingDetailResponse {
 
     /** Giờ kết thúc dự kiến (slot cuối cùng). */
     private LocalTime endTime;
+
+    /** Thời điểm check-in thực tế. {@code null} nếu chưa check-in. */
+    private LocalDateTime checkInAt;
+
+    /** Thời điểm check-out thực tế. {@code null} nếu chưa hoàn tất. */
+    private LocalDateTime checkOutAt;
 
     // ── Kỹ thuật viên ────────────────────────────────────────────────────────
 
