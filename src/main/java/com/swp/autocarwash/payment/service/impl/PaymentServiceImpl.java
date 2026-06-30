@@ -1,6 +1,7 @@
 package com.swp.autocarwash.payment.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
@@ -115,7 +116,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment = paymentRepository.save(payment);
 
         // Bước 4: Khách đã thanh toán xong -> chuyển booking sang CHECK_OUT
-        booking.setStatus("CHECK_OUT");
+        booking.setStatus(BookingStatus.CHECK_OUT.name());
         booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
