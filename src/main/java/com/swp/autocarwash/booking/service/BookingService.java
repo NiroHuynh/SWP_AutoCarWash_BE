@@ -22,7 +22,7 @@ public interface BookingService {
     /**
      * Lấy danh sách lịch đặt sắp tới của một khách hàng.
      *
-     * <p>Chỉ trả về các booking có trạng thái {@code CONFIRMED}, {@code CHECKED_IN}
+     * <p>Chỉ trả về các booking có trạng thái {@code CONFIRMED}, {@code CHECK_IN}
      * hoặc {@code WASHING}, sắp xếp theo thời gian hẹn gần nhất lên đầu
      * (theo AC-25.1.2).</p>
      *
@@ -35,7 +35,7 @@ public interface BookingService {
     /**
      * Lấy danh sách lịch sử dịch vụ của một khách hàng.
      *
-     * <p>Chỉ trả về các booking có trạng thái {@code PAID}, {@code CANCELLED}
+     * <p>Chỉ trả về các booking có trạng thái {@code PAID}, {@code CANCELED}
      * hoặc {@code NO_SHOW}, sắp xếp theo thời gian hẹn mới nhất lên đầu
      * (theo AC-25.2.1).</p>
      *
@@ -61,12 +61,12 @@ public interface BookingService {
     /**
      * Hủy một lịch đặt theo AC-23.1.1.
      *
-     * <p>Chuyển status booking sang {@code CANCELLED}, ghi nhận
+     * <p>Chuyển status booking sang {@code CANCELED}, ghi nhận
      * {@code canceledAt}, và xóa các {@code BookingSlotAllocation} liên quan
      * để giải phóng slot cho khách hàng khác.</p>
      *
      * @param bookingId mã định danh của lịch đặt cần hủy
-     * @return {@link BookingDetailResponse} của booking sau khi hủy (status = CANCELLED)
+     * @return {@link BookingDetailResponse} của booking sau khi hủy (status = CANCELED)
      * @throws com.swp.autocarwash.common.exception.ResourceNotFoundException
      *         nếu không tìm thấy booking với ID đã cho
      */
@@ -74,13 +74,13 @@ public interface BookingService {
 
 
     /**
-     * Chức năng: Staff hủy 1 booking đang CHECKED_IN trong queue vì khách bỏ về (BL-QU-05).
+     * Chức năng: Staff hủy 1 booking đang CHECK_IN trong queue vì khách bỏ về (BL-QU-05).
      *
      * <p>Khác với {@link #cancelBooking(Long)} (khách tự hủy khi còn CONFIRMED):
-     * action này chỉ staff thực hiện, chỉ áp dụng khi booking đã CHECKED_IN, và
+     * action này chỉ staff thực hiện, chỉ áp dụng khi booking đã CHECK_IN, và
      * phát sinh hậu quả khác hẳn (tịch thu cọc / cộng điểm vi phạm / khóa tài khoản-xe).</p>
      *
-     * @param bookingId    id của booking đang CHECKED_IN cần hủy
+     * @param bookingId    id của booking đang CHECK_IN cần hủy
      * @param actingUserId id của user (auth.User) đang đăng nhập, để xác định Staff thực hiện hành động
      * @return thông tin chi tiết booking sau khi hủy
      * @author KimNgan

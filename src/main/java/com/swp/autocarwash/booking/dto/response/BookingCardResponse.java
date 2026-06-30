@@ -12,9 +12,9 @@ import java.util.List;
  * "Upcoming Appointments" (AC-25.1.x) và "Past Services" (AC-25.2.x).
  *
  * <p>Giá trị hợp lệ của {@code status} và {@code allowedActions} phụ thuộc
- * vào nguồn gọi: {@code CONFIRMED}/{@code CHECKED_IN}/{@code WASHING} với
+ * vào nguồn gọi: {@code CONFIRMED}/{@code CHECK_IN}/{@code WASHING} với
  * action {@code CANCEL}/{@code VIEW_DETAILS} cho tab Upcoming; {@code PAID}/
- * {@code CANCELLED}/{@code NO_SHOW} với action {@code WRITE_REVIEW} cho tab
+ * {@code CANCELED}/{@code NO_SHOW} với action {@code WRITE_REVIEW} cho tab
  * Past. Việc map {@code status} sang nhãn hiển thị và màu badge do FE đảm
  * nhiệm, BE chỉ trả giá trị trạng thái thô.</p>
  *
