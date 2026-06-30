@@ -42,10 +42,8 @@ VALUES
     (24, 'yen@gmail.com',  '0900002009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (25, 'khanh@gmail.com', '0900002010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY)),
     (26, 'trang@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
-    (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY));
 
-    (10, 'a@gmail.com', '0901234567', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, TRUE,DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (11, 'b@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE);
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
@@ -700,15 +698,7 @@ VALUES
 
     (10, 1, '16:00:00', '16:15:00', 5, CURDATE(), 0, 'AVAILABLE'),
     (11, 1, '16:15:00', '16:30:00', 5, CURDATE(), 0, 'AVAILABLE'),
-    (12, 1, '16:30:00', '16:45:00', 5, CURDATE(), 0, 'AVAILABLE'),
-
-    -- TEST CHECK-IN FLOW: slot cho booking 28-31 tại station 2, hôm nay, giờ ≈ hiện tại
-    -- (start_time = CURRENT_TIME => check-in rơi vào nhánh "đúng giờ")
-    (40, 2, CURRENT_TIME, ADDTIME(CURRENT_TIME, '00:15:00'), 5, CURDATE(), 1, 'AVAILABLE'),
-    (41, 2, CURRENT_TIME, ADDTIME(CURRENT_TIME, '00:15:00'), 5, CURDATE(), 1, 'AVAILABLE'),
-    (42, 2, CURRENT_TIME, ADDTIME(CURRENT_TIME, '00:15:00'), 5, CURDATE(), 1, 'AVAILABLE'),
-    (43, 2, CURRENT_TIME, ADDTIME(CURRENT_TIME, '00:15:00'), 5, CURDATE(), 1, 'AVAILABLE')
-;
+    (12, 1, '16:30:00', '16:45:00', 5, CURDATE(), 0, 'AVAILABLE');
 
 -- =====================================================================
 -- BOOKING SLOT — LICH DAY DU 29/6 -> 10/7 (12 ngay, offset 0-11 ke tu
