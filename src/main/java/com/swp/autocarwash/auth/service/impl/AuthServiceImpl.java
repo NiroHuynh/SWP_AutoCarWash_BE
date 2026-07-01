@@ -12,6 +12,8 @@ import com.swp.autocarwash.auth.validator.IdentityValidator;
 import com.swp.autocarwash.auth.validator.RegisterValidator;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
+import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +66,10 @@ public class AuthServiceImpl implements AuthService {
     private final CustomerRepository customerRepository;
 
     private final CustomerTierRepository customerTierRepository;
-    
-     @Autowired
+          // ← thêm field này
+    private final LoyaltyPointBalanceRepository loyaltyPointBalanceRepository;
+
+    @Autowired
     private UserRepository userRepo;
     //dùng để mã hoá mật khẩu
 //    @Autowired
@@ -126,7 +130,15 @@ public class AuthServiceImpl implements AuthService {
         customer.setViolationCount(0);
         customer.setRestrictedUntil(null);
 
-        customerRepository.save(customer);
+        Customer savedCustomer =
+                customerRepository.save(customer);
+
+        LoyaltyPointBalance loyaltyPointBalance = new LoyaltyPointBalance();
+        loyaltyPointBalance.setCustomer(savedCustomer);
+        loyaltyPointBalance.setTotalPoints(0);
+        loyaltyPointBalance.setAccumulatedPoints(0);
+
+        loyaltyPointBalanceRepository.save(loyaltyPointBalance);
 
         return true;
       }
