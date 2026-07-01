@@ -42,7 +42,6 @@ public class QueueMapper {
                 .serviceName(booking != null && booking.getServicePackage() != null ? booking.getServicePackage().getName() : null)
                 .stationId(ticket.getStation() != null ? ticket.getStation().getId() : null)
                 .stationName(ticket.getStation() != null ? ticket.getStation().getStationName() : null)
-                .laneId(ticket.getWashLane() != null ? ticket.getWashLane().getId() : null)
                 .build();
     }
 }
