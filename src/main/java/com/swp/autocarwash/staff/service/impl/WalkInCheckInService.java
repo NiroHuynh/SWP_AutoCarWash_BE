@@ -29,6 +29,7 @@ import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.BookingSummaryResponse;
 import com.swp.autocarwash.staff.dto.response.CheckPhoneResponse;
 import com.swp.autocarwash.staff.dto.response.CreateWalkInResponse;
+import com.swp.autocarwash.staff.dto.response.WalkInFormDataResponse;
 import com.swp.autocarwash.staff.mapper.WalkInMapper;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
@@ -44,6 +45,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -216,6 +218,7 @@ public class WalkInCheckInService {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
 
         // LOGIC: VALIDATE XE CÓ THUỘC CUSTOMER ĐÓ HAY KHÔNG
+        // Nếu là khách vãng lai hoàn toàn thì ko check
         if (request.getCustomerId() != null && vehicleOpt.isPresent()) {
             Vehicle vehicle = vehicleOpt.get();
             if (vehicle.getCustomer() != null && !vehicle.getCustomer().getId().equals(request.getCustomerId())) {
@@ -298,185 +301,256 @@ public class WalkInCheckInService {
         BigDecimal penaltyDeposit = BigDecimal.ZERO;
         if (request.getCustomerId() == null && vehicleOpt.isPresent()) {
             Vehicle vehicle = vehicleOpt.get();
+
+            // Kiểm tra xem xe có đang dính án phạt đóng băng hay không
             if (vehicle.getViolationCount() != null && vehicle.getViolationCount() > 3
                     && vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now())) {
 
-                // Xe vi phạm nặng -> Lấy số tiền phạt cấu hình từ SystemSetting
+                // Lấy số tiền phạt cấu hình từ hệ thống (Ví dụ: 20.000đ)
                 penaltyDeposit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
 
-                //CHỐT CHẶN: Đề phòng Frontend bị bypass nút bấm khi Staff chưa thực sự thu tiền
-                if (!request.getPenaltyDepositCollected()) {
+                //PHÂN NHÁNH 1: FE gửi lên báo chưa thu tiền (Lần bấm đầu tiên)
+                if (request.getPenaltyDepositCollected() == null || !request.getPenaltyDepositCollected()) {
+                    // Chặn đứng diện tạo đơn và bắn lỗi để FE mở Popup thu tiền tại quầy
                     throw new BusinessException(ErrorCode.PENALTY_DEPOSIT_NOT_CONFIRMED);
+                }
+
+                //PHÂN NHÁNH 2: Staff đã thu tiền, FE lật cờ thành true gửi lên (Lần bấm thứ hai)
+                else {
+                    // Thực hiện xóa án tích trực tiếp dưới DB ngay tại luồng này để giải phóng xe
+                    vehicle.setViolationCount(0);
+                    vehicle.setRestrictedUntil(null);
+                    vehicleRepository.save(vehicle); // Lưu xe sạch án xuống DB
+
                 }
             }
         }
 
-        //đăng ký hoặc cập nhật thông tin phương tiện
-        Vehicle finalVehicle = vehicleOpt.orElseGet(() -> {
-            // Xe mới tinh diện vãng lai -> Tạo mới hoàn toàn dựa vào các field chi tiết từ Request
-            Vehicle newVehicle = Vehicle.builder()
-                    .licensePlate(request.getLicensePlate())
-                    .brandName(request.getBrandName() != null ? request.getBrandName() : "Customer Walk-in")
-                    .color(request.getColor())
-                    .violationCount(0)
-                    .isDeleted(false)
-                    .build();
-            return vehicleRepository.save(newVehicle);
-        });
-
-        //Tính toán tổng số tiền được giảm giá (discount_amount)
-        // Tổng giảm giá ở bước Check-in = Tiền giảm trừ gói Unlimited + Tiền cọc phạt thu trước + Tiền cứu cọc trễ hẹn
-        // (Bản chất penaltyDeposit và creditFromOld Booking thu trước đều làm giảm số tiền phải thu lúc Checkout)
-        BigDecimal totalDiscountAmount = packageDiscount.add(penaltyDeposit).add(creditFromOldBooking);
-
-        //Áp dụng công thức tính số tiền khách thực tế phải thu nốt khi lấy xe (final_amount)
-        BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDiscountAmount);
-
-        if (remainingBalanceAtCheckout.compareTo(BigDecimal.ZERO) < 0) {
-            remainingBalanceAtCheckout = BigDecimal.ZERO;
-        }
-
-        //LẬP LỊCH HẸN MỚI (BOOKING) VỚI TRẠNG THÁI CHECKED_IN MẶC ĐỊNH
-        Booking newBooking = Booking.builder()
-                .vehicle(finalVehicle)
-                .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
-                .servicePackage(servicePackage)
-                .appointmentDate(LocalDate.now())
-                .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
-                .bookingType("WALK_IN")
-                .createdAt(LocalDateTime.now())
-                .checkInAt(LocalDateTime.now())
-                .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0)
-                .build();
-        Booking savedBooking = bookingRepository.save(newBooking);
-
-        //LOGIC: KHẤU TRỪ CÔNG SUẤT SLOT VÀ LƯU BẢNG BOOKING_SLOT_ALLOCATION
-        for (BookingSlot slot : selectedSlots) {
-            if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
-                throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
-            }
-            slot.setBookedCount(slot.getBookedCount() + 1);
-            if (slot.getBookedCount() >= slot.getMaxCapacity()) {
-                slot.setStatus("FULL");
-            }
-            bookingSlotRepository.save(slot);
-
-            // Thực hiện ghi nhận phân bổ ô giờ đặt lịch cho Đơn hàng này
-            BookingSlotAllocation allocation = BookingSlotAllocation.builder()
-                    .booking(savedBooking)
-                    .bookingSlot(slot)
-                    .build();
-            bookingSlotAllocationRepository.save(allocation);
-        }
-
-        //LOGIC: LƯU DATA CHI TIẾT XUỐNG BẢNG BOOKING_ADDON (NẾU CÓ)
-        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
-            for (Integer addonId : request.getAddonIds()) {
-                AddonService addon = addonServiceRepository.findById(addonId).get();
-                BookingAddon bookingAddon = BookingAddon.builder()
-                        .booking(savedBooking)
-                        .addonService(addon)
-                        .price(addon.getPrice()) // Lưu snapshot giá
+            //đăng ký hoặc cập nhật thông tin phương tiện
+            Vehicle finalVehicle = vehicleOpt.orElseGet(() -> {
+                // Xe mới tinh diện vãng lai -> Tạo mới hoàn toàn dựa vào các field chi tiết từ Request
+                Vehicle newVehicle = Vehicle.builder()
+                        .licensePlate(request.getLicensePlate())
+                        .brandName(request.getBrandName() != null ? request.getBrandName() : "Customer Walk-in")
+                        .color(request.getColor())
+                        .violationCount(0)
+                        .isDeleted(false)
                         .build();
-                bookingAddonRepository.save(bookingAddon);
+                return vehicleRepository.save(newVehicle);
+            });
+
+            //Tính toán tổng số tiền được giảm giá (discount_amount)
+            // Tổng giảm giá ở bước Check-in = Tiền giảm trừ gói Unlimited + Tiền cọc phạt thu trước + Tiền cứu cọc trễ hẹn
+            // (Bản chất penaltyDeposit và creditFromOld Booking thu trước đều làm giảm số tiền phải thu lúc Checkout)
+            BigDecimal totalDiscountAmount = packageDiscount.add(penaltyDeposit).add(creditFromOldBooking);
+
+            //Áp dụng công thức tính số tiền khách thực tế phải thu nốt khi lấy xe (final_amount)
+            BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDiscountAmount);
+
+            if (remainingBalanceAtCheckout.compareTo(BigDecimal.ZERO) < 0) {
+                remainingBalanceAtCheckout = BigDecimal.ZERO;
             }
-        }
 
-        //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
-        BigDecimal serviceAmount = BigDecimal.ZERO;
-        BigDecimal addonAmount = BigDecimal.ZERO;
-        //ServicePackage servicePackage = null;
-        if (request.getServicePackageId() != null) {
-            servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
-            serviceAmount = servicePackage.getBasePrice();
-        }
+            //LẬP LỊCH HẸN MỚI (BOOKING) VỚI TRẠNG THÁI CHECKED_IN MẶC ĐỊNH
+            Booking newBooking = Booking.builder()
+                    .vehicle(finalVehicle)
+                    .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
+                    .servicePackage(servicePackage)
+                    .appointmentDate(LocalDate.now())
+                    .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
+                    .bookingType("WALK_IN")
+                    .createdAt(LocalDateTime.now())
+                    .checkInAt(LocalDateTime.now())
+                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0)
+                    .build();
+            Booking savedBooking = bookingRepository.save(newBooking);
 
-        //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
-        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
-            for (Integer addonId : request.getAddonIds()) {
-                AddonService addon = addonServiceRepository.findById(addonId).get();
-                addonAmount = addonAmount.add(addon.getPrice());
+            //LOGIC: KHẤU TRỪ CÔNG SUẤT SLOT VÀ LƯU BẢNG BOOKING_SLOT_ALLOCATION
+            for (BookingSlot slot : selectedSlots) {
+                if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
+                    throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
+                }
+                slot.setBookedCount(slot.getBookedCount() + 1);
+                if (slot.getBookedCount() >= slot.getMaxCapacity()) {
+                    slot.setStatus("FULL");
+                }
+                bookingSlotRepository.save(slot);
+
+                // Thực hiện ghi nhận phân bổ ô giờ đặt lịch cho Đơn hàng này
+                BookingSlotAllocation allocation = BookingSlotAllocation.builder()
+                        .booking(savedBooking)
+                        .bookingSlot(slot)
+                        .build();
+                bookingSlotAllocationRepository.save(allocation);
             }
+
+            //LOGIC: LƯU DATA CHI TIẾT XUỐNG BẢNG BOOKING_ADDON (NẾU CÓ)
+            if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+                for (Integer addonId : request.getAddonIds()) {
+                    AddonService addon = addonServiceRepository.findById(addonId).get();
+                    BookingAddon bookingAddon = BookingAddon.builder()
+                            .booking(savedBooking)
+                            .addonService(addon)
+                            .price(addon.getPrice()) // Lưu snapshot giá
+                            .build();
+                    bookingAddonRepository.save(bookingAddon);
+                }
+            }
+
+            //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
+            BigDecimal serviceAmount = BigDecimal.ZERO;
+            BigDecimal addonAmount = BigDecimal.ZERO;
+            //ServicePackage servicePackage = null;
+            if (request.getServicePackageId() != null) {
+                servicePackage = servicePackageRepository.findById(request.getServicePackageId()).get();
+                serviceAmount = servicePackage.getBasePrice();
+            }
+
+            //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
+            if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+                for (Integer addonId : request.getAddonIds()) {
+                    AddonService addon = addonServiceRepository.findById(addonId).get();
+                    addonAmount = addonAmount.add(addon.getPrice());
+                }
+            }
+
+            //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
+            //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
+            BookingInvoice invoice = BookingInvoice.builder()
+                    .booking(savedBooking) // Khóa ngoại duy nhất trỏ tới Booking (booking_id)
+                    .customer(savedBooking.getCustomer()) // Khóa ngoại khách hàng (customer_id), tự động lấy từ booking (có thể null nếu khách vãng lai mới)
+                    //Các trường dòng tiền tổng
+                    .rawAmount(rawAmount) // Tổng tiền gốc ban đầu (serviceAmount + addonAmount)
+                    .discountAmount(totalDiscountAmount) // Tổng số tiền được giảm trừ/khấu trừ
+                    .finalAmount(remainingBalanceAtCheckout) // Số tiền thực tế khách cần móc bóp trả lúc Checkout
+                    //Các trường bóc tách doanh thu dịch vụ cụ thể
+                    .serviceAmount(serviceAmount) // Tổng giá trị của riêng dịch vụ chính
+                    .addonAmount(addonAmount) // Tổng giá trị của các dịch vụ bổ sung đính kèm
+                    //Các trường giảm giá từ Loyalty/Khuyến mãi (Luồng Walk-in tại quầy mặc định khởi tạo = 0.00)
+                    .voucherDiscount(BigDecimal.ZERO)
+                    .pointDiscount(BigDecimal.ZERO)
+                    //Trạng thái và Thời gian
+                    .status("PENDING") // Trạng thái hóa đơn ban đầu: Chờ rửa xe xong khách ra trả tiền mới đổi sang PAID
+                    .paidAt(null) // Chưa thanh toán thành công lúc check-in nên để null
+                    .build();
+            // Thực hiện lưu chính thức xuống bảng booking_invoice dưới DB
+            bookingInvoiceRepository.save(invoice);
+
+            //CẤP PHÁT SỐ VÉ THỨ TỰ HÀNG ĐỢI VẬT LÝ (QueueTicket)
+            //Sinh số thứ tự vé tiếp theo dựa vào stationId và diện khách Walk-In (false)
+            String nextTicketNumber = queueTicketService.generateTicketNumber(request.getStationId(), false);
+
+            //gọi từ StationRepository để làm khóa ngoại station_id.
+
+            Station currentStation = stationRepository.findById(request.getStationId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.STATION_NOT_FOUND));
+
+            //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ QUEUE_TICKET THEO DB
+            QueueTicket ticket = QueueTicket.builder()
+                    .station(currentStation) //Vé thuộc chi nhánh nào (station_id - NOT NULL)
+                    .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
+                    .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
+                    //Trạng thái và Phân loại
+                    .status("CHECKED_IN")    // Trạng thái vé (status - NOT NULL)
+                    .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
+                    .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
+                    //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
+                    // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
+                    .build();
+
+            //Lưu chính thức xuống bảng queue_ticket dưới DB
+            QueueTicket savedTicket = queueTicketRepository.save(ticket);
+
+
+            //TRẢ VỀ ĐÚNG KHUÔN MẪU CreateWalkInResponse PHỤC VỤ FRONT-END IN VÉ
+            return CreateWalkInResponse.builder()
+                    .bookingId(savedBooking.getId())
+                    .queueTicketId(ticket.getId())
+                    .ticketNumber(nextTicketNumber)
+                    .status(savedBooking.getStatus())
+                    .remainingBalance(remainingBalanceAtCheckout)
+                    .message("Walk-in booking has been created successfully. The vehicle has been added to the service queue.")
+                    .build();
         }
 
-        //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
-        //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
-        BookingInvoice invoice = BookingInvoice.builder()
-                .booking(savedBooking) // Khóa ngoại duy nhất trỏ tới Booking (booking_id)
-                .customer(savedBooking.getCustomer()) // Khóa ngoại khách hàng (customer_id), tự động lấy từ booking (có thể null nếu khách vãng lai mới)
-                //Các trường dòng tiền tổng
-                .rawAmount(rawAmount) // Tổng tiền gốc ban đầu (serviceAmount + addonAmount)
-                .discountAmount(totalDiscountAmount) // Tổng số tiền được giảm trừ/khấu trừ
-                .finalAmount(remainingBalanceAtCheckout) // Số tiền thực tế khách cần móc bóp trả lúc Checkout
-                //Các trường bóc tách doanh thu dịch vụ cụ thể
-                .serviceAmount(serviceAmount) // Tổng giá trị của riêng dịch vụ chính
-                .addonAmount(addonAmount) // Tổng giá trị của các dịch vụ bổ sung đính kèm
-                //Các trường giảm giá từ Loyalty/Khuyến mãi (Luồng Walk-in tại quầy mặc định khởi tạo = 0.00)
-                .voucherDiscount(BigDecimal.ZERO)
-                .pointDiscount(BigDecimal.ZERO)
-                //Trạng thái và Thời gian
-                .status("PENDING") // Trạng thái hóa đơn ban đầu: Chờ rửa xe xong khách ra trả tiền mới đổi sang PAID
-                .paidAt(null) // Chưa thanh toán thành công lúc check-in nên để null
-                .build();
-        // Thực hiện lưu chính thức xuống bảng booking_invoice dưới DB
-        bookingInvoiceRepository.save(invoice);
+    // Lấy toàn bộ danh sách gói dịch vụ và addon phục vụ việc dựng Form chọn tại quầy (Dùng vòng lặp truyền thống)
+    public WalkInFormDataResponse getWalkInFormData() {
 
-        //CẤP PHÁT SỐ VÉ THỨ TỰ HÀNG ĐỢI VẬT LÝ (QueueTicket)
-        //Sinh số thứ tự vé tiếp theo dựa vào stationId và diện khách Walk-In (false)
-        String nextTicketNumber = queueTicketService.generateTicketNumber(request.getStationId(), false);
+        // =========================================================================
+        // 1. CHUYỂN ĐỔI DANH SÁCH GÓI DỊCH VỤ CHÍNH (SERVICE PACKAGE)
+        // =========================================================================
+        // Lấy tất cả gói dịch vụ chính từ Database lên
+        List<ServicePackage> packages = servicePackageRepository.findByIsDeletedFalse();
 
-        //gọi từ StationRepository để làm khóa ngoại station_id.
+        // Khởi tạo một danh sách rỗng để chứa các DTO sau khi chuyển đổi
+        List<WalkInFormDataResponse.ServicePackageDTO> packageDTOs = new ArrayList<>();
 
-        Station currentStation = stationRepository.findById(request.getStationId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.STATION_NOT_FOUND));
+        // Duyệt qua từng thực thể gói dịch vụ bằng vòng lặp for-each
+        for (ServicePackage p : packages) {
+            // Bốc tách dữ liệu từ thực thể p để đóng gói sang đối tượng DTO gọn nhẹ
+            WalkInFormDataResponse.ServicePackageDTO dto = WalkInFormDataResponse.ServicePackageDTO.builder()
+                    .id(p.getId())
+                    .name(p.getName())
+                    .basePrice(p.getBasePrice())
+                    .requiredSlot(p.getRequiredSlot())
+                    .description(p.getDescription())
+                    .build();
 
-        //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ QUEUE_TICKET THEO DB
-        QueueTicket ticket = QueueTicket.builder()
-                .station(currentStation) //Vé thuộc chi nhánh nào (station_id - NOT NULL)
-                .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
-                .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
-                //Trạng thái và Phân loại
-                .status("CHECKED_IN")    // Trạng thái vé (status - NOT NULL)
-                .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
-                .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
-                //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
-                // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
-                .build();
+            // Thêm DTO vừa tạo vào danh sách hứng
+            packageDTOs.add(dto);
+        }
 
-        //Lưu chính thức xuống bảng queue_ticket dưới DB
-        QueueTicket savedTicket = queueTicketRepository.save(ticket);
+        // =========================================================================
+        // 2. CHUYỂN ĐỔI DANH SÁCH DỊCH VỤ BỔ SUNG (ADDON SERVICE)
+        // =========================================================================
+        // Lấy tất cả dịch vụ bổ sung từ Database lên
+        List<AddonService> addons = addonServiceRepository.findByIsDeletedFalse();
 
+        // Khởi tạo một danh sách rỗng để chứa các DTO addon
+        List<WalkInFormDataResponse.AddonServiceDTO> addonDTOs = new ArrayList<>();
 
-        //TRẢ VỀ ĐÚNG KHUÔN MẪU CreateWalkInResponse PHỤC VỤ FRONT-END IN VÉ
-        return CreateWalkInResponse.builder()
-                .bookingId(savedBooking.getId())
-                .queueTicketId(ticket.getId())
-                .ticketNumber(nextTicketNumber)
-                .status(savedBooking.getStatus())
-                .remainingBalance(remainingBalanceAtCheckout)
-                .message("Walk-in booking has been created successfully. The vehicle has been added to the service queue.")
+        // Duyệt qua từng thực thể addon bằng vòng lặp for-each
+        for (AddonService a : addons) {
+            // Bốc tách dữ liệu từ thực thể a để đóng gói sang đối tượng DTO gọn nhẹ
+            WalkInFormDataResponse.AddonServiceDTO dto = WalkInFormDataResponse.AddonServiceDTO.builder()
+                    .id(a.getId())
+                    .name(a.getName())
+                    .price(a.getPrice())
+                    .description(a.getDescription())
+                    .build();
+
+            // Thêm DTO vừa tạo vào danh sách hứng
+            addonDTOs.add(dto);
+        }
+
+        // =========================================================================
+        // 3. ĐÓNG GÓI VÀ TRẢ KẾT QUẢ VỀ CHO FRONT-END
+        // =========================================================================
+        return WalkInFormDataResponse.builder()
+                .servicePackages(packageDTOs)
+                .addonServices(addonDTOs)
                 .build();
     }
 
-    @Transactional
-    public CreateWalkInResponse confirmPenaltyDeposit(CreateWalkInRequest request) {
-
-        // 1. Tìm xem chiếc xe vãng lai này có tồn tại trong hệ thống không
-        Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate())
-                .orElseThrow(() -> new BusinessException(ErrorCode.VEHICLE_NOT_FOUND));
-
-        // 2. Kiểm tra xem xe này có thực sự đang trong diện bị phạt/hạn chế không
-        if (vehicle.getViolationCount() == null || vehicle.getViolationCount() <= 3
-                || vehicle.getRestrictedUntil() == null || vehicle.getRestrictedUntil().isBefore(Instant.now())) {
-            throw new BusinessException(ErrorCode.VEHICLE_NOT_IN_VIOLATION_RESTRICTION);
-        }
-
-        // 3. Set cờ thu tiền lên true
-        request.setPenaltyDepositCollected(true);
-
-        // 4. Gọi lại hàm tạo đơn gốc để chạy tiếp luồng lưu Booking, Invoice và cấp số QueueTicket
-        return this.createWalkInOrder(request);
-        //Staff phải nhập đầy đủ thông tin rồi mới cho ấn nút xác nhận đã thu
-    }
+//    @Transactional
+//    public CreateWalkInResponse confirmPenaltyDeposit(CreateWalkInRequest request) {
+//
+//        // 1. Tìm xem chiếc xe vãng lai này có tồn tại trong hệ thống không
+//        Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate())
+//                .orElseThrow(() -> new BusinessException(ErrorCode.VEHICLE_NOT_FOUND));
+//
+//        // 2. Kiểm tra xem xe này có thực sự đang trong diện bị phạt/hạn chế không
+//        if (vehicle.getViolationCount() == null || vehicle.getViolationCount() <= 3
+//                || vehicle.getRestrictedUntil() == null || vehicle.getRestrictedUntil().isBefore(Instant.now())) {
+//            throw new BusinessException(ErrorCode.VEHICLE_NOT_IN_VIOLATION_RESTRICTION);
+//        }
+//
+//        // 3. Set cờ thu tiền lên true
+//        request.setPenaltyDepositCollected(true);
+//
+//        // 4. Gọi lại hàm tạo đơn gốc để chạy tiếp luồng lưu Booking, Invoice và cấp số QueueTicket
+//        return this.createWalkInOrder(request);
+//        //Staff phải nhập đầy đủ thông tin rồi mới cho ấn nút xác nhận đã thu
+//    }
 
 }
