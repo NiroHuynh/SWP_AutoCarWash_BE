@@ -18,7 +18,7 @@ import java.util.Optional;
  * @author Phong
  * @version 1.0
  */
-
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     // Code gốc (derived query, không JOIN FETCH role):

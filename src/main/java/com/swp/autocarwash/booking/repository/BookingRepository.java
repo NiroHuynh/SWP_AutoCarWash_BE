@@ -1,7 +1,9 @@
 package com.swp.autocarwash.booking.repository;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -69,6 +71,58 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
 
+    //Vbinh
+    //Tìm booking ở trạng thái CONFIRMED, check biển số xe và là booking của ngày hiện tại
+    //1 xe chỉ có tối đa 1 booking CONFIRMED trong cùng 1 ngày
+
+    //entity đang dùng fetch.lazy, tại đây join fetch ép k được dùng lazy trong đoạn lệnh này
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN FETCH b.vehicle v
+            WHERE v.licensePlate = :licensePlate
+                  AND b.status = :status
+                  AND b.appointmentDate = :appointmentDate
+           """
+    )
+
+    Optional<Booking> findConfirmedBookingByLicensePlate(
+        @Param("licensePlate") String licensePlate,
+        @Param("status") String status,
+        @Param("appointmentDate") LocalDate appointmentDate
+    );
+
+    //tự lấy status CONFIRMED và ngày hiện tại
+    default Optional<Booking> findConfirmedBookingTodayByLicensePlate(String licensePlate){
+        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED.toString(), LocalDate.now());
+    }
+
+    /**
+     * Subtask 4.1: Tìm các Booking NO_SHOW trong ngày, có is_deposit_paid = true
+     * (tức khách có đóng cọc, mới có gì để tịch thu), và chưa được Scheduler xử lý
+     * tịch thu trước đó (deposit_confiscated_at IS NULL) - tránh xử lý trùng nếu
+     * job vô tình chạy lại 2 lần trong cùng 1 ngày.
+     * Dùng cho Cron Job tịch thu tiền cọc cuối ngày.
+     */
+
+    @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.status = :status AND b.isDepositPaid = true AND b.depositConfiscatedAt IS NULL")
+    List<Booking> findNoShowBookingsPendingDepositConfiscation(
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
+
+    //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.vehicle.licensePlate = :licensePlate " +
+            "AND b.appointmentDate = :appointmentDate " +
+            "AND b.status = :status " +
+            "AND b.isDepositPaid = true " +
+            "AND b.depositConfiscatedAt IS NULL")
+    Optional<Booking> findBookingToRescueDeposit(
+            @Param("licensePlate") String licensePlate,
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
+
     //    trả ra những ngày mà vehicle đã sử dụng gói unlimit, tìm trên 1 khoảng thời gian
     @Query("""
                 SELECT b.appointmentDate
@@ -119,4 +173,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LocalDate fromDate,
             LocalDate toDate
     );
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b " +
+            "JOIN BookingSlotAllocation bsa ON bsa.booking.id = b.id " + // Nối sang bảng phân bổ slot
+            "WHERE b.vehicle.id = :vehicleId " +
+            "AND b.appointmentDate = :date " +
+            //CHẶN TẤT CẢ các trạng thái đang xử lý hoặc đã hoàn thành, chỉ bỏ qua trạng thái CANCELLED
+            "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'WASHING', 'COMPLETED') " +
+            "AND bsa.bookingSlot.id IN :slotIds") // Dính vào bất kỳ slot nào trong danh sách đang chọn là chặn liền
+    boolean existsByVehicleIdAndDateAndSlotIds(
+            @Param("vehicleId") Long vehicleId,
+            @Param("date") LocalDate date,
+            @Param("slotIds") List<Long> slotIds
+    );
+
+    //Câu lệnh cập nhật hàng loạt trạng thái đơn bùng hẹn
+    @Modifying
+    @Query("UPDATE Booking b SET b.status = 'NO_SHOW' " +
+            "WHERE b.appointmentDate = :date AND b.status = 'CONFIRMED'")
+    int updateStatusToNoShowForExpiredBookings(@Param("date") LocalDate date);
+
+    //Tìm danh sách các đơn SUBSCRIPTION bị bùng để tí nữa tính điểm phạt vi phạm
+    @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :date " +
+            "AND b.status = 'CONFIRMED' AND b.bookingType = 'SUBSCRIPTION'")
+    List<Booking> findUncheckedSubscriptionBookingsToday(@Param("date") LocalDate date);
+
 }

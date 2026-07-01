@@ -76,21 +76,35 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBaseException(
-            BaseException ex,
-            HttpServletRequest request
-    ){
-        var error = ex.getErrorCode();
-        return ResponseEntity
-                .status(error.getStatus())
-                .body(
-                        ApiResponse.error(
-                                error.getMessage(),
-                                error.getCode(),
-                                null
-                        )
-                );
+    public ResponseEntity<?> handleBaseException(BaseException ex){
+        //base exception nên chứa errorCode bên trong
+        var errorCode = ex.getErrorCode();
+
+        //Đóng gói JSON lỗi -> trả về cho Front end
+        Map<String, Object> errorBody = Map.of(
+                "success", "false",
+                "message", errorCode.getMessage(),
+                "errorCode", errorCode.getCode()
+        );
+        return new ResponseEntity<>(errorBody, errorCode.getStatus());
     }
+
+//    @ExceptionHandler(BaseException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleBaseException(
+//            BaseException ex,
+//            HttpServletRequest request
+//    ){
+//        var error = ex.getErrorCode();
+//        return ResponseEntity
+//                .status(error.getStatus())
+//                .body(
+//                        ApiResponse.error(
+//                                error.getMessage(),
+//                                error.getCode(),
+//                                null
+//                        )
+//                );
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(
