@@ -1,6 +1,7 @@
 package com.swp.autocarwash.customer.event.listener;
 
 
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.booking.event.BookingCanceledEvent;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
@@ -50,7 +51,7 @@ public class BookingCanceledEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) // Chỉ chạy sau khi booking cancel thành công — đảm bảo booking thật sự bị hủy rồi mới ghi violation
     @Transactional(propagation = Propagation.REQUIRES_NEW) // bắt buộc REQUIRES_NEW (Spring yêu cầu) — transaction gốc đã commit xong, listener cần tự mở transaction mới riêng để save() thực sự flush/commit xuống DB
     public void onBookingCanceled(BookingCanceledEvent event) {
-        if("WALK_IN".equals(event.getBookingType())){
+        if(BookingType.WALK_IN.name().equals(event.getBookingType())){
             applyVehicleViolation(event.getVehicleId());
         }else if(Boolean.FALSE.equals(event.getIsDepositPaid())){
             applyCustomerViolation(event.getCustomerId()); // dành cho khách có đăng ký gói unlimited/family
