@@ -41,6 +41,6 @@ public interface QueueService {
      * @param bookingId id của booking
      * @return QueueBoardResponse — board mới sau khi hoàn tất
      */
-    QueueBoardResponse completeService(Long bookingId, Integer laneId);
+    QueueBoardResponse completeService(Long bookingId);
 
 }
