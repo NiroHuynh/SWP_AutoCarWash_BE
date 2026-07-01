@@ -157,3 +157,6 @@ used queries
 
 # Postman
 postman/
+
+# Claude Code
+.claude/
