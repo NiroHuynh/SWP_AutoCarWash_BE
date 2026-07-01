@@ -34,6 +34,7 @@ public class QueueTicketResponse {
         private String serviceName;
         private Integer stationId;
         private String stationName;
+        private Integer laneId;
 
 }
 
