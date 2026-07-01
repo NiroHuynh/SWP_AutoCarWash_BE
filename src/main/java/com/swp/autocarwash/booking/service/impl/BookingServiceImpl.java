@@ -444,6 +444,12 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
+        // AC02: booking single-package đã trả cọc online -> hủy do khách bỏ về => KHÔNG hoàn cọc.
+        // "Thu 100% cọc" chỉ là ghi nhận tịch thu (không refund). Gói không cọc (isDepositPaid=false)
+        // giữ nguyên depositConfiscatedAt = null. Mirror DepositConfiscationScheduler.
+        if (Boolean.TRUE.equals(booking.getIsDepositPaid())) {
+            booking.setDepositConfiscatedAt(LocalDateTime.now(ZONE));
+        }
         bookingRepository.save(booking);
 
         List<BookingSlotAllocation> allocations =
