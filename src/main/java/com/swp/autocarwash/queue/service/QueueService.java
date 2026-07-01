@@ -33,14 +33,15 @@ public interface QueueService {
      * @param bookingId id của booking
      * @return QueueBoardResponse — board mới sau khi xe vào làn
      */
-    QueueBoardResponse startService(Long bookingId);
+    QueueBoardResponse startService(Long bookingId, Integer laneId);
 
     /**
      * AC01 — Hoàn tất rửa: booking WASHING→COMPLETED, ticket→COMPLETED, 1 làn WASHING→AVAILABLE.
      *
      * @param bookingId id của booking
+     * @param laneId    id DB của làn cần giải phóng (FE gửi để tránh giải phóng nhầm)
      * @return QueueBoardResponse — board mới sau khi hoàn tất
      */
-    QueueBoardResponse completeService(Long bookingId);
+    QueueBoardResponse completeService(Long bookingId, Integer laneId);
 
 }

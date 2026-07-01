@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -64,7 +65,6 @@ public class QueueServiceImpl implements QueueService {
         }
 
         Integer stationId = ticket.getStation().getId();
-        // cancelGuestLeftAtCheckIn: booking→CANCELED, slot freeing, event, ticket→CANCELED
         bookingService.cancelGuestLeftAtCheckIn(bookingId, actingUserId);
 
         return buildBoard(stationId);
@@ -72,7 +72,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional
-    public QueueBoardResponse startService(Long bookingId) {
+    public QueueBoardResponse startService(Long bookingId, Integer laneId) {
         QueueTicket ticket = queueTicketRepository.findQueueTicketByBookingId(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
 
@@ -83,12 +83,18 @@ public class QueueServiceImpl implements QueueService {
 
         Integer stationId = ticket.getStation().getId();
 
-        // AC03 — phải còn làn trống mới cho xe vào làn.
-        WashLane lane = washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
-                .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
+        // Nếu FE gửi laneId thì dùng làn đó, không thì lấy làn trống đầu tiên (auto).
+        WashLane lane;
+        if (laneId != null) {
+            lane = washLaneRepository.findById(laneId)
+                    .filter(l -> WashLaneStatus.AVAILABLE.name().equals(l.getStatus()) && !Boolean.TRUE.equals(l.getIsDeleted()))
+                    .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
+        } else {
+            lane = washLaneRepository
+                    .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.WASH_LANE_NONE_AVAILABLE));
+        }
 
-        // booking là nguồn sự thật; ticket mirror theo
         booking.setStatus(BookingStatus.WASHING.name());
         bookingRepository.save(booking);
 
@@ -103,7 +109,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional
-    public QueueBoardResponse completeService(Long bookingId) {
+    public QueueBoardResponse completeService(Long bookingId, Integer laneId) {
         QueueTicket ticket = queueTicketRepository.findQueueTicketByBookingId(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.QUEUE_TICKET_NOT_FOUND));
 
@@ -114,7 +120,6 @@ public class QueueServiceImpl implements QueueService {
 
         Integer stationId = ticket.getStation().getId();
 
-        // booking là nguồn sự thật; ticket mirror theo
         booking.setStatus(BookingStatus.COMPLETED.name());
         booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
@@ -122,12 +127,23 @@ public class QueueServiceImpl implements QueueService {
         ticket.setStatus(QueueStatus.COMPLETED.name());
         queueTicketRepository.save(ticket);
 
-        washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
-                .ifPresent(lane -> {
+        // Giải phóng đúng làn: FE gửi laneId → dùng trực tiếp.
+        // Fallback về findFirst nếu FE không gửi (backward compat).
+        if (laneId != null) {
+            washLaneRepository.findById(laneId).ifPresent(lane -> {
+                if (WashLaneStatus.WASHING.name().equals(lane.getStatus())) {
                     lane.setStatus(WashLaneStatus.AVAILABLE.name());
                     washLaneRepository.save(lane);
-                });
+                }
+            });
+        } else {
+            washLaneRepository
+                    .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
+                    .ifPresent(lane -> {
+                        lane.setStatus(WashLaneStatus.AVAILABLE.name());
+                        washLaneRepository.save(lane);
+                    });
+        }
 
         return buildBoard(stationId);
     }
@@ -140,15 +156,30 @@ public class QueueServiceImpl implements QueueService {
         long availableLaneCount = washLaneRepository
                 .countByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name());
 
-        List<WashLaneResponse> lanes = washLaneRepository
-                .findByStation_IdAndIsDeletedFalseOrderById(stationId)
-                .stream()
-                .map(lane -> WashLaneResponse.builder()
-                        .id(lane.getId())
-                        .laneName(lane.getLaneName())
-                        .status(lane.getStatus())
-                        .build())
-                .toList();
+        // WASHING tickets theo thứ tự ưu tiên (cùng thứ tự startService gán vào làn)
+        List<Long> washingBookingIds = new ArrayList<>();
+        for (QueueTicketResponse t : queue) {
+            if (BookingStatus.WASHING.name().equals(t.getStatus())) {
+                washingBookingIds.add(t.getBookingId());
+            }
+        }
+
+        // Ghép WASHING lanes (sorted by id) với WASHING tickets theo thứ tự → currentBookingId
+        List<WashLane> allLanes = washLaneRepository.findByStation_IdAndIsDeletedFalseOrderById(stationId);
+        int washIdx = 0;
+        List<WashLaneResponse> lanes = new ArrayList<>();
+        for (WashLane lane : allLanes) {
+            Long currentBookingId = null;
+            if (WashLaneStatus.WASHING.name().equals(lane.getStatus()) && washIdx < washingBookingIds.size()) {
+                currentBookingId = washingBookingIds.get(washIdx++);
+            }
+            lanes.add(WashLaneResponse.builder()
+                    .id(lane.getId())
+                    .laneName(lane.getLaneName())
+                    .status(lane.getStatus())
+                    .currentBookingId(currentBookingId)
+                    .build());
+        }
 
         return QueueBoardResponse.builder()
                 .availableLaneCount(availableLaneCount)

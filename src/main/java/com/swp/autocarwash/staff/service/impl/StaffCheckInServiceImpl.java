@@ -62,43 +62,6 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     private final VoucherUsageRepository voucherUsageRepository;
 
     //check và trả về thông tin booking khi input license
-//    @Override
-//    public ScanVehicleResponse scanVehicle(String licensePlate) {
-//        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate);
-//        if(bookingOtp.isEmpty()){
-//            //không có lịch, booking trước -> FE tự mở màn hình CREATE FOR WALK_IN
-//            Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(licensePlate).orElse(null);
-//            return ScanVehicleResponse.builder()
-//                    .licensePlate(licensePlate)
-//                    .hasBooking(false)
-//                    .isVehiclePenalized(vehicle != null && isVehiclePenalized(vehicle))
-//                    .build();
-//        }
-//
-//        Booking booking = bookingOtp.get();
-//        Vehicle vehicle = booking.getVehicle();
-//
-//        Customer customer = customerRepository.findById(booking.getCustomer().getId()).orElse(null);
-//        String customerName = customer != null ? customer.getFullName() : null;
-//        List<BookingSlot> slots = bookingSlotAllocationRepository.findBookingSLotsByBookingId(booking.getId());
-//        //tính ra khung giờ đặt, khung giờ kết thúc
-//        LocalTime slotStartTime = slots.isEmpty() ? null : slots.get(0).getStartTime();
-//        LocalTime slotEndTime = slots.isEmpty() ? null : slots.get(slots.size() - 1).getEndTime();
-//
-//        return ScanVehicleResponse.builder()
-//                .bookingId(booking.getId())
-//                .licensePlate(licensePlate)
-//                .customerName(customerName)
-//                .slotStartTime(slotStartTime)
-//                .slotEndTime(slotEndTime)
-//                .hasBooking(true)
-//                .isVehiclePenalized(isVehiclePenalized(vehicle))
-//                .build();
-//    }
-//
-//    private boolean isVehiclePenalized(Vehicle vehicle){
-//        return vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
-//    }
 
     @Override
     public ScanVehicleResponse scanVehicle(String licensePlate) {
@@ -118,7 +81,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                     .build();
         }
 
-        // TRƯỜNG HỢP 2: TÌM THẤY LỊCH ĐẶT TRƯỚC HỢP LỆ (ONLINE/APP)
+        // TRƯỜNG HỢP 2: TÌM THẤY LỊCH ĐẶT TRƯỚC HỢP LỆ
         Booking booking = bookingOtp.get();
         Vehicle vehicle = booking.getVehicle();
 
@@ -222,7 +185,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 && vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
     }
 
-    //AC-02: tính độ lệch thời gian check in so với booking(sớm, trễ)
+    //tính độ lệch thời gian check in so với booking(sớm, trễ)
     @Override
     public CheckInResultResponse confirmCheckIn(Long bookingId) {
         Booking booking  = bookingRepository.findById(bookingId).orElseThrow(() -> new BusinessException(ErrorCode.BOOKING_NOT_FOUND));
@@ -231,9 +194,10 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
             throw new BusinessException(ErrorCode.NO_ALLOCATED_TIME_SLOT);
         }
 
-        // AC04: Áp dụng TRƯỚC khi xét đúng giờ/sớm/trễ - khách Walk-in đang bị
+        // Áp dụng TRƯỚC khi xét đúng giờ/sớm/trễ - khách Walk-in đang bị
         // restricted_until (đã từng vi phạm > 3 lần) phải bị chặn check-in cho đến khi
         // Staff thu 20.000đ cọc tại quầy (gọi API collectWalkInPenaltyDeposit trước).
+        //create walk-in mới xét logic này
         if (booking.getBookingType().equals(BookingType.WALK_IN.toString()) ) {
             Vehicle vehicle = booking.getVehicle();
             boolean penalized = isVehiclePenalized(vehicle);
