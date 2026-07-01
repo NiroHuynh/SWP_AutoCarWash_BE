@@ -53,9 +53,10 @@ public class QueueController {
     @PatchMapping("/{bookingId}/complete")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> completeService(
-            @PathVariable Long bookingId) {
+            @PathVariable Long bookingId,
+            @RequestParam(required = false) Integer laneId) {
         return ResponseEntity.ok(
-                ApiResponse.success("Đã hoàn tất rửa xe", queueService.completeService(bookingId))
+                ApiResponse.success("Đã hoàn tất rửa xe", queueService.completeService(bookingId, laneId))
         );
     }
 
@@ -86,10 +87,11 @@ public class QueueController {
     @PatchMapping("/{bookingId}/start")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> startService(
-            @PathVariable Long bookingId) {
+            @PathVariable Long bookingId,
+            @RequestParam(required = false) Integer laneId) {
 
         return ResponseEntity.ok(
-                ApiResponse.success("Xe đã vào làn rửa", queueService.startService(bookingId))
+                ApiResponse.success("Xe đã vào làn rửa", queueService.startService(bookingId, laneId))
         );
     }
 }
