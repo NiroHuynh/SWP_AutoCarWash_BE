@@ -436,7 +436,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if(!"CHECK_IN".equals(booking.getStatus())){
+        if(!BookingStatus.CHECK_IN.name().equals(booking.getStatus())){
             throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
@@ -457,7 +457,7 @@ public class BookingServiceImpl implements BookingService {
             ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         });
-        if (booking.getCheckInEmployee() != null) {
+
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
@@ -467,7 +467,7 @@ public class BookingServiceImpl implements BookingService {
                     .isDepositPaid(booking.getIsDepositPaid())
                     .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
                     .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
-        }
+
 
         return getBookingDetail(bookingId);
     }
