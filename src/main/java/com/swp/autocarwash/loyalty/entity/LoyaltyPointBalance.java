@@ -2,13 +2,15 @@ package com.swp.autocarwash.loyalty.entity;
 
 import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "loyalty_point_balance", schema = "swp_auto_car_wash")
 public class LoyaltyPointBalance {
     @Id

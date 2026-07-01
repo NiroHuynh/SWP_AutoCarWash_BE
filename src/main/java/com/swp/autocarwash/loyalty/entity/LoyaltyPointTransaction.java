@@ -5,16 +5,19 @@ import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "loyalty_point_transaction", schema = "swp_auto_car_wash")
 public class LoyaltyPointTransaction {
     @Id
@@ -42,7 +45,7 @@ public class LoyaltyPointTransaction {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @NotNull
     @Column(name = "balance_after", nullable = false)

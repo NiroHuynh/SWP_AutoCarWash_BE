@@ -2,6 +2,8 @@ package com.swp.autocarwash.payment.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.event.BookingCompletedEvent;
+import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
@@ -40,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingRepository bookingRepository;
     private final BookingInvoiceRepository bookingInvoiceRepository;
     private final PaymentRepository paymentRepository;
+    private final BookingEventPublisher bookingEventPublisher;
 
     /**
      * {@inheritDoc}
@@ -120,6 +123,8 @@ public class PaymentServiceImpl implements PaymentService {
         booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
+        createBookingCompletedEvent(booking);
+
         return CashPaymentResponse.builder()
                 .invoiceId(invoice.getId())
                 .totalAmount(amountDue)
@@ -132,5 +137,17 @@ public class PaymentServiceImpl implements PaymentService {
 
     private BigDecimal nvl(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private void createBookingCompletedEvent(Booking booking){
+        BookingCompletedEvent event =
+                new BookingCompletedEvent(
+                        booking.getId(),
+                        booking.getCustomer().getId(),
+                        booking.getTotalAmount(),
+                        booking.getCustomer().getCustomerTier().getId(),
+                        booking.getCustomer().getCustomerTier().getPointMultiple()
+                );
+        bookingEventPublisher.publicBookingCompleted(event);
     }
 }

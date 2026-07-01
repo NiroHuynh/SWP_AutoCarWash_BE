@@ -23,18 +23,16 @@ import org.springframework.stereotype.Service;
 import com.swp.autocarwash.auth.dto.request.RegisterRequest;
 import com.swp.autocarwash.auth.entity.Role;
 import com.swp.autocarwash.auth.entity.enums.UserRole;
-import com.swp.autocarwash.auth.port.CustomerPort;
 import com.swp.autocarwash.auth.repository.RoleRepository;
 import com.swp.autocarwash.auth.service.AuthService;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import com.swp.autocarwash.loyalty.entity.enums.TierStatus;
-import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
+import com.swp.autocarwash.loyalty.repository.CustomerTierRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
