@@ -35,8 +35,8 @@ public class ViolationResetScheduler {
     /**
      * Chạy vào 00:05:00 mỗi ngày (giờ server).
      */
-    @Scheduled(cron = "*/10 * * * * ?") // TEMP-TEST: chạy mỗi 10s để verify, sẽ revert về "0 5 0 * * ?"
-    //@Scheduled(cron = "0 5 0 * * ?")
+    //@Scheduled(cron = "*/10 * * * * ?") // TEMP-TEST: chạy mỗi 10s để verify, sẽ revert về "0 5 0 * * ?"
+    @Scheduled(cron = "0 5 0 * * ?")
     @Transactional
     public void resetExpiredRestrictions() {
         Instant now = Instant.now();
