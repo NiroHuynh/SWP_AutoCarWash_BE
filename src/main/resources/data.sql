@@ -484,11 +484,11 @@ VALUES
     (5,  5,    'BDAY2025',  80000,  0,      50,  50,  DATE_SUB(NOW(), INTERVAL 90 DAY), 'USED_UP', DATE_SUB(NOW(), INTERVAL 100 DAY), false, 30, DATE_SUB(NOW(), INTERVAL 100 DAY)),
     (6,  6,    'GRANDOPEN', 70000,  100000, 300, 60,  DATE_ADD(NOW(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY),  true,  20, DATE_SUB(NOW(), INTERVAL 2 DAY)),
     (7,  7,    'BLACKFRI',  150000, 300000, 80,  80,  DATE_SUB(NOW(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), false, 35, DATE_SUB(NOW(), INTERVAL 220 DAY)),
-    (8,  8,    'DOUBLEPT',  NULL,   0,      1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), true,  NULL, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    (8,  8,    'DOUBLEPT',  100000,   50000,      1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), true,  10, DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (9,  9,    'RAINY10',   30000,  50000,  120, 120, DATE_SUB(NOW(), INTERVAL 30 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), false, 10, DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (10, 10,   'FAMILY5',   45000,  100000, 200, 18,  DATE_ADD(NOW(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY),  true,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY)),
-    (11, NULL, 'WELCOME50', 50000,  0,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 50, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  NULL, DATE_SUB(NOW(), INTERVAL 7 DAY));
+    (11, NULL, 'WELCOME50', 50000,  10000,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 5, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY));
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -615,10 +615,10 @@ INSERT IGNORE INTO booking
  total_service_amount, total_addon_amount, total_amount,
  voucher_discount_amount, point_discount_amount)
 VALUES
-    (28, 1, 1, 1, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0),
-    (29, 2, 2, 2, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0, 150000, 0, 0),
-    (30, 3, 3, 3, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 300000, 0, 300000, 0, 0),
-    (31, 6, 6, 1, CURDATE(), 'CONFIRMED', 'WALK_IN', NULL, NOW(),                           NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0);
+    (28, 7,  7,  1, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (29, 8,  8,  2, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0, 150000, 0, 0),
+    (30, 9,  9,  3, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 300000, 0, 300000, 0, 0),
+    (31, 10, 10, 1, CURDATE(), 'CONFIRMED', 'WALK_IN', NULL, NOW(),                           NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0);
 
 -- =====================================================================
 -- BOOKING ADDON (15)
@@ -891,18 +891,9 @@ VALUES
     (3,  3, 8,    'A003', 'WASHING', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  3),
     (4,  1, 9,    'A004', 'WASHING', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  3),
     (5,  4, 10,   'A005', 'WASHING', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  3),
-    (6,  1, 21,   'A006', 'WAITING',    DATE_SUB(NOW(), INTERVAL 20 MINUTE), true,  3),
-    (7,  1, 22,   'A007', 'WAITING',    DATE_SUB(NOW(), INTERVAL 10 MINUTE), true,  3),
-    (8,  2, 23,   'A008', 'WAITING',    DATE_SUB(NOW(), INTERVAL 15 MINUTE), true,  3),
-    (9,  3, 24,   'A009', 'WAITING',    DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
     (10, 4, NULL, 'A010', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
     (11, 1, NULL, 'A011', 'CANCELED',   DATE_SUB(NOW(), INTERVAL 2 HOUR),    false, 1),
     (12, 2, NULL, 'A012', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 4 HOUR),    false, 1),
-    (13, 2, 25,   'A013', 'WAITING',    DATE_SUB(NOW(), INTERVAL 8 MINUTE),  true,  3),
-
-    -- demo thêm cho station 1 — WAITING with booking_id (not null)
-    (14, 1, 26,   'A014', 'WAITING',   DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
-    (15, 1, 27,   'A015', 'WAITING',   DATE_SUB(NOW(), INTERVAL 3 MINUTE),  true,  3),
     -- COMPLETED without booking_id (null)
     (16, 1, NULL, 'A016', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
     (17, 1, NULL, 'A017', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 90 MINUTE), false, 1);
