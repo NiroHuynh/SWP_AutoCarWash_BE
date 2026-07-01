@@ -7,6 +7,7 @@ import com.swp.autocarwash.customer.mapper.CustomerMapper;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.service.customer.CustomerService;
 import com.swp.autocarwash.customer.validator.CustomerValidator;
+import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,5 +120,20 @@ public class CustomerServiceImpl implements CustomerService {
                                 ErrorCode.CUSTOMER_NOT_FOUND
                         )
                 );
+    }
+
+
+    @Transactional
+    @Override
+    public void updateTier(
+            Long customerId,
+            Integer customerTierId
+    ) {
+
+        Customer customer =
+                repository.findById(customerId)
+                        .orElseThrow();
+
+        customer.setCustomerTier(CustomerTier.builder().id(customerTierId).build());
     }
 }
