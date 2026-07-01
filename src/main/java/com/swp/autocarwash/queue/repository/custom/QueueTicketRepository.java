@@ -53,7 +53,7 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH b.customer c " +
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
-            "WHERE q.station.id = :stationId AND q.status IN :statuses " +
+            "WHERE q.station.id = :stationId AND b.status IN :statuses " +
             "ORDER BY q.priorityScore DESC, q.issuedAt ASC")
     List<QueueTicket> findActiveQueueByStation(
             @Param("stationId") Integer stationId,
