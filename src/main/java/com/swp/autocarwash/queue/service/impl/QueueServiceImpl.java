@@ -120,8 +120,15 @@ public class QueueServiceImpl implements QueueService {
         booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        // Giải phóng đúng làn mà xe này đang dùng (không dùng findFirst để tránh giải phóng nhầm làn)
+        // Giải phóng đúng làn mà xe này đang dùng.
+        // Nếu wash_lane_id đã được ghi (ticket mới): dùng trực tiếp.
+        // Nếu null (ticket cũ tạo trước khi có fix): fallback findFirst để không kẹt làn.
         WashLane occupiedLane = ticket.getWashLane();
+        if (occupiedLane == null) {
+            occupiedLane = washLaneRepository
+                    .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
+                    .orElse(null);
+        }
         if (occupiedLane != null) {
             occupiedLane.setStatus(WashLaneStatus.AVAILABLE.name());
             washLaneRepository.save(occupiedLane);
