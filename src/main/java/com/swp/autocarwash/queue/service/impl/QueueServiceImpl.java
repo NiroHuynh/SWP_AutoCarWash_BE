@@ -92,11 +92,12 @@ public class QueueServiceImpl implements QueueService {
         booking.setStatus(BookingStatus.WASHING.name());
         bookingRepository.save(booking);
 
-        ticket.setStatus(QueueStatus.WASHING.name());
-        queueTicketRepository.save(ticket);
-
         lane.setStatus(WashLaneStatus.WASHING.name());
         washLaneRepository.save(lane);
+
+        ticket.setStatus(QueueStatus.WASHING.name());
+        ticket.setWashLane(lane);
+        queueTicketRepository.save(ticket);
 
         return buildBoard(stationId);
     }
@@ -119,15 +120,16 @@ public class QueueServiceImpl implements QueueService {
         booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        ticket.setStatus(QueueStatus.COMPLETED.name());
-        queueTicketRepository.save(ticket);
+        // Giải phóng đúng làn mà xe này đang dùng (không dùng findFirst để tránh giải phóng nhầm làn)
+        WashLane occupiedLane = ticket.getWashLane();
+        if (occupiedLane != null) {
+            occupiedLane.setStatus(WashLaneStatus.AVAILABLE.name());
+            washLaneRepository.save(occupiedLane);
+        }
 
-        washLaneRepository
-                .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
-                .ifPresent(lane -> {
-                    lane.setStatus(WashLaneStatus.AVAILABLE.name());
-                    washLaneRepository.save(lane);
-                });
+        ticket.setStatus(QueueStatus.COMPLETED.name());
+        ticket.setWashLane(null);
+        queueTicketRepository.save(ticket);
 
         return buildBoard(stationId);
     }

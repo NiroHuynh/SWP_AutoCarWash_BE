@@ -3,6 +3,7 @@ package com.swp.autocarwash.queue.entity;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.station.entity.Station;
+import com.swp.autocarwash.wash.entity.WashLane;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -56,5 +57,8 @@ public class QueueTicket {
     @Column(name = "priority_score")
     private Integer priorityScore = 0;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wash_lane_id")
+    private WashLane washLane;
 
 }
