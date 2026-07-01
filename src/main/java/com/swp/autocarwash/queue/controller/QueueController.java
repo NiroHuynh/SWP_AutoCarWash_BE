@@ -53,10 +53,9 @@ public class QueueController {
     @PatchMapping("/{bookingId}/complete")
     @PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> completeService(
-            @PathVariable Long bookingId,
-            @RequestParam(required = false) Integer laneId) {
+            @PathVariable Long bookingId) {
         return ResponseEntity.ok(
-                ApiResponse.success("Đã hoàn tất rửa xe", queueService.completeService(bookingId, laneId))
+                ApiResponse.success("Đã hoàn tất rửa xe", queueService.completeService(bookingId))
         );
     }
 
