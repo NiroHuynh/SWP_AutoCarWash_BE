@@ -13,6 +13,11 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    LOYALTY_POINT_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_001",
+            "Loyalty point balance not found"
+    ),
     UNAUTHORIZED(
             HttpStatus.UNAUTHORIZED,
             "AUTH_001",
