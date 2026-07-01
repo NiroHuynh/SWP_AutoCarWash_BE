@@ -693,7 +693,6 @@ VALUES
 INSERT IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
 VALUES
-#     (1,  1),
     (2,  2),  (2,  3),
     (3,  4),
     (4,  5),
