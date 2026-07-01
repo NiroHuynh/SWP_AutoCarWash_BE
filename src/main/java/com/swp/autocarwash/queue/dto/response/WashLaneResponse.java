@@ -20,5 +20,4 @@ public class WashLaneResponse {
     private Integer id;
     private String laneName;
     private String status;
-    private Long currentBookingId;
 }

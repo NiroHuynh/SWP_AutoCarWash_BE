@@ -56,4 +56,5 @@ public class QueueTicket {
     @Column(name = "priority_score")
     private Integer priorityScore = 0;
 
+
 }
