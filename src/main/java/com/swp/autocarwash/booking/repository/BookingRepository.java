@@ -3,6 +3,7 @@ package com.swp.autocarwash.booking.repository;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -187,6 +188,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("slotIds") List<Long> slotIds
     );
 
+    //Câu lệnh cập nhật hàng loạt trạng thái đơn bùng hẹn
+    @Modifying
+    @Query("UPDATE Booking b SET b.status = 'NO_SHOW' " +
+            "WHERE b.appointmentDate = :date AND b.status = 'CONFIRMED'")
+    int updateStatusToNoShowForExpiredBookings(@Param("date") LocalDate date);
+
+    //Tìm danh sách các đơn SUBSCRIPTION bị bùng để tí nữa tính điểm phạt vi phạm
+    @Query("SELECT b FROM Booking b WHERE b.appointmentDate = :date " +
+            "AND b.status = 'CONFIRMED' AND b.bookingType = 'SUBSCRIPTION'")
+    List<Booking> findUncheckedSubscriptionBookingsToday(@Param("date") LocalDate date);
 
 
 
