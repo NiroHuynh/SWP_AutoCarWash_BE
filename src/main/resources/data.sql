@@ -1,4 +1,3 @@
-
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- =====================================================================
@@ -6,11 +5,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- =====================================================================
 INSERT IGNORE INTO role (id, name)
 VALUES
-    (4, 'ADMIN'),
+    (1, 'ADMIN'),
     (2, 'STAFF'),
-    (3, 'CUSTOMER'),
-
-    (1, 'CUSTOMER');
+    (3, 'CUSTOMER');
 
 
 -- =====================================================================
@@ -19,36 +16,34 @@ VALUES
 INSERT IGNORE INTO user
 (id, email, phone, password_hash, role_id, is_active, created_at)
 VALUES
-    (1, 'admin@gmail.com',     '0900000001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, true,  DATE_SUB(NOW(), INTERVAL 400 DAY)),
-    (2, 'manager1@gmail.com',  '0900000002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true,  DATE_SUB(NOW(), INTERVAL 350 DAY)),
-    (3, 'manager2@gmail.com',  '0900000003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, false, DATE_SUB(NOW(), INTERVAL 340 DAY)),
-    (4,  'staff1@gmail.com',  '0900001001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 200 DAY)),
-    (5,  'staff2@gmail.com',  '0900001002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 195 DAY)),
-    (6,  'staff3@gmail.com',  '0900001003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 190 DAY)),
-    (7,  'staff4@gmail.com',  '0900001004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 185 DAY)),
-    (8,  'staff5@gmail.com',  '0900001005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 180 DAY)),
-    (9,  'staff6@gmail.com',  '0900001006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 175 DAY)),
-    (28, 'staff7@gmail.com',  '0900001007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 170 DAY)),
-    (29, 'staff8@gmail.com',  '0900001008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 165 DAY)),
-    (12, 'staff9@gmail.com',  '0900001009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 160 DAY)),
-    (13, 'staff10@gmail.com', '0900001010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 155 DAY)),
-    (14, 'staff11@gmail.com', '0900001011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 150 DAY)),
-    (15, 'staff12@gmail.com', '0900001012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 145 DAY)),
-    (16, 'customer1@gmail.com',  '0900002001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 120 DAY)),
-    (17, 'customer2@gmail.com',  '0900002002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 110 DAY)),
-    (18, 'customer3@gmail.com',  '0900002003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 100 DAY)),
-    (19, 'customer4@gmail.com',  '0900002004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 90 DAY)),
-    (20, 'customer5@gmail.com',  '0900002005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 80 DAY)),
-    (21, 'customer6@gmail.com',  '0900002006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 70 DAY)),
-    (22, 'customer7@gmail.com',  '0900002007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 60 DAY)),
-    (23, 'customer8@gmail.com',  '0900002008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (24, 'customer9@gmail.com',  '0900002009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 40 DAY)),
-    (25, 'customer10@gmail.com', '0900002010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY)),
-    (26, 'customer11@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
-    (27, 'customer12@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (1, 'khoa@gmail.com',     '0900000001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, true,  DATE_SUB(NOW(), INTERVAL 400 DAY)),
+    (2, 'hai@gmail.com',  '0900000002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true,  DATE_SUB(NOW(), INTERVAL 350 DAY)),
+    (3, 'tuyet@gmail.com',  '0900000003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, false, DATE_SUB(NOW(), INTERVAL 340 DAY)),
+    (4,  'an@gmail.com',  '0900001001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 200 DAY)),
+    (5,  'binh@gmail.com',  '0900001002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 195 DAY)),
+    (6,  'chi@gmail.com',  '0900001003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 190 DAY)),
+    (7,  'dung@gmail.com',  '0900001004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 185 DAY)),
+    (8,  'em@gmail.com',  '0900001005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 180 DAY)),
+    (9,  'phuc@gmail.com',  '0900001006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 175 DAY)),
+    (28, 'tuan@gmail.com',  '0900001007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 170 DAY)),
+    (29, 'long@gmail.com',  '0900001008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 165 DAY)),
+    (12, 'ich@gmail.com',  '0900001009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 160 DAY)),
+    (13, 'khang@gmail.com', '0900001010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 155 DAY)),
+    (14, 'loan@gmail.com', '0900001011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 150 DAY)),
+    (15, 'minh@gmail.com', '0900001012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 2, true, DATE_SUB(NOW(), INTERVAL 145 DAY)),
+    (16, 'phong@gmail.com',  '0900002001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 120 DAY)),
+    (17, 'nam@gmail.com',  '0900002002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 110 DAY)),
+    (18, 'linh@gmail.com',  '0900002003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 100 DAY)),
+    (19, 'mai@gmail.com',  '0900002004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 90 DAY)),
+    (20, 'hoa@gmail.com',  '0900002005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 80 DAY)),
+    (21, 'duc@gmail.com',  '0900002006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 70 DAY)),
+    (22, 'thao@gmail.com',  '0900002007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 60 DAY)),
+    (23, 'quang@gmail.com',  '0900002008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 50 DAY)),
+    (24, 'yen@gmail.com',  '0900002009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 40 DAY)),
+    (25, 'khanh@gmail.com', '0900002010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY)),
+    (26, 'trang@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY));
 
-    (10, 'khachvip@gmail.com', '0901234567', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, TRUE,DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE);
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
@@ -114,21 +109,21 @@ VALUES
 INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
 VALUES
-    (1,  1,  'Lane 1', 'ACTIVE',   3, false),
-    (2,  1,  'Lane 2', 'ACTIVE',   3, false),
-    (3,  2,  'Lane 1', 'ACTIVE',   3, false),
-    (4,  2,  'Lane 2', 'ACTIVE',   3, false),
-    (5,  2,  'Lane 3', 'INACTIVE', 3, false),
-    (6,  3,  'Lane 1', 'ACTIVE',   3, false),
-    (7,  3,  'Lane 2', 'ACTIVE',   2, false),
-    (8,  4,  'Lane 1', 'ACTIVE',   3, false),
-    (9,  5,  'Lane 1', 'ACTIVE',   3, false),
-    (10, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (11, 6,  'Lane 2', 'ACTIVE',   4, false),
-    (12, 7,  'Lane 1', 'ACTIVE',   3, false),
-    (13, 8,  'Lane 1', 'ACTIVE',   3, false),
-    (14, 6,  'Lane 1', 'ACTIVE',   3, false),
-    (15, 7,  'Lane 1', 'INACTIVE', 3, false);
+    (1,  1,  'Lane 1', 'AVAILABLE', 3, false),
+    (2,  1,  'Lane 2', 'AVAILABLE', 3, false),
+    (3,  2,  'Lane 1', 'AVAILABLE', 3, false),
+    (4,  2,  'Lane 2', 'AVAILABLE', 3, false),
+    (5,  2,  'Lane 3', 'WASHING',  3, false),
+    (6,  3,  'Lane 1', 'AVAILABLE', 3, false),
+    (7,  3,  'Lane 2', 'AVAILABLE', 2, false),
+    (8,  4,  'Lane 1', 'AVAILABLE', 3, false),
+    (9,  5,  'Lane 1', 'AVAILABLE', 3, false),
+    (10, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (11, 6,  'Lane 2', 'AVAILABLE', 4, false),
+    (12, 7,  'Lane 1', 'AVAILABLE', 3, false),
+    (13, 8,  'Lane 1', 'AVAILABLE', 3, false),
+    (14, 6,  'Lane 1', 'AVAILABLE', 3, false),
+    (15, 7,  'Lane 1', 'AVAILABLE',  3, false);
 
 -- =====================================================================
 -- STAFF (12)
@@ -315,52 +310,42 @@ VALUES
     (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
 
 -- =====================================================================
--- ADDON SERVICE (12) — addon la dich vu them theo lan (thuoc Single Wash)
+-- ADDON SERVICE (7) — addon tuong ung 3 goi Basic/Medium/Premium (FE mock)
 -- =====================================================================
 INSERT IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id, is_deleted)
 VALUES
-    (1,  'Vacuum',                 50000,  15, 1, false),
-    (2,  'Polish',                 150000, 45, 1, false),
-    (3,  'Wax Coating',            180000, 30, 1, false),
-    (4,  'Tire Shine',             40000,  0,  1, false),
-    (5,  'Interior Shampoo',       120000, 30, 1, false),
-    (6,  'Engine Degrease',        100000, 30, 1, false),
-    (7,  'Pet Hair Removal',       90000,  15, 1, false),
-    (8,  'Air Freshener',          20000,  0,  1, false),
-    (9,  'Headlight Restoration',  130000, 30, 1, false),
-    (10, 'Ceramic Spray',          220000, 30, 1, false),
-    (11, 'Leather Conditioning',   140000, 30, 1, false),
-    (12, 'Underbody Rust-proofing',160000, 30, 1, false),
+    (1, 'Exterior Foam Wash',      60000,  15, 1, false),
+    (2, 'Wheel Cleaning',          40000,  15, 1, false),
+    (3, 'Hand Dry',                30000,  0,  1, false),
+    (4, 'Interior Vacuum',         70000,  15, 1, false),
+    (5, 'Window Cleaning',         30000,  15, 1, false),
+    (6, 'Ceramic Boost Spray',     150000, 15, 1, false),
+    (7, 'Dashboard UV Protection', 80000,  15, 1, false),
 
     (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false);
 
 -- =====================================================================
--- SERVICE PACKAGE (3) — cac muc do rua xe; thuoc category Single Wash.
--- Booking va subscription_plan deu chon 1 trong 3 muc nay (BL-BK-03:
--- khach Family/Unlimited van chon package, gia chi bi giam ve 0d).
--- required_slot = number of 15-minute slots
+-- SERVICE PACKAGE (3) — dung dung 3 muc Basic/Medium/Premium theo FE mock.
+-- required_slot = durationMinutes / 15 (Basic 15p, Medium 30p, Premium 45p)
 -- =====================================================================
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
-    (4, 1, 'Basic',   100000, 'Rua xe co ban ben ngoai',               1, false),
-    (2, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
-    (3, 1, 'Premium', 300000, 'Rua xe cao cap, lam sach toan dien',    3, false),
-
-    (1, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false);
+    (1, 1, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                     1, false),
+    (2, 1, 'Medium',  299000, 'Lam moi toan dien tu trong ra ngoai: bao gom Basic + hut bui noi that va lau kinh',                    2, false),
+    (3, 1, 'Premium', 499000, 'Cham soc va bao ve toi uu: bao gom Medium + xit ceramic boost va chong tia UV cho bang dieu khien',    3, false);
 
 -- =====================================================================
--- PACKAGE ADDON MAPPING (8)
+-- PACKAGE ADDON MAPPING (15) — addon cong don theo tung muc (Basic 3,
+-- Medium 5, Premium 7) dung khop danh sach addons trong FE mock
 -- =====================================================================
 INSERT IGNORE INTO package_addon_mapping
 (service_package_id, addon_service_id)
 VALUES
-    (1, 1), (1, 8),
-    (3, 2), (3, 3),
-    (2, 4), (2, 9),
-    (2, 6),
-    (3, 7);
+    (1, 1), (1, 2), (1, 3),
+    (2, 1), (2, 2), (2, 3), (2, 4), (2, 5),
+    (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7);
 
 -- =====================================================================
 -- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
@@ -534,9 +519,9 @@ VALUES
 -- matter when this script runs. Nullable timestamps that have not
 -- happened yet use NULL instead of a fixed placeholder date.
 -- PENDING/CONFIRMED (future): 1,2,3,4,5
--- CHECKED_IN/WASHING (today, already in a wash lane): 6,7,8,9,10
--- PAID (past): 11,12,13,14   CANCELLED (past): 15,16,17   NO_SHOW (past): 18,19,20
--- CHECKED_IN waiting in queue (today, covers FE-27-US-01 AC02-AC04):
+-- CHECK_IN/WASHING (today, already in a wash lane): 6,7,8,9,10
+-- COMPLETED (past): 11,12,13,14   CANCELED (past): 15,16,17   NO_SHOW (past): 18,19,20
+-- CHECK_IN waiting in queue (today, covers FE-27-US-01 AC02-AC04):
 --   21 ONLINE+deposit/GOLD (AC02), 22 WALK_IN registered/SILVER (AC04),
 --   23 ONLINE+no-deposit subscription/PLATINUM (AC03),
 --   24 WALK_IN anonymous guest/no customer (AC04), 25 ONLINE+deposit/MEMBER (AC02)
@@ -555,20 +540,20 @@ VALUES
     (4,  5,  5,  2,  DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'CONFIRMED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0,      150000, 0,     0),
     (5,  6,  6,  1,  DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'PENDING',   'ONLINE',  NULL, NOW(),                           NULL, NULL, NULL, false, 100000, 0,      100000, 0,     0),
 
-    (6,  7,  7,  3,  CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
-    (7,  8,  8,  1,  CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
-    (8,  9,  9,  2,  CURDATE(), 'CHECKED_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
+    (6,  7,  7,  3,  CURDATE(), 'WASHING', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
+    (7,  8,  8,  1,  CURDATE(), 'WASHING', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
+    (8,  9,  9,  2,  CURDATE(), 'CHECK_IN', 'ONLINE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
     (9,  10, 10, 1,  CURDATE(), 'WASHING',    'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 100000, 90000,  190000, 0,     5000),
     (10, 11, 11, 2,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
 
-    (11, 1,  1,  1,  DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'PAID', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 240 HOUR), DATE_SUB(NOW(), INTERVAL 239 HOUR), NULL, true, 100000, 50000,  150000, 0,     0),
-    (12, 2,  2,  3,  DATE_SUB(CURDATE(), INTERVAL 7 DAY),  'PAID', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 9 DAY),  DATE_SUB(NOW(), INTERVAL 168 HOUR), DATE_SUB(NOW(), INTERVAL 166 HOUR), NULL, true, 300000, 150000, 430000, 20000, 0),
-    (13, 3,  3,  1,  DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'PAID', 'WALK_IN', 5, DATE_SUB(NOW(), INTERVAL 16 DAY), DATE_SUB(NOW(), INTERVAL 360 HOUR), DATE_SUB(NOW(), INTERVAL 359 HOUR), NULL, true, 100000, 20000,  120000, 0,     0),
-    (14, 12, 12, 3,  DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'PAID', 'ONLINE',  8, DATE_SUB(NOW(), INTERVAL 22 DAY), DATE_SUB(NOW(), INTERVAL 480 HOUR), DATE_SUB(NOW(), INTERVAL 478 HOUR), NULL, true, 180000, 220000, 400000, 0,     0),
+    (11, 1,  1,  1,  DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'COMPLETED', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 240 HOUR), DATE_SUB(NOW(), INTERVAL 239 HOUR), NULL, true, 100000, 50000,  150000, 0,     0),
+    (12, 2,  2,  3,  DATE_SUB(CURDATE(), INTERVAL 7 DAY),  'COMPLETED', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 9 DAY),  DATE_SUB(NOW(), INTERVAL 168 HOUR), DATE_SUB(NOW(), INTERVAL 166 HOUR), NULL, true, 300000, 150000, 430000, 20000, 0),
+    (13, 3,  3,  1,  DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'COMPLETED', 'WALK_IN', 5, DATE_SUB(NOW(), INTERVAL 16 DAY), DATE_SUB(NOW(), INTERVAL 360 HOUR), DATE_SUB(NOW(), INTERVAL 359 HOUR), NULL, true, 100000, 20000,  120000, 0,     0),
+    (14, 12, 12, 3,  DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'COMPLETED', 'ONLINE',  8, DATE_SUB(NOW(), INTERVAL 22 DAY), DATE_SUB(NOW(), INTERVAL 480 HOUR), DATE_SUB(NOW(), INTERVAL 478 HOUR), NULL, true, 180000, 220000, 400000, 0,     0),
 
-    (15, 4,  4,  1,  DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'CANCELLED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 6 DAY), true,  100000, 0,      100000, 0, 0),
-    (16, 5,  5,  3,  DATE_SUB(CURDATE(), INTERVAL 3 DAY), 'CANCELLED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), false, 300000, 150000, 450000, 0, 0),
-    (17, 6,  6,  1,  DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'CANCELLED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), false, 100000, 0,      100000, 0, 0),
+    (15, 4,  4,  1,  DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'CANCELED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 6 DAY), true,  100000, 0,      100000, 0, 0),
+    (16, 5,  5,  3,  DATE_SUB(CURDATE(), INTERVAL 3 DAY), 'CANCELED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), false, 300000, 150000, 450000, 0, 0),
+    (17, 6,  6,  1,  DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'CANCELED', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), false, 100000, 0,      100000, 0, 0),
 
     (18, 7,  7,  1,  DATE_SUB(CURDATE(), INTERVAL 9 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 11 DAY), NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
     (19, 8,  8,  3,  DATE_SUB(CURDATE(), INTERVAL 6 DAY), 'NO_SHOW', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  NULL, NULL, NULL, true, 300000, 330000, 630000, 0, 0),
@@ -589,8 +574,51 @@ VALUES
 #     (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
 #     (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
--- DDL mode=update: DB persists between restarts. Reset CHECKED_IN bookings cancelled during testing.
-UPDATE booking SET status='CHECKED_IN', canceled_at=NULL WHERE id IN (21,22,23,24,25,26,27) AND status='CANCELLED';
+    -- waiting-in-queue bookings (today, CHECK_IN) — cover FE-27-US-01 AC02-AC04
+    (21, 3,    3,  3, CURDATE(), 'CHECK_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+    (22, 6,    6,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (23, 4,    4,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+    (24, NULL, 16, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (25, 1,    1,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+
+    -- demo thêm cho station 1 (an@gmail.com) — CHECK_IN, chờ trong queue
+    (26, 2,    2,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (27, 5,    5,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
+
+-- Queue bookings: referenced by queue_ticket seed rows #6-#9, #13-#15
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    (21, 3,    3,  3, CURDATE(), 'CHECK_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+    (22, 6,    6,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (23, 4,    4,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+    (25, 1,    1,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+    (26, 2,    2,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+    (27, 5,    5,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
+
+-- =====================================================================
+-- TEST CHECK-IN FLOW (28-31) — booking CONFIRMED hôm nay tại station 2 (staff3@gmail.com),
+-- CHƯA check-in. Staff scan biển số + confirm để sinh queue_ticket WAITING, rồi test queue
+-- management. 3 ONLINE + 1 WALK_IN, tất cả đều có booking_id (không null).
+-- Slot/allocation ở mục BOOKING SLOT (40-43) bên dưới.
+-- =====================================================================
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    (28, 1, 1, 1, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0),
+    (29, 2, 2, 2, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0, 150000, 0, 0),
+    (30, 3, 3, 3, CURDATE(), 'CONFIRMED', 'ONLINE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 300000, 0, 300000, 0, 0),
+    (31, 6, 6, 1, CURDATE(), 'CONFIRMED', 'WALK_IN', NULL, NOW(),                           NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0);
 
 -- =====================================================================
 -- BOOKING ADDON (15)
@@ -623,7 +651,7 @@ INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
     -- booking 1 (station1, +3d, 1 slot)
-    (1,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 1, 'AVAILABLE'),
+    (1,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 2, 'AVAILABLE'),
     -- booking 2 (station2, +5d, 2 slots)
     (2,  2, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
     (3,  2, '08:15', '08:30', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
@@ -844,7 +872,7 @@ VALUES
 
 -- =====================================================================
 -- QUEUE TICKET (13) — today's queue
--- WAITING tickets (6,7,8,9,13) are all linked to a real CHECKED_IN booking
+-- WAITING tickets (6,7,8,9,13) are all linked to a real CHECK_IN booking
 -- (21-25) so the Queue Dashboard / cancel-guest-left flow has full vehicle,
 -- customer tier, and package data to render — covers FE-27-US-01 AC02-AC04:
 --   #6  booking21 ONLINE+deposit,        customer tier GOLD     -> AC02
@@ -858,17 +886,17 @@ DELETE FROM queue_ticket;
 INSERT IGNORE INTO queue_ticket
 (id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
 VALUES
-    (1,  2, 6,    'A001', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 70 MINUTE), true,  3),
-    (2,  1, 7,    'A002', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 35 MINUTE), true,  3),
-    (3,  3, 8,    'A003', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  3),
-    (4,  1, 9,    'A004', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  3),
-    (5,  4, 10,   'A005', 'IN_SERVICE', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  3),
+    (1,  2, 6,    'A001', 'WASHING', DATE_SUB(NOW(), INTERVAL 70 MINUTE), true,  3),
+    (2,  1, 7,    'A002', 'WASHING', DATE_SUB(NOW(), INTERVAL 35 MINUTE), true,  3),
+    (3,  3, 8,    'A003', 'WASHING', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  3),
+    (4,  1, 9,    'A004', 'WASHING', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  3),
+    (5,  4, 10,   'A005', 'WASHING', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  3),
     (6,  1, 21,   'A006', 'WAITING',    DATE_SUB(NOW(), INTERVAL 20 MINUTE), true,  3),
     (7,  1, 22,   'A007', 'WAITING',    DATE_SUB(NOW(), INTERVAL 10 MINUTE), true,  3),
     (8,  2, 23,   'A008', 'WAITING',    DATE_SUB(NOW(), INTERVAL 15 MINUTE), true,  3),
     (9,  3, 24,   'A009', 'WAITING',    DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
     (10, 4, NULL, 'A010', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
-    (11, 1, NULL, 'A011', 'CANCELLED',  DATE_SUB(NOW(), INTERVAL 2 HOUR),    false, 1),
+    (11, 1, NULL, 'A011', 'CANCELED',   DATE_SUB(NOW(), INTERVAL 2 HOUR),    false, 1),
     (12, 2, NULL, 'A012', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 4 HOUR),    false, 1),
     (13, 2, 25,   'A013', 'WAITING',    DATE_SUB(NOW(), INTERVAL 8 MINUTE),  true,  3),
 
@@ -897,3 +925,39 @@ VALUES
     ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true);
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, booked_count, status) VALUES
+                                                                                                          (2, '23:30:00', '23:45:00', 3, '2026-06-29', 0, 'AVAILABLE'),
+                                                                                                          (2, '23:45:00', '00:00:00', 3, '2026-06-29', 0, 'AVAILABLE'),
+                                                                                                          (2, '00:00:00', '00:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '00:15:00', '00:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '00:30:00', '00:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '00:45:00', '01:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '01:00:00', '01:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '01:15:00', '01:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '01:30:00', '01:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '01:45:00', '02:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '02:00:00', '02:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '02:15:00', '02:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '02:30:00', '02:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '02:45:00', '03:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '03:00:00', '03:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '03:15:00', '03:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '03:30:00', '03:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '03:45:00', '04:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '04:00:00', '04:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '04:15:00', '04:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '04:30:00', '04:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '04:45:00', '05:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '05:00:00', '05:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '05:15:00', '05:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '05:30:00', '05:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '05:45:00', '06:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '06:00:00', '06:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '06:15:00', '06:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '06:30:00', '06:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '06:45:00', '07:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '07:00:00', '07:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '07:15:00', '07:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '07:30:00', '07:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+                                                                                                          (2, '07:45:00', '08:00:00', 3, '2026-06-30', 0, 'AVAILABLE');

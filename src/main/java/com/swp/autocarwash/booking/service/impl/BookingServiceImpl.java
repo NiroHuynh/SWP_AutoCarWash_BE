@@ -27,6 +27,7 @@ import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
+import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;
@@ -87,13 +88,18 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of("CONFIRMED", "CHECKED_IN", "WASHING", "PENDING");
+            List.of(BookingStatus.CONFIRMED.name(),
+                    BookingStatus.CHECK_IN.name(),
+                    BookingStatus.WASHING.name(),
+                    BookingStatus.PENDING.name());
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
      */
     private static final List<String> PAST_STATUSES =
-            List.of("PAID", "CANCELLED", "NO_SHOW");
+            List.of(BookingStatus.CHECK_OUT.name(),
+                    BookingStatus.CANCELED.name(),
+                    BookingStatus.NO_SHOW.name());
 
     /**
      * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
@@ -361,7 +367,7 @@ public class BookingServiceImpl implements BookingService {
      * <p>Luồng xử lý:
      * <ol>
      *   <li>Tìm booking theo ID (404 nếu không tồn tại).</li>
-     *   <li>Cập nhật status = CANCELLED, canceledAt = now, lưu booking.</li>
+     *   <li>Cập nhật status = CANCELED, canceledAt = now, lưu booking.</li>
      *   <li>Giảm bookedCount của từng slot đã cấp cho booking để giải phóng chỗ;
      *       giữ nguyên BookingSlotAllocation để vẫn hiển thị được giờ đã đặt trên
      *       booking card/detail sau khi hủy.</li>
@@ -379,7 +385,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
@@ -414,10 +420,10 @@ public class BookingServiceImpl implements BookingService {
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Validate booking đang ở trạng thái CHECKED_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
-     *   <li>Đổi status booking sang CANCELLED, ghi nhận canceledAt.</li>
+     *   <li>Validate booking đang ở trạng thái CHECK_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
+     *   <li>Đổi status booking sang CANCELED, ghi nhận canceledAt.</li>
      *   <li>Giải phóng slot đã đặt (giảm bookedCount).</li>
-     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELLED .</li>
+     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELED .</li>
      *   <li>Resolve Staff thực hiện hành động từ actingUserId, publish BookingCanceledEvent
      *       để các listener xử lý tịch thu cọc / cộng điểm vi phạm / cập nhật dashboard.</li>
      * </ol>
@@ -430,11 +436,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if(!"CHECKED_IN".equals(booking.getStatus())){
+        if(!"CHECK_IN".equals(booking.getStatus())){
             throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
         bookingRepository.save(booking);
 
@@ -448,7 +454,7 @@ public class BookingServiceImpl implements BookingService {
         // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
         // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
         queueTicketRepository.findQueueTicketByBookingId(bookingId).ifPresent(ticket -> {
-            ticket.setStatus("CANCELLED");
+            ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         });
         if (booking.getCheckInEmployee() != null) {
@@ -495,7 +501,7 @@ public class BookingServiceImpl implements BookingService {
                     actions = List.of("VIEW_DETAILS");
                 }
                 break;
-            // CHECKED_IN, WASHING, và mọi status khác → chỉ xem
+            // CHECK_IN, WASHING, và mọi status khác → chỉ xem
             default:
                 actions = List.of("VIEW_DETAILS");
         }
