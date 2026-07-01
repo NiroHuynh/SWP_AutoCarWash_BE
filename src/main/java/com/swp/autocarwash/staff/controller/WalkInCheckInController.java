@@ -6,6 +6,7 @@ import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.BookingSummaryResponse;
 import com.swp.autocarwash.staff.dto.response.CheckPhoneResponse;
 import com.swp.autocarwash.staff.dto.response.CreateWalkInResponse;
+import com.swp.autocarwash.staff.dto.response.WalkInFormDataResponse;
 import com.swp.autocarwash.staff.service.impl.WalkInCheckInService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +55,20 @@ public class WalkInCheckInController {
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
 
-    @PostMapping("/confirm-penalty-deposit")
-    public ResponseEntity<ApiResponse<CreateWalkInResponse>> confirmPenaltyDeposit(@Valid @RequestBody CreateWalkInRequest request) {
-        CreateWalkInResponse response = walkInCheckInService.confirmPenaltyDeposit(request);
-        return ResponseEntity.ok(ApiResponse.success("Penalty deposit collected. Walk-in booking created successfully!", response));
+    //API lấy Master Data (Gói dịch vụ + Addon) để hiển thị lên Form chọn tại quầy
+    @GetMapping("/form-data")
+    public ResponseEntity<ApiResponse<WalkInFormDataResponse>> getWalkInFormData() {
+        // Gọi xuống tầng Service xử lý vòng lặp lấy dữ liệu
+        WalkInFormDataResponse response = walkInCheckInService.getWalkInFormData();
+
+        // Trả về HTTP Status 200 OK kèm theo gói dữ liệu sạch
+        return ResponseEntity.ok(ApiResponse.success("List of Service response successfully", response));
     }
+
+//    @PostMapping("/confirm-penalty-deposit")
+//    public ResponseEntity<ApiResponse<CreateWalkInResponse>> confirmPenaltyDeposit(@Valid @RequestBody CreateWalkInRequest request) {
+//        CreateWalkInResponse response = walkInCheckInService.confirmPenaltyDeposit(request);
+//        return ResponseEntity.ok(ApiResponse.success("Penalty deposit collected. Walk-in booking created successfully!", response));
+//    }
 
 }
