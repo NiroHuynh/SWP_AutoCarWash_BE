@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -43,9 +44,8 @@ public class Payment {
     @Column(name = "payment_status", nullable = false, length = 20)
     private String paymentStatus;
 
-    @CreationTimestamp
     @Column(name = "paid_at")
-    private Instant paidAt;
+    private LocalDateTime paidAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_invoice_id")

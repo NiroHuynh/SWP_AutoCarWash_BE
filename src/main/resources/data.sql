@@ -561,29 +561,29 @@ VALUES
 
     (99, 101, 203, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0),
     (1, 100, 201, 1, CURDATE(), 'CONFIRMED', 'ONLINE', TRUE, NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
-#     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
-#
-#     -- waiting-in-queue bookings (today, CHECKED_IN) — cover FE-27-US-01 AC02-AC04
-#     (21, 3,    3,  3, CURDATE(), 'CHECKED_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
-#     (22, 6,    6,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
-#     (23, 4,    4,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
-#     (24, NULL, 16, 1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
-#     (25, 1,    1,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
-#
-#     -- demo thêm cho station 1 (staff1@gmail.com) — CHECKED_IN, chờ trong queue
-#     (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
-#     (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
-
-    -- waiting-in-queue bookings (today, CHECK_IN) — cover FE-27-US-01 AC02-AC04
-    (21, 3,    3,  3, CURDATE(), 'CHECK_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
-    (22, 6,    6,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
-    (23, 4,    4,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
-    (24, NULL, 16, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
-    (25, 1,    1,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
-
-    -- demo thêm cho station 1 (an@gmail.com) — CHECK_IN, chờ trong queue
-    (26, 2,    2,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
-    (27, 5,    5,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
+-- #     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
+-- #
+-- #     -- waiting-in-queue bookings (today, CHECKED_IN) — cover FE-27-US-01 AC02-AC04
+-- #     (21, 3,    3,  3, CURDATE(), 'CHECKED_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+-- #     (22, 6,    6,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+-- #     (23, 4,    4,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+-- #     (24, NULL, 16, 1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+-- #     (25, 1,    1,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+-- #
+-- #     -- demo thêm cho station 1 (staff1@gmail.com) — CHECKED_IN, chờ trong queue
+-- #     (26, 2,    2,  1, CURDATE(), 'CHECKED_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+-- #     (27, 5,    5,  2, CURDATE(), 'CHECKED_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
+--
+--     -- waiting-in-queue bookings (today, CHECK_IN) — cover FE-27-US-01 AC02-AC04
+--     (21, 3,    3,  3, CURDATE(), 'CHECK_IN', 'ONLINE',  1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, true,  300000, 0, 300000, 0, 0),
+--     (22, 6,    6,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 2, NOW(),                           DATE_SUB(NOW(), INTERVAL 10 MINUTE), NULL, NULL, true,  100000, 0, 100000, 0, 0),
+--     (23, 4,    4,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  3, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL, false, 220000, 0, 220000, 0, 0),
+--     (24, NULL, 16, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', 5, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+--     (25, 1,    1,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  4, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 8 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0),
+--
+--     -- demo thêm cho station 1 (an@gmail.com) — CHECK_IN, chờ trong queue
+--     (26, 2,    2,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 5 MINUTE),  NULL, NULL, false, 100000, 0, 100000, 0, 0),
+--     (27, 5,    5,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
 -- Queue bookings: referenced by queue_ticket seed rows #6-#9, #13-#15
 INSERT IGNORE INTO booking
@@ -951,4 +951,4 @@ INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, 
                                                                                                           (2, '07:00:00', '07:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
                                                                                                           (2, '07:15:00', '07:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
                                                                                                           (2, '07:30:00', '07:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '07:45:00', '08:00:00', 3, '2026-06-30', 0, 'AVAILABLE');
+                                                                                                          (2, '07:45:00', '08:00:00', 3, '2026-06-30', 0, 'AVAILABLE')

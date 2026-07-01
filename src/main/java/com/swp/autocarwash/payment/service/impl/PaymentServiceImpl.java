@@ -105,7 +105,8 @@ public class PaymentServiceImpl implements PaymentService {
         invoice.setRawAmount(serviceAmount.add(addonAmount));
         invoice.setFinalAmount(booking.getTotalAmount());
         invoice.setStatus("PAID");
-        invoice.setPaidAt(Instant.now());
+        invoice.setPaidAt(LocalDateTime.now());
+        invoice.setCreatedAt(LocalDateTime.now());
         invoice = bookingInvoiceRepository.save(invoice);
 
         // Bước 3: Ghi nhận giao dịch thanh toán tiền mặt, gắn vào hoá đơn vừa tạo/cập nhật
@@ -116,6 +117,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setAmount(amountDue);
         payment.setReceivedAmount(receivedAmount);
         payment.setPaymentStatus("SUCCESS");
+        payment.setPaidAt(LocalDateTime.now());
         payment = paymentRepository.save(payment);
 
         // Bước 4: Khách đã thanh toán xong -> chuyển booking sang CHECK_OUT

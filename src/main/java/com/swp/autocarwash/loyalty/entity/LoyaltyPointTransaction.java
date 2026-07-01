@@ -43,7 +43,6 @@ public class LoyaltyPointTransaction {
     @Column(name = "points", nullable = false)
     private Integer points;
 
-    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

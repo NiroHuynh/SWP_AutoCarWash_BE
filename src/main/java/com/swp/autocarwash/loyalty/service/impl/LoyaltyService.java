@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +70,7 @@ public class LoyaltyService {
                 .transactionType(LoyaltyPointTransactionStatus.EARN.toString())
                 .points(earnedPoint)
                 .balanceAfter(newBalance)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -76,15 +78,7 @@ public class LoyaltyService {
     private LoyaltyPointBalance getBalance(BookingCompletedEvent event) {
         return loyaltyPointBalanceRepository
                 .findLoyaltyPointBalanceByCustomerId(event.customerId())
-                .orElseGet(() ->
-                        LoyaltyPointBalance.builder()
-                                .customer(
-                                        Customer.builder()
-                                                .id(event.customerId())
-                                                .build()
-                                )
-                                .build()
-                );
+                .orElseThrow( ()-> new BusinessException(ErrorCode.LOYALTY_POINT_BALANCE_NOT_FOUND));
     }
 
     //    tỉnh điểm thưởng

@@ -13,7 +13,7 @@ import com.swp.autocarwash.auth.validator.RegisterValidator;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
-import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
+import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
