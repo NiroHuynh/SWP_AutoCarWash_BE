@@ -7,6 +7,7 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.*;
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.booking.event.BookingCanceledEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
@@ -114,13 +115,14 @@ public class BookingServiceImpl implements BookingService {
     /**
      * Múi giờ hệ thống.
      * Múi giờ Việt Nam (UTC+7) — dùng thay cho LocalDateTime.now() để đảm bảo
-     *  đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
+     * đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
      */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     /**
      * Publisher riêng của module booking, bọc lại ApplicationEventPublisher của Spring.
      * Khi gọi publishBookingCanceled(), Spring sẽ tìm tất cả class có annotation
+     *
      * @EventListener/@TransactionalEventListener lắng nghe BookingCanceledEvent để thông báo
      * "có 1 sự kiện vừa diễn ra" — còn làm gì sau khi nghe thông báo thì tự đám listener xử lí.
      */
@@ -153,7 +155,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingSlotRepository bookingSlotRepository;
 
 
-
     /**
      * Xây dựng danh sách {@link BookingCardResponse} từ danh sách booking, dùng chung
      * cho cả {@link #getUpcomingBookings(Long)} và {@link #getPastBookings(Long)}.
@@ -164,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
      *
      * @param bookings danh sách booking cần chuyển đổi
      * @return danh sách {@link BookingCardResponse} chưa sắp xếp tương ứng với {@code bookings};
-     *         danh sách rỗng nếu {@code bookings} rỗng
+     * danh sách rỗng nếu {@code bookings} rỗng
      */
     private List<BookingCardResponse> buildBookingCardResponses(List<Booking> bookings) {
         List<BookingCardResponse> result = new ArrayList<>();
@@ -265,6 +266,7 @@ public class BookingServiceImpl implements BookingService {
 
         return result;
     }
+
     /**
      * {@inheritDoc}
      *
@@ -555,7 +557,7 @@ public class BookingServiceImpl implements BookingService {
 
         // PRICE CALCULATION
 //        tính giá service package
-        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(),LocalDate.parse(request.getAppointmentDate()));
+        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
 //        tính giá addon service
         BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
@@ -583,6 +585,8 @@ public class BookingServiceImpl implements BookingService {
             subTotal = subTotal.subtract(discount);
         }
 
+        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+
         // BUILD BOOKING ENTITY (FIXED)
         Booking booking = Booking.builder()
                 .customer(modelMapper.map(customer, Customer.class))
@@ -590,7 +594,7 @@ public class BookingServiceImpl implements BookingService {
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
                 .status(BookingStatus.CONFIRMED.toString())
-                .bookingType("ONLINE")
+                .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
                 .voucherDiscountAmount(discount)
@@ -607,16 +611,12 @@ public class BookingServiceImpl implements BookingService {
         booking = createBookingAlocation(booking, request.getSlotIds());
 
 //        tạo voucherUsage
-        createVoucherUsage(voucher,booking);
+        createVoucherUsage(voucher, booking);
 
         Booking saved = bookingRepository.save(booking);
 
 //        tạo booking invoice
         bookingInvoicePort.createInvoice(booking);
-
-
-
-
 
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
@@ -626,19 +626,26 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    private void createVoucherUsage(VoucherContract voucherContract,Booking booking) {
-        if(voucherContract==null) return;
-        voucherUsagePort.consumeVoucher(voucherContract.getId(),booking);
+    private BookingType getBookingType(Long vehicleId, Integer servicePackageId) {
+        if (hasSubscription(vehicleId, servicePackageId)){
+            return BookingType.SUBSCRIPTION;
+        }
+        return BookingType.ADVANCE;
+    }
+
+    private void createVoucherUsage(VoucherContract voucherContract, Booking booking) {
+        if (voucherContract == null) return;
+        voucherUsagePort.consumeVoucher(voucherContract.getId(), booking);
     }
 
     private Booking createBookingAlocation(Booking booking, List<Long> slotIds) {
         List<BookingSlot> slots = bookingSlotRepository.findAvailableSlots(slotIds);
         List<BookingSlotAllocation> allocations = new ArrayList<>();
-        for(BookingSlot slot : slots){
+        for (BookingSlot slot : slots) {
 
             int updated = bookingSlotRepository.increaseBookedCount(slot.getId());
-            if(updated==0){
-                throw  new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
+            if (updated == 0) {
+                throw new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
             }
             BookingSlotAllocationId id = BookingSlotAllocationId.builder()
                     .bookingSlotId(slot.getId())

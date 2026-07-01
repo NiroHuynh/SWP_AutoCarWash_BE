@@ -12,6 +12,8 @@ import com.swp.autocarwash.auth.validator.IdentityValidator;
 import com.swp.autocarwash.auth.validator.RegisterValidator;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
+import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import com.swp.autocarwash.auth.dto.request.RegisterRequest;
 import com.swp.autocarwash.auth.entity.Role;
 import com.swp.autocarwash.auth.entity.enums.UserRole;
-import com.swp.autocarwash.auth.port.CustomerPort;
 import com.swp.autocarwash.auth.repository.RoleRepository;
 import com.swp.autocarwash.auth.service.AuthService;
 import com.swp.autocarwash.common.exception.BusinessException;
@@ -34,7 +35,6 @@ import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,8 +66,10 @@ public class AuthServiceImpl implements AuthService {
     private final CustomerRepository customerRepository;
 
     private final CustomerTierRepository customerTierRepository;
-    
-     @Autowired
+          // ← thêm field này
+    private final LoyaltyPointBalanceRepository loyaltyPointBalanceRepository;
+
+    @Autowired
     private UserRepository userRepo;
     //dùng để mã hoá mật khẩu
 //    @Autowired
@@ -128,7 +130,15 @@ public class AuthServiceImpl implements AuthService {
         customer.setViolationCount(0);
         customer.setRestrictedUntil(null);
 
-        customerRepository.save(customer);
+        Customer savedCustomer =
+                customerRepository.save(customer);
+
+        LoyaltyPointBalance loyaltyPointBalance = new LoyaltyPointBalance();
+        loyaltyPointBalance.setCustomer(savedCustomer);
+        loyaltyPointBalance.setTotalPoints(0);
+        loyaltyPointBalance.setAccumulatedPoints(0);
+
+        loyaltyPointBalanceRepository.save(loyaltyPointBalance);
 
         return true;
       }
