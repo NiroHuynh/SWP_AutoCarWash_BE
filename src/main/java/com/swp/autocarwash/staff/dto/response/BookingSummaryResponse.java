@@ -31,6 +31,8 @@ public class BookingSummaryResponse {
         private Long slotId; // [cite: 159, 161]
         private LocalTime startTime; // [cite: 165]
         private LocalTime endTime; // [cite: 167]
+
+        private List<Long> associatedSlotIds;
     }
 }
 //rawAmount , packageDiscount (Khấu trừ gói) ,

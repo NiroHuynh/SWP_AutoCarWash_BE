@@ -194,21 +194,21 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
             throw new BusinessException(ErrorCode.NO_ALLOCATED_TIME_SLOT);
         }
 
-        // Áp dụng TRƯỚC khi xét đúng giờ/sớm/trễ - khách Walk-in đang bị
-        // restricted_until (đã từng vi phạm > 3 lần) phải bị chặn check-in cho đến khi
-        // Staff thu 20.000đ cọc tại quầy (gọi API collectWalkInPenaltyDeposit trước).
-        //create walk-in mới xét logic này
-        if (booking.getBookingType().equals(BookingType.WALK_IN.toString()) ) {
-            Vehicle vehicle = booking.getVehicle();
-            boolean penalized = isVehiclePenalized(vehicle);
-            boolean depositCollected = Boolean.TRUE.equals(booking.getIsDepositPaid());
+        // Lấy thông tin chi nhánh trực tiếp từ ô giờ đã đặt lịch
+        BookingSlot firstSlot = slots.get(0);
+        if (firstSlot.getStation() == null) {
+            throw new BusinessException(ErrorCode.STATION_NOT_FOUND);
+        }
+        Integer currentStationId = firstSlot.getStation().getId();
 
-            if (penalized && !depositCollected) {
+        if (booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
+            Vehicle vehicle = booking.getVehicle();
+            if (isVehiclePenalized(vehicle) && !Boolean.TRUE.equals(booking.getIsDepositPaid())) {
                 throw new BusinessException(ErrorCode.VEHICLE_CHECKIN_RESTRICTED);
             }
         }
 
-        // Subtask 3.2: Tính độ lệch thời gian thực tế so với slot đầu tiên.
+        //Tính độ lệch thời gian thực tế so với slot đầu tiên.
         LocalTime scheduledStart = slots.get(0).getStartTime();
         LocalTime now = LocalTime.now();
         long minutesDeviation = Duration.between(scheduledStart, now).toMinutes();
@@ -223,9 +223,12 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                     "Checked in successfully (on time)");
         }
 
+        boolean hasAvailableLane = washLaneRepository.existsByStationIdAndStatusAndIsDeletedFalse(
+                currentStationId, WashLaneStatus.AVAILABLE.toString());
+
         if (isEarly) {
             // Subtask 3.3: luồng "ĐẾN SỚM" (> 15 phút)
-            if (washLaneRepository.existsByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE.toString())) {
+            if (hasAvailableLane) {
                 return doCheckIn(booking, slots.get(0), (int) minutesDeviation,
                         "Checked in early - lane available");
             }
@@ -233,7 +236,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         }
 
         // Subtask 3.4: luồng "ĐẾN TRỄ" (> 10 phút)
-        return handleLateArrival(booking, slots.get(0), (int) minutesDeviation);
+        return handleLateArrival(booking, slots.get(0), (int) minutesDeviation, hasAvailableLane);
     }
 
     /**
@@ -268,9 +271,9 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
      * Subtask 3.4: xử lý nhánh "đến trễ" khi không còn làn trống.
      * Phân nhánh theo loại booking: Khách lẻ (chuyển Walk-in) hoặc Khách dùng Package (phạt vi phạm).
      */
-    private CheckInResultResponse handleLateArrival(Booking booking, BookingSlot slot, int minutesDeviation) {
-        if (washLaneRepository.existsByStatusAndIsDeletedFalse(WashLaneStatus.AVAILABLE.toString())) {
-            // Trường hợp 1: Cửa hàng còn làn trống -> châm chước, bỏ qua phạt.
+    private CheckInResultResponse handleLateArrival(Booking booking, BookingSlot slot, int minutesDeviation, boolean hasAvailableLane) {
+        // Nếu chi nhánh HIỆN TẠI thực sự còn làn trống -> châm chước cho vào
+        if (hasAvailableLane) {
             return doCheckIn(booking, slot, minutesDeviation, "Checked in late - lane available, penalty waived");
         }
 
