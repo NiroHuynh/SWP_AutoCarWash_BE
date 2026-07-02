@@ -7,4 +7,7 @@ import java.util.Optional;
 
 public interface SystemSettingRepository extends JpaRepository<SystemSetting, Long> {
     Optional<SystemSetting> findBySettingKey(String settingKey);
+
+
+    Optional<SystemSetting> findSystemSettingBySettingKeyAndIsActiveTrue(String settingKey);
 }

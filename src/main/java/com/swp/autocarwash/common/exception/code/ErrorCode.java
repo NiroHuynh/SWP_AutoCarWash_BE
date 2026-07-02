@@ -23,6 +23,11 @@ public enum ErrorCode {
             "AUTH_001",
             "Unauthorized access"
     ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found"
+    ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
             "COMMON_002",
@@ -282,10 +287,10 @@ public enum ErrorCode {
             "CHECK_IN_QUEUE_005",
             "This vehicle is not currently restricted - no penalty deposit required"
     ),
-    SYSTEM_SETTING_NOT_FOUND(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "SYSTEM_SETTING_001",
-            "System setting not found for key. Please ask Admin to configure"
+    INSUFFICIENT_LOYALTY_POINTS(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_001",
+            "Insufficient loyalty points"
     ),
     INVALID_CONFIG_VALUE_FORMAT(
             HttpStatus.INTERNAL_SERVER_ERROR,
