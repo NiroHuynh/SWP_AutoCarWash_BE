@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -33,7 +34,7 @@ public class UnlimitSubscription {
     private Vehicle vehicle;
 
     @Column(name = "last_vehicle_change_at")
-    private Instant lastVehicleChangeAt;
+    private LocalDateTime lastVehicleChangeAt;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

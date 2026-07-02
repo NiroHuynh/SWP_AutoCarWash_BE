@@ -30,12 +30,16 @@ public class JwtProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
+        //lấy customer id từ user entity
+        Long customerId = (user.getCustomer() != null) ? user.getCustomer().getId() : null;
+
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                                     .subject(user.getId().toString())
                                     .issueTime(now)
                                     .expirationTime(expiryDate)
                                     .claim("roles", user.getRole().getName())
                                     .claim("email", user.getEmail())
+                                    .claim("customerId", customerId)    //đút id vào token
                                     .build();
         //chuyen claim set thanh payload
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
