@@ -10,4 +10,6 @@ public interface WashLaneRepository extends JpaRepository<WashLane, Integer> {
 
     //loại trừ những thằng đã bị softdeleted ra
     Boolean existsByStatusAndIsDeletedFalse(String status);
+
+    boolean existsByStationIdAndStatusAndIsDeletedFalse(Integer stationId, String status);
 }

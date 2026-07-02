@@ -33,7 +33,10 @@ import com.swp.autocarwash.staff.dto.response.WalkInFormDataResponse;
 import com.swp.autocarwash.staff.mapper.WalkInMapper;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
+import com.swp.autocarwash.subscription.entity.FamilySubscription;
+import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import jakarta.transaction.Transactional;
@@ -69,6 +72,7 @@ public class WalkInCheckInService {
     private final QueueTicketRepository queueTicketRepository;
     private final BookingAddonRepository bookingAddonRepository;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
+    private final FamilySubscriptionRepository familySubscriptionRepository;
 
 
     //Kiểm tra sdt để phân loại đối tượng khách cũ/mới(SELECT)
@@ -79,12 +83,60 @@ public class WalkInCheckInService {
             return CheckPhoneResponse.builder()
                     .existed(false).build();
         }
+
         //khách hàng đã có account trong hệ thống
         Customer customer = customerOpt.get();
         List<Vehicle> savedVehicles = vehicleRepository.findByCustomerIdAndIsDeletedFalse(customer.getId());
-        //Đổi thực thể sang DTO -> trả cho FE
+        // 1. Chuyển thực thể sang DTO thô bằng Mapper trước
         List<CheckPhoneResponse.VehicleDTO> vehiclesDTO = walkinMapper.toVehicleDTOList(savedVehicles);
-        return walkinMapper.toCheckPhoneResponse(customer,vehiclesDTO);
+
+        LocalDate today = LocalDate.now();
+        for (CheckPhoneResponse.VehicleDTO vehicleDTO : vehiclesDTO) {
+
+            // Khởi tạo danh sách trống cho từng xe
+            List<CheckPhoneResponse.VehicleSubscriptionDTO> activeSubs = new ArrayList<>();
+
+            // Thử tìm gói Unlimited gắn với xe này
+            Optional<UnlimitSubscription> unlimitOpt = unlimitSubscriptionRepository
+                    .findActiveSubscriptionByVehicle(vehicleDTO.getId(), today);
+
+            if (unlimitOpt.isPresent()) {
+                UnlimitSubscription sub = unlimitOpt.get();
+                activeSubs.add(CheckPhoneResponse.VehicleSubscriptionDTO.builder()
+                        .subscriptionId(sub.getId())
+                        .subscriptionPlanId(sub.getSubscriptionPlan().getId())
+                        .servicePackageId(sub.getSubscriptionPlan().getServicePackage().getId()) // Đã bao gồm servicePackageId
+                        .planName(sub.getSubscriptionPlan().getPlanName())
+                        .planType(sub.getSubscriptionPlan().getPlanType())
+                        .endDate(sub.getEndDate())
+                        .status(sub.getStatus())
+                        .build());
+            }
+
+            //Tiếp tục check xem xe có nằm trong nhóm Family nào có gói ACTIVE không
+            Optional<FamilySubscription> familyOpt = familySubscriptionRepository
+                    .findActiveFamilySubscriptionByVehicle(vehicleDTO.getId(), today);
+
+            if (familyOpt.isPresent()) {
+                FamilySubscription sub = familyOpt.get();
+                activeSubs.add(CheckPhoneResponse.VehicleSubscriptionDTO.builder()
+                        .subscriptionId(sub.getId())
+                        .subscriptionPlanId(sub.getSubscriptionPlan().getId())
+                        .servicePackageId(sub.getSubscriptionPlan().getServicePackage().getId()) // Đã bao gồm servicePackageId
+                        .planName(sub.getSubscriptionPlan().getPlanName())
+                        .planType(sub.getSubscriptionPlan().getPlanType())
+                        .endDate(sub.getEndDate())
+                        .status(sub.getStatus())
+                        .build());
+            }
+            // Gán mảng các gói tìm được (có thể rỗng, có thể có 1 gói, hoặc cả 2 gói) vào xe
+            vehicleDTO.setSubscriptionInfo(activeSubs);
+        }
+
+        //Trả về Response hoàn chỉnh cho Frontend
+        CheckPhoneResponse response = walkinMapper.toCheckPhoneResponse(customer, vehiclesDTO);
+        response.setExisted(true);
+        return response;
     }
 
     //API tính hoá đơn tạm tính + auto load slot trống(READ)
