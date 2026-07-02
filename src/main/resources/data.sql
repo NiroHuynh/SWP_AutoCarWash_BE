@@ -1,9 +1,11 @@
-SET FOREIGN_KEY_CHECKS = 0;
+SET
+FOREIGN_KEY_CHECKS = 0;
 
 -- =====================================================================
 -- ROLE (10)
 -- =====================================================================
-INSERT IGNORE INTO role (id, name)
+INSERT
+IGNORE INTO role (id, name)
 VALUES
     (1, 'ADMIN'),
     (2, 'STAFF'),
@@ -13,7 +15,8 @@ VALUES
 -- =====================================================================
 -- USER (27) — 1 admin, 2 manager, 12 staff (EMPLOYEE), 12 customer
 -- =====================================================================
-INSERT IGNORE INTO user
+INSERT
+IGNORE INTO user
 (id, email, phone, password_hash, role_id, is_active, created_at)
 VALUES
     (1, 'khoa@gmail.com',     '0900000001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, true,  DATE_SUB(NOW(), INTERVAL 400 DAY)),
@@ -48,7 +51,8 @@ VALUES
 -- =====================================================================
 -- REFRESH TOKEN (10)
 -- =====================================================================
-INSERT IGNORE INTO refresh_token
+INSERT
+IGNORE INTO refresh_token
 (id, user_id, token, expiry_date, created_at)
 VALUES
     (1,  1,  'rt-admin-0000000000000001',  DATE_ADD(NOW(), INTERVAL 30 DAY), NOW()),
@@ -65,7 +69,8 @@ VALUES
 -- =====================================================================
 -- PROVINCE (5)
 -- =====================================================================
-INSERT IGNORE INTO province (id, province_name)
+INSERT
+IGNORE INTO province (id, province_name)
 VALUES
     (1, 'Tien Giang'),
     (2, 'Ho Chi Minh'),
@@ -76,7 +81,8 @@ VALUES
 -- =====================================================================
 -- COMMUNE (7) — each province has 1 or 2 communes
 -- =====================================================================
-INSERT IGNORE INTO commune (id, commune_name, province_id)
+INSERT
+IGNORE INTO commune (id, commune_name, province_id)
 VALUES
     (1,  'My Tho',    1),
     (2,  'Thu Duc',   2),
@@ -89,7 +95,8 @@ VALUES
 -- =====================================================================
 -- STATION (8) — each commune has 1 or 2 stations
 -- =====================================================================
-INSERT IGNORE INTO station
+INSERT
+IGNORE INTO station
 (id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
 VALUES
     (9,  'AutoWash My Tho',         '123 Ap Bac, My Tho',              1,  true, 20, false),
@@ -106,7 +113,8 @@ VALUES
 -- =====================================================================
 -- WASH LANE (15)
 -- =====================================================================
-INSERT IGNORE INTO wash_lane
+INSERT
+IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
 VALUES
     (1,  1,  'Lane 1', 'AVAILABLE', 3, false),
@@ -128,7 +136,8 @@ VALUES
 -- =====================================================================
 -- STAFF (12)
 -- =====================================================================
-INSERT IGNORE INTO staff
+INSERT
+IGNORE INTO staff
 (id, user_id, station_id, first_name, last_name)
 VALUES
     (1,  4,  1,  'An',    'Nguyen'),
@@ -147,7 +156,8 @@ VALUES
 -- =====================================================================
 -- CUSTOMER TIER (4)
 -- =====================================================================
-INSERT IGNORE INTO customer_tier
+INSERT
+IGNORE INTO customer_tier
 (id, tier_name, min_points, booking_window_days, point_multiple, retention_target_amount)
 VALUES
     (1,  'MEMBER',    0,     7,  1.0, 0),
@@ -158,7 +168,8 @@ VALUES
 -- =====================================================================
 -- TIER BENEFIT (6)
 -- =====================================================================
-INSERT IGNORE INTO tier_benefit
+INSERT
+IGNORE INTO tier_benefit
 (id, customer_tier_id, benefit_description)
 VALUES
     (1,  1,  'Tich diem co ban x1 moi luot rua xe'),
@@ -171,7 +182,8 @@ VALUES
 -- =====================================================================
 -- CUSTOMER (12)
 -- =====================================================================
-INSERT IGNORE INTO customer
+INSERT
+IGNORE INTO customer
 (id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
 VALUES
     (1,  16, 'Phong', 'Huynh', '1990-01-15', 1,  0, NULL),
@@ -195,7 +207,8 @@ VALUES
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
 -- guest with no registered account (FE shows "Guest" badge for this).
 -- =====================================================================
-INSERT IGNORE INTO vehicle
+INSERT
+IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
 VALUES
     (1,  1,  '51A-11111', 'Toyota',   'White',  0, NULL, false),
@@ -221,14 +234,16 @@ VALUES
     (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE);
 
 
-# (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
+#
+(203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
 
 #     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false);
 
 -- =====================================================================
 -- FAMILY GROUP (10)
 -- =====================================================================
-INSERT IGNORE INTO family_group
+INSERT
+IGNORE INTO family_group
 (id, group_name, owner_customer_id, created_at, is_deleted)
 VALUES
     (1,  'Gia dinh Huynh', 1,  DATE_SUB(NOW(), INTERVAL 100 DAY), false),
@@ -245,7 +260,8 @@ VALUES
 -- =====================================================================
 -- FAMILY MEMBER (12)
 -- =====================================================================
-INSERT IGNORE INTO family_member
+INSERT
+IGNORE INTO family_member
 (id, family_group_id, customer_id, vehicle_id, vehicle_change_count, vehicle_change_window_start)
 VALUES
     (1,  1,  1,  1,  0, NULL),
@@ -264,7 +280,8 @@ VALUES
 -- =====================================================================
 -- TIER RETENTION (12)
 -- =====================================================================
-INSERT IGNORE INTO tier_retention
+INSERT
+IGNORE INTO tier_retention
 (id, customer_id, customer_tier_id, target_amount, current_amount, start_date, end_date, status, evaluated_at)
 VALUES
     (1,  1,  1,  1500000, 600000,  DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'IN_PROGRESS', NULL),
@@ -283,7 +300,8 @@ VALUES
 -- =====================================================================
 -- LOYALTY POINT BALANCE (12) — one row per customer
 -- =====================================================================
-INSERT IGNORE INTO loyalty_point_balance
+INSERT
+IGNORE INTO loyalty_point_balance
 (customer_id, total_points, accumulated_points)
 VALUES
     (1,  320,  820),
@@ -302,7 +320,8 @@ VALUES
 -- =====================================================================
 -- SERVICE CATEGORY (3) — dong san pham: rua le, goi Family, goi Unlimited
 -- =====================================================================
-INSERT IGNORE INTO service_category
+INSERT
+IGNORE INTO service_category
 (id, category_name, description)
 VALUES
     (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
@@ -312,7 +331,8 @@ VALUES
 -- =====================================================================
 -- ADDON SERVICE (7) — addon tuong ung 3 goi Basic/Medium/Premium (FE mock)
 -- =====================================================================
-INSERT IGNORE INTO addon_service
+INSERT
+IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id, is_deleted)
 VALUES
     (1, 'Exterior Foam Wash',      60000,  15, 1, false),
@@ -329,7 +349,8 @@ VALUES
 -- SERVICE PACKAGE (3) — dung dung 3 muc Basic/Medium/Premium theo FE mock.
 -- required_slot = durationMinutes / 15 (Basic 15p, Medium 30p, Premium 45p)
 -- =====================================================================
-INSERT IGNORE INTO service_package
+INSERT
+IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
     (1, 1, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                     1, false),
@@ -340,7 +361,8 @@ VALUES
 -- PACKAGE ADDON MAPPING (15) — addon cong don theo tung muc (Basic 3,
 -- Medium 5, Premium 7) dung khop danh sach addons trong FE mock
 -- =====================================================================
-INSERT IGNORE INTO package_addon_mapping
+INSERT
+IGNORE INTO package_addon_mapping
 (service_package_id, addon_service_id)
 VALUES
     (1, 1), (1, 2), (1, 3),
@@ -351,7 +373,8 @@ VALUES
 -- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
 -- co du 3 ky han: 1 thang, 3 thang, 6 thang
 -- =====================================================================
-INSERT IGNORE INTO subscription_plan
+INSERT
+IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted)
 VALUES
     (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang', false),
@@ -370,7 +393,8 @@ VALUES
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
 -- =====================================================================
-INSERT IGNORE INTO unlimit_subscription
+INSERT
+IGNORE INTO unlimit_subscription
 (id, customer_id, vehicle_id, subscription_plan_id, last_vehicle_change_at, start_date, end_date, status, canceled_at)
 VALUES
     (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
@@ -387,7 +411,8 @@ VALUES
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
 -- =====================================================================
-INSERT IGNORE INTO family_subscription
+INSERT
+IGNORE INTO family_subscription
 (id, family_group_id, subscription_plan_id, start_date, end_date, status, canceled_at)
 VALUES
     (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
@@ -404,7 +429,8 @@ VALUES
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)
 -- =====================================================================
-INSERT IGNORE INTO subscription_invoice
+INSERT
+IGNORE INTO subscription_invoice
 (id, customer_id, unlimit_subscription_id, family_subscription_id, plan_price, status, created_at, paid_at)
 VALUES
     (1,  1,  1,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
@@ -423,7 +449,8 @@ VALUES
 -- =====================================================================
 -- PROMOTION (10)
 -- =====================================================================
-INSERT IGNORE INTO promotion
+INSERT
+IGNORE INTO promotion
 (id, title, description, start_date, end_date, status, created_at)
 VALUES
     (1,  'Khuyen mai mua he',                'Giam gia cac goi rua xe mua he', DATE_SUB(CURDATE(), INTERVAL 30 DAY),  DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY)),
@@ -440,7 +467,8 @@ VALUES
 -- =====================================================================
 -- PROMOTION TARGET (10)
 -- =====================================================================
-INSERT IGNORE INTO promotion_target
+INSERT
+IGNORE INTO promotion_target
 (id, target_name, target_code, description)
 VALUES
     (1,  'All Customers',          'ALL',     'Ap dung cho tat ca khach hang'),
@@ -457,7 +485,8 @@ VALUES
 -- =====================================================================
 -- PROMOTION TARGET MAPPING (15)
 -- =====================================================================
-INSERT IGNORE INTO promotion_target_mapping
+INSERT
+IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
     (1, 1), (1, 2),
@@ -474,7 +503,8 @@ VALUES
 -- =====================================================================
 -- VOUCHER (12)
 -- =====================================================================
-INSERT IGNORE INTO voucher
+INSERT
+IGNORE INTO voucher
 (id, promotion_id, voucher_code, max_discount_amount, min_order_value, usage_limit, used_count, expiry_date, status, start_date, reusable, discount_percentage, created_at)
 VALUES
     (1,  1,    'SUMMER10',  50000,  100000, 200, 35,  DATE_ADD(NOW(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY), true,  10, DATE_SUB(NOW(), INTERVAL 30 DAY)),
@@ -493,7 +523,8 @@ VALUES
 -- =====================================================================
 -- VOUCHER USAGE (15)
 -- =====================================================================
-INSERT IGNORE INTO voucher_usage
+INSERT
+IGNORE INTO voucher_usage
 (id, voucher_id, customer_id, booking_id, used_at, status)
 VALUES
     (1,  1,  1,  NULL, DATE_SUB(NOW(), INTERVAL 25 DAY), 'USED'),
@@ -526,7 +557,8 @@ VALUES
 --   23 ONLINE+no-deposit subscription/PLATINUM (AC03),
 --   24 WALK_IN anonymous guest/no customer (AC04), 25 ONLINE+deposit/MEMBER (AC02)
 -- =====================================================================
-INSERT IGNORE INTO booking
+INSERT
+IGNORE INTO booking
 (id, customer_id, vehicle_id, service_package_id,
  appointment_date, status, booking_type, check_in_employee_id,
  created_at, check_in_at, check_out_at, canceled_at,
@@ -586,7 +618,8 @@ VALUES
 --     (27, 5,    5,  2, CURDATE(), 'CHECK_IN', 'ONLINE',  2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 3 MINUTE),  NULL, NULL, true,  220000, 0, 220000, 0, 0);
 
 -- Queue bookings: referenced by queue_ticket seed rows #6-#9, #13-#15
-INSERT IGNORE INTO booking
+INSERT
+IGNORE INTO booking
 (id, customer_id, vehicle_id, service_package_id,
  appointment_date, status, booking_type, check_in_employee_id,
  created_at, check_in_at, check_out_at, canceled_at,
@@ -607,7 +640,8 @@ VALUES
 -- management. 3 ONLINE + 1 WALK_IN, tất cả đều có booking_id (không null).
 -- Slot/allocation ở mục BOOKING SLOT (40-43) bên dưới.
 -- =====================================================================
-INSERT IGNORE INTO booking
+INSERT
+IGNORE INTO booking
 (id, customer_id, vehicle_id, service_package_id,
  appointment_date, status, booking_type, check_in_employee_id,
  created_at, check_in_at, check_out_at, canceled_at,
@@ -623,7 +657,8 @@ VALUES
 -- =====================================================================
 -- BOOKING ADDON (15)
 -- =====================================================================
-INSERT IGNORE INTO booking_addon
+INSERT
+IGNORE INTO booking_addon
 (id, booking_id, addon_service_id, price)
 VALUES
     (1,  1,  1, 50000),
@@ -647,7 +682,8 @@ VALUES
 -- bookings (required_slot >= 2) get back-to-back contiguous rows so
 -- SlotAvailabilityEngine.isContinuous() can match them.
 -- =====================================================================
-INSERT IGNORE INTO booking_slot
+INSERT
+IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
     -- booking 1 (station1, +3d, 1 slot)
@@ -718,7 +754,8 @@ VALUES
 -- =====================================================================
 -- BOOKING SLOT ALLOCATION (27) — (booking_id, booking_slot_id)
 -- =====================================================================
-INSERT IGNORE INTO booking_slot_allocation
+INSERT
+IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
 VALUES
     (2,  2),  (2,  3),
@@ -752,7 +789,8 @@ VALUES
 -- =====================================================================
 -- LOYALTY POINT TRANSACTION (15)
 -- =====================================================================
-INSERT IGNORE INTO loyalty_point_transaction
+INSERT
+IGNORE INTO loyalty_point_transaction
 (id, customer_id, booking_id, transaction_type, points, balance_after, created_at)
 VALUES
     (1,  1,  11,   'EARN',   150,  320,  DATE_SUB(NOW(), INTERVAL 12 DAY)),
@@ -774,7 +812,8 @@ VALUES
 -- =====================================================================
 -- BOOKING INVOICE (12)
 -- =====================================================================
-INSERT IGNORE INTO booking_invoice
+INSERT
+IGNORE INTO booking_invoice
 (id, booking_id, customer_id, raw_amount, discount_amount, final_amount, status, voucher_discount, point_discount, service_amount, addon_amount, created_at, paid_at)
 VALUES
     (1,  11, 1,  150000, 0,     150000, 'PAID',      0,     0,    100000, 50000,  DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 239 HOUR)),
@@ -793,7 +832,8 @@ VALUES
 -- =====================================================================
 -- PAYMENT (15)
 -- =====================================================================
-INSERT IGNORE INTO payment
+INSERT
+IGNORE INTO payment
 (id, booking_invoice_id, subscription_invoice_id, payment_method, amount, transaction_code, payment_status, paid_at, received_amount, payment_type)
 VALUES
     (1,  1,    NULL, 'CASH',  150000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 239 HOUR), 150000, 'PAYMENT'),
@@ -815,7 +855,8 @@ VALUES
 -- =====================================================================
 -- REVIEW (12)
 -- =====================================================================
-INSERT IGNORE INTO review
+INSERT
+IGNORE INTO review
 (id, customer_id, booking_id, rating_stars, comment, created_at, updated_at, is_deleted)
 VALUES
     (1,  1,  11,   5, 'Xe sach bong, nhan vien than thien, rat hai long!',         DATE_SUB(NOW(), INTERVAL 239 HOUR), NULL, false),
@@ -834,7 +875,8 @@ VALUES
 -- =====================================================================
 -- NOTIFICATION (10)
 -- =====================================================================
-INSERT IGNORE INTO notification
+INSERT
+IGNORE INTO notification
 (id, title, content, created_at)
 VALUES
     (1,  'Booking Confirmed',          'Your booking has been confirmed',                       DATE_SUB(NOW(), INTERVAL 2 DAY)),
@@ -851,7 +893,8 @@ VALUES
 -- =====================================================================
 -- CUSTOMER NOTIFICATION (15)
 -- =====================================================================
-INSERT IGNORE INTO customer_notification
+INSERT
+IGNORE INTO customer_notification
 (id, notification_id, customer_id, status, sent_at, read_at)
 VALUES
     (1,  1,  1,  'READ',   DATE_SUB(NOW(), INTERVAL 2 DAY),  DATE_SUB(NOW(), INTERVAL 2 DAY)),
@@ -882,8 +925,10 @@ VALUES
 --   #13 booking25 ONLINE+deposit,        customer tier MEMBER   -> AC02
 -- =====================================================================
 -- Reset queue tickets on every startup (status can be changed by cancelGuestLeft during testing)
-DELETE FROM queue_ticket;
-INSERT IGNORE INTO queue_ticket
+DELETE
+FROM queue_ticket;
+INSERT
+IGNORE INTO queue_ticket
 (id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
 VALUES
     (1,  2, 6,    'A001', 'WASHING', DATE_SUB(NOW(), INTERVAL 70 MINUTE), true,  3),
@@ -901,54 +946,57 @@ VALUES
 -- =====================================================================
 -- SYSTEM SETTING (10)
 -- =====================================================================
-INSERT IGNORE INTO system_setting
+INSERT
+IGNORE INTO system_setting
 (setting_key, setting_value, description, data_type, is_active)
 VALUES
     ('DEPOSIT_PERCENT',             '30',      'Deposit percent',                                'NUMBER',  true),
     ('MAX_BOOKING_DAY',             '30',      'Maximum booking day',                            'NUMBER',  true),
     ('DEFAULT_DEPOSIT_AMOUNT',      '20000',   'Default deposit amount',                         'NUMBER',  true),
     ('CANCEL_THRESHOLD_MINUTES',    '120',     'Minutes before appointment a booking can be cancelled', 'NUMBER', true),
-    ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
     ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
     ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
     ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
     ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
-    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true);
+    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
+    ('LOYALTY_EARN_RATE_VND_PER_POINT','1000','Customer earns 1 loyalty point for every 1,000 VND spent','NUMBER',TRUE),
+    ('LOYALTY_REDEEM_RATE_VND_PER_POINT','100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER',  TRUE);
 
-SET FOREIGN_KEY_CHECKS = 1;
+SET
+FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, booked_count, status) VALUES
-                                                                                                          (2, '23:30:00', '23:45:00', 3, '2026-06-29', 0, 'AVAILABLE'),
-                                                                                                          (2, '23:45:00', '00:00:00', 3, '2026-06-29', 0, 'AVAILABLE'),
-                                                                                                          (2, '00:00:00', '00:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '00:15:00', '00:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '00:30:00', '00:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '00:45:00', '01:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '01:00:00', '01:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '01:15:00', '01:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '01:30:00', '01:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '01:45:00', '02:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '02:00:00', '02:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '02:15:00', '02:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '02:30:00', '02:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '02:45:00', '03:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '03:00:00', '03:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '03:15:00', '03:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '03:30:00', '03:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '03:45:00', '04:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '04:00:00', '04:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '04:15:00', '04:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '04:30:00', '04:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '04:45:00', '05:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '05:00:00', '05:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '05:15:00', '05:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '05:30:00', '05:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '05:45:00', '06:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '06:00:00', '06:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '06:15:00', '06:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '06:30:00', '06:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '06:45:00', '07:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '07:00:00', '07:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '07:15:00', '07:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '07:30:00', '07:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
-                                                                                                          (2, '07:45:00', '08:00:00', 3, '2026-06-30', 0, 'AVAILABLE')
+INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, booked_count, status)
+VALUES (2, '23:30:00', '23:45:00', 3, '2026-06-29', 0, 'AVAILABLE'),
+       (2, '23:45:00', '00:00:00', 3, '2026-06-29', 0, 'AVAILABLE'),
+       (2, '00:00:00', '00:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '00:15:00', '00:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '00:30:00', '00:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '00:45:00', '01:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '01:00:00', '01:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '01:15:00', '01:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '01:30:00', '01:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '01:45:00', '02:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '02:00:00', '02:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '02:15:00', '02:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '02:30:00', '02:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '02:45:00', '03:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '03:00:00', '03:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '03:15:00', '03:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '03:30:00', '03:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '03:45:00', '04:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '04:00:00', '04:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '04:15:00', '04:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '04:30:00', '04:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '04:45:00', '05:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '05:00:00', '05:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '05:15:00', '05:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '05:30:00', '05:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '05:45:00', '06:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '06:00:00', '06:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '06:15:00', '06:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '06:30:00', '06:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '06:45:00', '07:00:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '07:00:00', '07:15:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '07:15:00', '07:30:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '07:30:00', '07:45:00', 3, '2026-06-30', 0, 'AVAILABLE'),
+       (2, '07:45:00', '08:00:00', 3, '2026-06-30', 0, 'AVAILABLE')
