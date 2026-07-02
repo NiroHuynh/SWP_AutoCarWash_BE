@@ -88,7 +88,8 @@ public class BookingHistoryMapper {
             Integer voucherDiscountPercent,
             BigDecimal depositAmount,
             BigDecimal remainingAmount,
-            SubscriptionInfo subscriptionInfo) {
+            SubscriptionInfo subscriptionInfo,
+            Integer loyaltyPoint) {
 
         List<AddonInfo> addonInfos = addons.stream()
                 .map(ba -> AddonInfo.builder()
@@ -138,6 +139,7 @@ public class BookingHistoryMapper {
                 .isDepositPaid(booking.getIsDepositPaid())
                 .depositAmount(depositAmount)
                 .remainingAmount(remainingAmount)
+                .loyaltyPoint(loyaltyPoint)
                 .build();
     }
 }

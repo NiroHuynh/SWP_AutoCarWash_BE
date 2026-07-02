@@ -142,4 +142,7 @@ public class BookingDetailResponse {
 
     /** Số tiền còn lại cần thanh toán tại quầy (totalAmount - tiền cọc đã thanh toán). */
     private BigDecimal remainingAmount;
+
+    /** số điểm hiện có */
+    private Integer loyaltyPoint;
 }
