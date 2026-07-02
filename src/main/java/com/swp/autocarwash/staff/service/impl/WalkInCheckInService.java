@@ -46,6 +46,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -162,16 +163,77 @@ public class WalkInCheckInService {
             remainingBalance = BigDecimal.ZERO;
         }
 
-        //AUTO LOAD REAL-TIME: Tự động quét và đóng gói các Slot thực sự còn trống để trả về cho Front-end hiển thị
-        //TỰ ĐỘNG LỌC SLOT CÒN TRỐNG VÀ PHẢI Ở TƯƠNG LAI
-        // Lấy giờ thực tế ngay tại thời điểm nhân viên đang xem màn hình tính tiền
-        LocalTime currentSystemTime = LocalTime.now();
+        // ==================== TỰ ĐỘNG GOM CỤM SLOT THÔNG MINH ĐỂ HIỂN THỊ UI ====================
         if (request.getStationId() == null) {
             throw new BusinessException(ErrorCode.STATION_NOT_FOUND);
         }
+
+        // 1. Tính tổng số slot bắt buộc cần có (Gói chính + Các Addon)
+        ServicePackage servicePackage = servicePackageRepository.findById(request.getServicePackageId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_PACKAGE_NOT_EXIST));
+        int totalRequiredSlots = servicePackage.getRequiredSlot();
+
+        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+            for (Integer addonId : request.getAddonIds()) {
+                AddonService addon = addonServiceRepository.findById(addonId).get();
+                if (addon.getDurationMinutes() != null && addon.getDurationMinutes() > 0) {
+                    int addonSlots = (int) Math.ceil((double) addon.getDurationMinutes() / 15);
+                    totalRequiredSlots += addonSlots;
+                }
+            }
+        }
+
+        // 2. Lấy toàn bộ các slot còn trống trong ngày hôm nay từ thời điểm hiện tại trở đi
+        LocalTime currentSystemTime = LocalTime.now();
         List<BookingSlot> dbSlots = bookingSlotRepository.findAvailableSlotsByStationAndDate(request.getStationId(), LocalDate.now(), currentSystemTime);
 
-        List<BookingSummaryResponse.AvailableSlotDTO> availableSlots = walkinMapper.toAvailableSlotDTOList(dbSlots);
+        // Sắp xếp danh sách slot theo thứ tự thời gian tăng dần để quét liên tiếp
+        List<BookingSlot> sortedDbSlots = dbSlots.stream()
+                .sorted(Comparator.comparing(BookingSlot::getStartTime))
+                .toList();
+
+        List<BookingSummaryResponse.AvailableSlotDTO> validStartSlots = new ArrayList<>();
+
+        // 3. Thuật toán quét chuỗi liên tiếp (Sliding Window)
+        for (int i = 0; i <= sortedDbSlots.size() - totalRequiredSlots; i++) {
+            boolean isBlockValid = true;
+            List<Long> clusterSlotIds = new ArrayList<>();
+
+            // Kiểm tra xem từ vị trí i có đủ 'totalRequiredSlots' liên tiếp không
+            for (int j = 0; j < totalRequiredSlots; j++) {
+                BookingSlot current = sortedDbSlots.get(i + j);
+
+                // Điều kiện 1: Slot đó không được FULL công suất
+                if ("FULL".equals(current.getStatus()) || current.getBookedCount() >= current.getMaxCapacity()) {
+                    isBlockValid = false;
+                    break;
+                }
+
+                // Điều kiện 2: Tính liên tiếp về mặt thời gian (chỉ check từ phần tử thứ 2 của cụm)
+                if (j > 0) {
+                    BookingSlot previous = sortedDbSlots.get(i + j - 1);
+                    if (!previous.getEndTime().equals(current.getStartTime())) {
+                        isBlockValid = false;
+                        break;
+                    }
+                }
+                clusterSlotIds.add(current.getId());
+            }
+
+            // Nếu tìm được một cụm liên tiếp đủ chỗ, lấy thằng đầu tiên làm đại diện đại diện giờ bắt đầu trên UI
+            if (isBlockValid) {
+                BookingSlot startSlot = sortedDbSlots.get(i);
+
+                BookingSummaryResponse.AvailableSlotDTO dto = BookingSummaryResponse.AvailableSlotDTO.builder()
+                        .slotId (startSlot.getId()) // Gửi ID của slot bắt đầu
+                        .startTime(startSlot.getStartTime())
+                        .endTime(sortedDbSlots.get(i + totalRequiredSlots - 1).getEndTime()) // End time là của slot cuối cụm
+                        .associatedSlotIds(clusterSlotIds) //Trả về cả mảng ID để FE bấm 1 phát gửi lên hết cả cụm này luôn!
+                        .build();
+
+                validStartSlots.add(dto);
+            }
+        }
 
         return BookingSummaryResponse.builder()
                 .rawAmount(rawAmount)
@@ -181,7 +243,7 @@ public class WalkInCheckInService {
                 .remainingBalance(remainingBalance)
                 .systemNotice(systemNotice)
                 .isActionBlock(isActionBlock)
-                .availableSlots(availableSlots) // Front-end nhận mảng này để auto hiển thị ô giờ sáng/mờ có thể booking
+                .availableSlots(validStartSlots)
                 .build();
     }
 
@@ -244,25 +306,39 @@ public class WalkInCheckInService {
             throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
         }
 
-        //LOGIC: BẮT BUỘC CHỌN CÁC SLOT LIÊN TIẾP NHAU (1 SLOT = 15 PHÚT)
+        // LOGIC MỚI: TÍNH TỔNG SỐ SLOT YÊU CẦU BAO GỒM CẢ ADD-ON
+        int totalRequiredSlotCount = 0;
         if (servicePackage != null) {
-            int requiredSlotCount = servicePackage.getRequiredSlot();
-            if (selectedSlots.size() != requiredSlotCount) {
-                throw new BusinessException(ErrorCode.INVALID_SLOT_QUANTITY);
-            }
+            totalRequiredSlotCount += servicePackage.getRequiredSlot();
+        }
+        if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
+            for (Integer addonId : request.getAddonIds()) {
+                AddonService addon = addonServiceRepository.findById(addonId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_PACKAGE_ADD_ON_NOT_EXIST));
 
-            // Sắp xếp các slot đã chọn theo thời gian bắt đầu tăng dần
-            List<BookingSlot> sortedSlots = selectedSlots.stream()
-                    .sorted((s1, s2) -> s1.getStartTime().compareTo(s2.getStartTime()))
-                    .toList();
-
-            for (int i = 0; i < sortedSlots.size() - 1; i++) {
-                LocalTime currentEnd = sortedSlots.get(i).getEndTime();
-                LocalTime nextStart = sortedSlots.get(i + 1).getStartTime();
-                // Nếu thời gian kết thúc của ô trước KHÔNG TRÙNG với thời gian bắt đầu ô sau -> Bị rời rạc
-                if (!currentEnd.equals(nextStart)) {
-                    throw new BusinessException(ErrorCode.SLOTS_MUST_BE_CONSECUTIVE);
+                if (addon.getDurationMinutes() != null && addon.getDurationMinutes() > 0) {
+                    int addonSlots = (int) Math.ceil((double) addon.getDurationMinutes() / 15);
+                    totalRequiredSlotCount += addonSlots;
                 }
+            }
+        }
+
+        // Kiểm tra xem số lượng slot Frontend gửi lên có khớp với tổng yêu cầu thực tế không
+        if (selectedSlots.size() != totalRequiredSlotCount) {
+            throw new BusinessException(ErrorCode.INVALID_SLOT_QUANTITY);
+        }
+
+        // Sắp xếp các slot đã chọn theo thời gian bắt đầu tăng dần để kiểm tra tính liên tiếp
+        List<BookingSlot> sortedSlots = selectedSlots.stream()
+                .sorted(Comparator.comparing(BookingSlot::getStartTime))
+                .toList();
+
+        for (int i = 0; i < sortedSlots.size() - 1; i++) {
+            LocalTime currentEnd = sortedSlots.get(i).getEndTime();
+            LocalTime nextStart = sortedSlots.get(i + 1).getStartTime();
+            // Nếu rời rạc lập tức chặn lại chống hack data gửi từ Postman
+            if (!currentEnd.equals(nextStart)) {
+                throw new BusinessException(ErrorCode.SLOTS_MUST_BE_CONSECUTIVE);
             }
         }
 
@@ -357,7 +433,7 @@ public class WalkInCheckInService {
                     .customer(request.getCustomerId() != null ? customerRepository.findById(request.getCustomerId()).orElse(null) : null)
                     .servicePackage(servicePackage)
                     .appointmentDate(LocalDate.now())
-                    .status("CHECKED_IN") // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
+                    .status(BookingStatus.CHECK_IN.name()) // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
                     .bookingType("WALK_IN")
                     .createdAt(LocalDateTime.now())
                     .checkInAt(LocalDateTime.now())
