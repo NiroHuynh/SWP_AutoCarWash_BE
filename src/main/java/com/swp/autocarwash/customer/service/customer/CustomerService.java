@@ -1,6 +1,8 @@
 package com.swp.autocarwash.customer.service.customer;
 
 
+import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
+import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 
 /**
@@ -56,4 +58,8 @@ public interface CustomerService {
 
 
     Customer getCustomerByUserId(Long userId);
+
+    CustomerProfileResponse getCustomerProfile(Long customerId);
+
+    void updateCustomerProfile(Long customerId, UpdateProfileRequest request);
 }

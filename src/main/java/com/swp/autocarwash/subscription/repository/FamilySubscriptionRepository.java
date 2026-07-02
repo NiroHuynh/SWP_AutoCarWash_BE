@@ -50,4 +50,14 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             @Param("vehicleId") Long vehicleId,
             @Param("servicePackageId") Integer servicePackageId
     );
+
+    //KIỂM TRA XE CÓ THUỘC GÓI FAMILY ĐANG ACTIVE KHÔNG
+    @Query("SELECT fs FROM FamilySubscription fs " +
+            "JOIN FETCH fs.subscriptionPlan sp " +
+            "JOIN fs.familyGroup fg " +
+            "JOIN FamilyMember fm ON fm.familyGroup.id = fg.id " + // Bắc cầu sang bảng family_member
+            "WHERE fm.vehicle.id = :vehicleId " +
+            "AND fs.status = 'ACTIVE' " +
+            "AND sp.planType = 'FAMILY'")
+    Optional<FamilySubscription> findActiveFamilySubByVehicleId(@Param("vehicleId") Long vehicleId);
 }

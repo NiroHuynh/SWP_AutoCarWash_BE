@@ -84,4 +84,9 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
                                   @Param("servicePackageId") Integer servicePackageId,
                                   @Param("status") String status,
                                   @Param("currentDate") LocalDate currentDate);
+
+    @Query("SELECT us FROM UnlimitSubscription us JOIN FETCH us.subscriptionPlan sp " +
+            "WHERE us.vehicle.id = :vehicleId AND us.status = 'ACTIVE' AND sp.planType = 'UNLIMITED'")
+    Optional<UnlimitSubscription> findActiveUnlimitedSubByVehicleId(@Param("vehicleId") Long vehicleId);
+
 }
