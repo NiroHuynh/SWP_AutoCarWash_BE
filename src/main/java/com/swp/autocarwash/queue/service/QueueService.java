@@ -1,8 +1,6 @@
 package com.swp.autocarwash.queue.service;
 
-import com.swp.autocarwash.queue.dto.response.QueueTicketResponse;
-
-import java.util.List;
+import com.swp.autocarwash.queue.dto.response.QueueBoardResponse;
 
 /**
  * Chức năng: Nghiệp vụ truy vấn hàng chờ cho Queue Dashboard.
@@ -12,29 +10,38 @@ import java.util.List;
  */
 public interface QueueService {
     /**
-     * Chức năng: Lấy danh sách ticket (trừ CANCELLED) thuộc station của staff đang đăng nhập.
+     * Chức năng: Lấy danh sách ticket (trừ CANCELED) thuộc station của staff đang đăng nhập.
      *
      * @param userId id của user (staff) đang đăng nhập, dùng để tra station
      * @return danh sách ticket, sắp theo độ ưu tiên
      */
-    List<QueueTicketResponse> getActiveQueue(Long userId);
+    QueueBoardResponse getActiveQueue(Long userId);
 
     /**
-     * Chức năng: Hủy queue ticket (do khách bỏ về) theo ticketId.
-     * Nếu ticket có booking, hủy booking và giải phóng slot; nếu walk-in chỉ hủy ticket.
+     * Hủy queue ticket (do khách bỏ về) theo bookingId.
+     * booking → CANCELED, slot giải phóng, ticket → CANCELED.
      *
-     * @param ticketId id của queue ticket cần hủy
+     * @param bookingId    id của booking liên kết với ticket cần hủy
      * @param actingUserId id của staff thực hiện hủy
-     * @return QueueTicketResponse với status=CANCELLED
+     * @return QueueBoardResponse — board mới sau khi hủy
      */
-    QueueTicketResponse cancelByTicketId(Long ticketId, Long actingUserId);
+    QueueBoardResponse cancelByBookingId(Long bookingId, Long actingUserId);
 
     /**
-     * Chức năng: Chuyển queue ticket từ WAITING sang IN_SERVICE (thêm xe vào làn rửa).
-     * Nếu ticket có booking, đồng thời đổi booking sang WASHING.
+     * AC03 — Xe vào làn: booking CHECK_IN→WASHING, ticket→WASHING, 1 làn AVAILABLE→WASHING.
      *
-     * @param ticketId id của queue ticket cần chuyển sang IN_SERVICE
-     * @return QueueTicketResponse với status=IN_SERVICE
+     * @param bookingId id của booking
+     * @return QueueBoardResponse — board mới sau khi xe vào làn
      */
-    QueueTicketResponse startService(Long ticketId);
+    QueueBoardResponse startService(Long bookingId, Integer laneId);
+
+    /**
+     * AC01 — Hoàn tất rửa: booking WASHING→COMPLETED, ticket→COMPLETED, 1 làn WASHING→AVAILABLE.
+     *
+     * @param bookingId id của booking
+     * @param laneId    id DB của làn cần giải phóng (FE gửi để tránh giải phóng nhầm)
+     * @return QueueBoardResponse — board mới sau khi hoàn tất
+     */
+    QueueBoardResponse completeService(Long bookingId, Integer laneId);
+
 }

@@ -1,5 +1,6 @@
 package com.swp.autocarwash.booking.port;
 
+import com.swp.autocarwash.booking.dto.response.BookingContextResponse;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 
 import java.math.BigDecimal;
@@ -29,7 +30,7 @@ public interface ServicePackagePort {
      * @author Phong
      * @version 1.0
      */
-    List<ServicePackageContract> getAllPackages();
+    List<BookingContextResponse.ServicePackageDTO> getAllPackages();
 
     /**
      *

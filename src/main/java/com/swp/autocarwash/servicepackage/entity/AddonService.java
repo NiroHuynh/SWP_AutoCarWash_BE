@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -43,5 +45,7 @@ public class AddonService {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @ManyToMany(mappedBy = "addonServices", fetch = FetchType.LAZY)
+    private List<ServicePackage> servicePackages = new ArrayList<>();
 
 }

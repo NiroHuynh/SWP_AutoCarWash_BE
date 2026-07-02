@@ -7,6 +7,7 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.*;
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.booking.event.BookingCanceledEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
@@ -27,6 +28,7 @@ import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
+import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;
@@ -87,13 +89,18 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of("CONFIRMED", "CHECKED_IN", "WASHING", "PENDING");
+            List.of(BookingStatus.CONFIRMED.name(),
+                    BookingStatus.CHECK_IN.name(),
+                    BookingStatus.WASHING.name(),
+                    BookingStatus.PENDING.name());
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
      */
     private static final List<String> PAST_STATUSES =
-            List.of("PAID", "CANCELLED", "NO_SHOW");
+            List.of(BookingStatus.CHECK_OUT.name(),
+                    BookingStatus.CANCELED.name(),
+                    BookingStatus.NO_SHOW.name());
 
     /**
      * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
@@ -108,13 +115,14 @@ public class BookingServiceImpl implements BookingService {
     /**
      * Múi giờ hệ thống.
      * Múi giờ Việt Nam (UTC+7) — dùng thay cho LocalDateTime.now() để đảm bảo
-     *  đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
+     * đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
      */
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     /**
      * Publisher riêng của module booking, bọc lại ApplicationEventPublisher của Spring.
      * Khi gọi publishBookingCanceled(), Spring sẽ tìm tất cả class có annotation
+     *
      * @EventListener/@TransactionalEventListener lắng nghe BookingCanceledEvent để thông báo
      * "có 1 sự kiện vừa diễn ra" — còn làm gì sau khi nghe thông báo thì tự đám listener xử lí.
      */
@@ -147,7 +155,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingSlotRepository bookingSlotRepository;
 
 
-
     /**
      * Xây dựng danh sách {@link BookingCardResponse} từ danh sách booking, dùng chung
      * cho cả {@link #getUpcomingBookings(Long)} và {@link #getPastBookings(Long)}.
@@ -158,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
      *
      * @param bookings danh sách booking cần chuyển đổi
      * @return danh sách {@link BookingCardResponse} chưa sắp xếp tương ứng với {@code bookings};
-     *         danh sách rỗng nếu {@code bookings} rỗng
+     * danh sách rỗng nếu {@code bookings} rỗng
      */
     private List<BookingCardResponse> buildBookingCardResponses(List<Booking> bookings) {
         List<BookingCardResponse> result = new ArrayList<>();
@@ -259,6 +266,7 @@ public class BookingServiceImpl implements BookingService {
 
         return result;
     }
+
     /**
      * {@inheritDoc}
      *
@@ -361,7 +369,7 @@ public class BookingServiceImpl implements BookingService {
      * <p>Luồng xử lý:
      * <ol>
      *   <li>Tìm booking theo ID (404 nếu không tồn tại).</li>
-     *   <li>Cập nhật status = CANCELLED, canceledAt = now, lưu booking.</li>
+     *   <li>Cập nhật status = CANCELED, canceledAt = now, lưu booking.</li>
      *   <li>Giảm bookedCount của từng slot đã cấp cho booking để giải phóng chỗ;
      *       giữ nguyên BookingSlotAllocation để vẫn hiển thị được giờ đã đặt trên
      *       booking card/detail sau khi hủy.</li>
@@ -379,7 +387,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
@@ -414,10 +422,10 @@ public class BookingServiceImpl implements BookingService {
      *
      * <p>Luồng xử lý:
      * <ol>
-     *   <li>Validate booking đang ở trạng thái CHECKED_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
-     *   <li>Đổi status booking sang CANCELLED, ghi nhận canceledAt.</li>
+     *   <li>Validate booking đang ở trạng thái CHECK_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
+     *   <li>Đổi status booking sang CANCELED, ghi nhận canceledAt.</li>
      *   <li>Giải phóng slot đã đặt (giảm bookedCount).</li>
-     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELLED .</li>
+     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELED .</li>
      *   <li>Resolve Staff thực hiện hành động từ actingUserId, publish BookingCanceledEvent
      *       để các listener xử lý tịch thu cọc / cộng điểm vi phạm / cập nhật dashboard.</li>
      * </ol>
@@ -430,11 +438,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if(!"CHECKED_IN".equals(booking.getStatus())){
-            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
+        if (!"CHECK_IN".equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.BOOKING_NOT_CHECKED_IN);
         }
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
         bookingRepository.save(booking);
 
@@ -448,7 +456,7 @@ public class BookingServiceImpl implements BookingService {
         // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
         // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
         queueTicketRepository.findQueueTicketByBookingId(bookingId).ifPresent(ticket -> {
-            ticket.setStatus("CANCELLED");
+            ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         });
         if (booking.getCheckInEmployee() != null) {
@@ -495,7 +503,7 @@ public class BookingServiceImpl implements BookingService {
                     actions = List.of("VIEW_DETAILS");
                 }
                 break;
-            // CHECKED_IN, WASHING, và mọi status khác → chỉ xem
+            // CHECK_IN, WASHING, và mọi status khác → chỉ xem
             default:
                 actions = List.of("VIEW_DETAILS");
         }
@@ -549,7 +557,7 @@ public class BookingServiceImpl implements BookingService {
 
         // PRICE CALCULATION
 //        tính giá service package
-        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(),LocalDate.parse(request.getAppointmentDate()));
+        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
 //        tính giá addon service
         BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
@@ -577,6 +585,8 @@ public class BookingServiceImpl implements BookingService {
             subTotal = subTotal.subtract(discount);
         }
 
+        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+
         // BUILD BOOKING ENTITY (FIXED)
         Booking booking = Booking.builder()
                 .customer(modelMapper.map(customer, Customer.class))
@@ -584,7 +594,7 @@ public class BookingServiceImpl implements BookingService {
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
                 .status(BookingStatus.CONFIRMED.toString())
-                .bookingType("ONLINE")
+                .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
                 .voucherDiscountAmount(discount)
@@ -601,16 +611,12 @@ public class BookingServiceImpl implements BookingService {
         booking = createBookingAlocation(booking, request.getSlotIds());
 
 //        tạo voucherUsage
-        createVoucherUsage(voucher,booking);
+        createVoucherUsage(voucher, booking);
 
         Booking saved = bookingRepository.save(booking);
 
 //        tạo booking invoice
         bookingInvoicePort.createInvoice(booking);
-
-
-
-
 
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
@@ -620,19 +626,26 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    private void createVoucherUsage(VoucherContract voucherContract,Booking booking) {
-        if(voucherContract==null) return;
-        voucherUsagePort.consumeVoucher(voucherContract.getId(),booking);
+    private BookingType getBookingType(Long vehicleId, Integer servicePackageId) {
+        if (hasSubscription(vehicleId, servicePackageId)){
+            return BookingType.SUBSCRIPTION;
+        }
+        return BookingType.ADVANCE;
+    }
+
+    private void createVoucherUsage(VoucherContract voucherContract, Booking booking) {
+        if (voucherContract == null) return;
+        voucherUsagePort.consumeVoucher(voucherContract.getId(), booking);
     }
 
     private Booking createBookingAlocation(Booking booking, List<Long> slotIds) {
         List<BookingSlot> slots = bookingSlotRepository.findAvailableSlots(slotIds);
         List<BookingSlotAllocation> allocations = new ArrayList<>();
-        for(BookingSlot slot : slots){
+        for (BookingSlot slot : slots) {
 
             int updated = bookingSlotRepository.increaseBookedCount(slot.getId());
-            if(updated==0){
-                throw  new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
+            if (updated == 0) {
+                throw new BusinessException(ErrorCode.BOOKING_SLOT_NOT_AVAILABLE);
             }
             BookingSlotAllocationId id = BookingSlotAllocationId.builder()
                     .bookingSlotId(slot.getId())

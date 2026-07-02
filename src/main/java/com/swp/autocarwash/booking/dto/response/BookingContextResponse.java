@@ -107,6 +107,7 @@ public class BookingContextResponse {
         private String name;
         private BigDecimal basePrice;
         private Integer durationMinutes;
+        private List<Integer> addonServiceIds;
     }
 
     /**
