@@ -1,5 +1,6 @@
 package com.swp.autocarwash.auth.entity;
 
+import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -53,6 +54,9 @@ public class User {
     @ColumnDefault("0")
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @OneToOne(mappedBy = "user")
+    private Customer customer;
 
 
 }

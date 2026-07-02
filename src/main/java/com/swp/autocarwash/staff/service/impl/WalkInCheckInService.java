@@ -517,6 +517,7 @@ public class WalkInCheckInService {
                     .name(a.getName())
                     .price(a.getPrice())
                     .description(a.getDescription())
+                    .durationMinutes(a.getDurationMinutes())
                     .build();
 
             // Thêm DTO vừa tạo vào danh sách hứng
