@@ -30,7 +30,7 @@ public class QueueMapper {
         return QueueTicketResponse.builder()
                 .id(ticket.getId())
                 .ticketNumber(ticket.getTicketNumber())
-                .status(ticket.getStatus())
+                .status(booking != null ? booking.getStatus() : ticket.getStatus())
                 .isBooking(ticket.getIsBooking())
                 .priorityScore(ticket.getPriorityScore())
                 .bookingId(booking != null ? booking.getId() : null)

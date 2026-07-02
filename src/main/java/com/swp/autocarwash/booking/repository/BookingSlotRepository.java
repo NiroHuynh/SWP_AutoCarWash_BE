@@ -26,40 +26,40 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
     /**
      *
      * Chức năng: Lấy danh sách booking slot của một station trong một ngày cụ thể
-     * và sắp xếp theo thời gian bắt đầu tăng dần.
-     *
-     * Quy trình:
-     * - Nhận stationId và ngày cần tìm kiếm.
-     * - Truy vấn các slot thuộc station tương ứng trong ngày đó.
-     * - Sắp xếp danh sách slot theo startTime tăng dần.
-     * - Trả về danh sách slot tìm được.
-     *
-     * @param stationId id của station cần lấy danh sách slot
-     * @param date ngày cần lấy lịch booking
-     *
-     * @return danh sách BookingSlot thuộc station trong ngày được chỉ định
+     * và sắp xếp theo thời gian bắt đầu tăng dần (ngoài ra chỉ hiển thị slot từ thời điểm hiện tại).
      *
      * @author Phong
      * @version 1.0
      */
-    List<BookingSlot> findByStationIdAndDateOrderByStartTimeAsc(
-            Integer stationId,
-            LocalDate date
+    @Query("""
+                SELECT s
+                FROM BookingSlot s
+                WHERE s.station.id = :stationId
+                AND s.date = :date
+                AND (
+                    s.date > :today
+                    OR s.startTime >= :currentTime
+                )
+                ORDER BY s.startTime ASC
+            """)
+    List<BookingSlot> findAvailableSlotsByStationAndDate(
+            @Param("stationId") Integer stationId,
+            @Param("date") LocalDate date,
+            @Param("today") LocalDate today,
+            @Param("currentTime") LocalTime currentTime
     );
 
     /**
      *
      * Chức năng: Lấy danh sách booking slot dựa trên danh sách id được cung cấp.
-     *
+     * <p>
      * Quy trình:
      * - Nhận danh sách slot id cần tìm.
      * - Truy vấn các slot có id nằm trong danh sách.
      * - Trả về danh sách booking slot tương ứng.
      *
      * @param ids danh sách id của các slot cần lấy
-     *
      * @return danh sách BookingSlot tương ứng với các id truyền vào
-     *
      * @author Phong
      * @version 1.0
      */
@@ -67,25 +67,24 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
 
 
     @Query("""
-        SELECT s
-        FROM BookingSlot s
-        WHERE s.id IN :ids
-        AND s.status = 'AVAILABLE'
-        AND s.bookedCount < s.maxCapacity
-    """)
+                SELECT s
+                FROM BookingSlot s
+                WHERE s.id IN :ids
+                AND s.status = 'AVAILABLE'
+                AND s.bookedCount < s.maxCapacity
+            """)
     List<BookingSlot> findAvailableSlots(
             @Param("ids") List<Long> ids
     );
 
 
-
     @Modifying
     @Query("""
-        UPDATE BookingSlot s
-        SET s.bookedCount = s.bookedCount + 1
-        WHERE s.id = :id
-        AND s.bookedCount < s.maxCapacity
-    """)
+                UPDATE BookingSlot s
+                SET s.bookedCount = s.bookedCount + 1
+                WHERE s.id = :id
+                AND s.bookedCount < s.maxCapacity
+            """)
     int increaseBookedCount(
             Long id
     );
@@ -101,5 +100,24 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
             @Param("stationId") Integer stationId,
             @Param("date") LocalDate date,
             @Param("currentTime") LocalTime currentTime // Tham số nhận giờ thực tế từ Service truyền xuống
+    );
+
+//    kiểm tra xem slot đã hết hạn chưa
+    @Query("""
+                SELECT CASE WHEN COUNT(bs.id) > 0 THEN true ELSE false END
+                FROM BookingSlot bs
+                WHERE bs.id IN :slotIds
+                  AND (
+                      bs.date < :currentDate
+                      OR (
+                          bs.date = :currentDate
+                          AND bs.startTime < :currentTime
+                      )
+                  )
+            """)
+    boolean existsExpiredSlot(
+            @Param("slotIds") List<Long> slotIds,
+            @Param("currentDate") LocalDate currentDate,
+            @Param("currentTime") LocalTime currentTime
     );
 }

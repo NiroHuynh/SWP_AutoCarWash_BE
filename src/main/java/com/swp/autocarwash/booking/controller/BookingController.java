@@ -65,7 +65,7 @@ public class BookingController {
     /**
      * Lấy danh sách lịch đặt sắp tới của khách hàng đang đăng nhập (tab "Upcoming Appointments").
      *
-     * <p>Chỉ trả về các booking có trạng thái {@code CONFIRMED}, {@code CHECKED_IN}
+     * <p>Chỉ trả về các booking có trạng thái {@code CONFIRMED}, {@code CHECK_IN}
      * hoặc {@code WASHING}, sắp xếp theo thời gian hẹn gần nhất lên đầu.
      * Đáp ứng AC-25.1.2 và AC-25.1.3.</p>
      *
@@ -107,7 +107,7 @@ public class BookingController {
     /**
      * Lấy danh sách lịch sử dịch vụ của khách hàng đang đăng nhập (tab "Past Services").
      *
-     * <p>Chỉ trả về các booking có trạng thái {@code PAID}, {@code CANCELLED}
+     * <p>Chỉ trả về các booking có trạng thái {@code PAID}, {@code CANCELED}
      * hoặc {@code NO_SHOW}, sắp xếp theo thời gian hẹn mới nhất lên đầu.
      * Đáp ứng AC-25.2.1, AC-25.2.3, AC-25.2.4, AC-25.2.5.</p>
      *
@@ -177,7 +177,7 @@ public class BookingController {
      * <p><b>Ví dụ:</b> {@code PATCH /api/bookings/1/cancel}</p>
      *
      * @param bookingId mã định danh của lịch đặt cần hủy
-     * @return {@code 200 OK} với {@link BookingDetailResponse} (status = CANCELLED);
+     * @return {@code 200 OK} với {@link BookingDetailResponse} (status = CANCELED);
      *         {@code 404 Not Found} nếu không tìm thấy booking
      */
     @PatchMapping("/{bookingId}/cancel")

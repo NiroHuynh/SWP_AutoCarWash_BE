@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -70,10 +71,25 @@ public interface BookingSlotAllocationRepository
     FROM BookingSlotAllocation bsa
     WHERE bsa.booking.vehicle.id = :vehicleId
       AND bsa.bookingSlot.id IN :slotIds
-      AND bsa.booking.status <> 'CANCELLED'
+      AND bsa.booking.status <> 'CANCELED'
 """)
     boolean existsConflictSlot(
             @Param("vehicleId") Long vehicleId,
             @Param("slotIds") List<Long> slotIds
+    );
+
+//    kiểm tra vehicle đã booking vào hôm nay chưa
+    @Query("""
+    SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
+    FROM BookingSlotAllocation bsa
+    JOIN bsa.booking b
+    JOIN bsa.bookingSlot bs
+    WHERE b.vehicle.id = :vehicleId
+      AND bs.date = :slotDate
+      AND b.status <> 'CANCELED'
+""")
+    boolean existsVehicleBookedOnSlotDate(
+            @Param("vehicleId") Long vehicleId,
+            @Param("slotDate") LocalDate slotDate
     );
 }
