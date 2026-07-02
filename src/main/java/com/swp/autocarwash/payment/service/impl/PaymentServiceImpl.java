@@ -143,7 +143,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private void createBookingCompletedEvent(Booking booking){
         BookingCompletedEvent event =
-                new BookingCompletedEvent(
+                 new BookingCompletedEvent(
                         booking.getId(),
                         booking.getCustomer().getId(),
                         booking.getTotalAmount(),
