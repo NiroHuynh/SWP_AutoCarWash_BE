@@ -58,14 +58,11 @@ public class ServicePackageServiceImpl
      * @version 1.0
      */
     @Override
-    public List<ServicePackageContract> getAll(){
+    public List<ServicePackage> getAll(){
 
 
         return repository
-                .findByIsDeletedFalse()
-                .stream()
-                .map(mapper::toContract)
-                .toList();
+                .findByIsDeletedFalse();
 
     }
 

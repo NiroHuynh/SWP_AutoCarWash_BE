@@ -29,5 +29,6 @@ public class WalkInFormDataResponse {
         private String name;
         private BigDecimal price;
         private String description;
+        private Integer durationMinutes;
     }
 }
