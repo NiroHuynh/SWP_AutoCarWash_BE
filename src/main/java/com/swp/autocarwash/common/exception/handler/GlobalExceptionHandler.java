@@ -89,6 +89,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorBody, errorCode.getStatus());
     }
 
+
+
 //    @ExceptionHandler(BaseException.class)
 //    public ResponseEntity<ApiResponse<Object>> handleBaseException(
 //            BaseException ex,
