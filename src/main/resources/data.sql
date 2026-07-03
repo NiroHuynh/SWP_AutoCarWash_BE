@@ -316,7 +316,8 @@ INSERT IGNORE INTO service_category
 VALUES
     (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
     (2, 'Family',      'Dich vu thuoc goi thanh vien Family (nhieu xe)'),
-    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
+    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)'),
+    (1, 'Single Wash', 'Các dịch vụ rửa xe, hút mùi và làm sạch chuyên sâu cho xe cơ giới');
 
 -- =====================================================================
 -- ADDON SERVICE (12) — addon la dich vu them theo lan (thuoc Single Wash)
@@ -333,11 +334,13 @@ VALUES
     (7,  'Pet Hair Removal',       90000,  15, 1, false),
     (8,  'Air Freshener',          20000,  0,  1, false),
     (9,  'Headlight Restoration',  130000, 30, 1, false),
-    (10, 'Ceramic Spray',          220000, 30, 1, false),
-    (11, 'Leather Conditioning',   140000, 30, 1, false),
+    (60, 'Ceramic Spray',          220000, 30, 1, false),
+    (55, 'Leather Conditioning',   140000, 30, 1, false),
     (12, 'Underbody Rust-proofing',160000, 30, 1, false),
 
-    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false);
+    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false),
+    (10, 'Hút Mùi Nội Thất', 30000.00, 15, 1, 0),
+    (11, 'Tẩy Ố Kính Lái', 70000.00, 20, 1, 0);
 
 -- =====================================================================
 -- SERVICE PACKAGE (3) — cac muc do rua xe; thuoc category Single Wash.
@@ -349,10 +352,12 @@ INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
     (4, 1, 'Basic',   100000, 'Rua xe co ban ben ngoai',               1, false),
-    (2, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
+    (6, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
     (3, 1, 'Premium', 300000, 'Rua xe cao cap, lam sach toan dien',    3, false),
 
-    (1, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false);
+    (5, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false),
+    (1, 1, 'Rửa Xe Phổ Thông', 50000.00, 'Gói rửa cơ bản cho xe 4 chỗ', 1, 0),
+    (2, 1, 'Rửa Xe Vô Cực Gold', 150000.00, 'Gói chăm sóc toàn diện bao gồm hút mùi', 1, 0);
 
 -- =====================================================================
 -- PACKAGE ADDON MAPPING (8)
@@ -362,9 +367,10 @@ INSERT IGNORE INTO package_addon_mapping
 VALUES
     (1, 1), (1, 8),
     (3, 2), (3, 3),
-    (2, 4), (2, 9),
-    (2, 6),
-    (3, 7);
+    (3, 4), (3, 9),
+    (3, 6),
+    (3, 7),
+    (2, 10);
 
 -- =====================================================================
 -- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
