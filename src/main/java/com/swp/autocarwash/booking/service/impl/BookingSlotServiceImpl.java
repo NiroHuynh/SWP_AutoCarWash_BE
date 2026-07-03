@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 
@@ -74,10 +76,24 @@ public class BookingSlotServiceImpl implements BookingSlotService {
         int totalMinutes = serviceDuration + addonDuration;
         int requiredSlots = totalMinutes / 15;
 
+
+        LocalDate appointmentDate =
+                LocalDate.parse(request.getAppointmentDate());
+
+        LocalDate today =
+                LocalDate.now();
+
+        LocalTime now =
+                LocalTime.now(
+                        ZoneId.of("Asia/Ho_Chi_Minh")
+                );
+
         List<BookingSlot> slots =
-                repository.findByStationIdAndDateOrderByStartTimeAsc(
+                repository.findAvailableSlotsByStationAndDate(
                         stationId,
-                        LocalDate.parse(request.getAppointmentDate())
+                        appointmentDate,
+                        today,
+                        now
                 );
 
         List<SlotWindowResponse> windows =

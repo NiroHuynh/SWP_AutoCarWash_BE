@@ -6,11 +6,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- =====================================================================
 INSERT IGNORE INTO role (id, name)
 VALUES
-    (4, 'ADMIN'),
+    (1, 'ADMIN'),
     (2, 'STAFF'),
-    (3, 'CUSTOMER'),
 
-    (1, 'CUSTOMER');
+    (3, 'CUSTOMER');
 
 
 -- =====================================================================
@@ -48,7 +47,15 @@ VALUES
     (27, 'customer12@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY)),
 
     (10, 'khachvip@gmail.com', '0901234567', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, TRUE,DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE);
+    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE),
+    (999,
+     'customer@gmail.com',
+     '0912345678',
+     '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', -- Chuỗi BCrypt của 'OldPassword123'
+     2, -- Giả sử role_id = 2 là Khách hàng (Customer)
+     1, -- is_active = 1 (Tài khoản đang hoạt động)
+     NOW()
+    );
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
@@ -194,7 +201,9 @@ VALUES
 
     (100, 10, 'Nguyen Van', 'A', '2005-10-11', 3,  0, NULL),
 
-    (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
+    (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL),
+    (99, 5, N'Viết', N'Bình', '2004-01-01', 1, 0, NULL);
+
 
 -- =====================================================================
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
@@ -223,7 +232,8 @@ VALUES
     (202, NULL, '51G-222.22', 'Kia Morning', 'Đỏ', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
 
     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE),
-    (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE);
+    (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE),
+    (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0);
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
@@ -245,7 +255,8 @@ VALUES
     (7,  'Gia dinh Dang',  7,  DATE_SUB(NOW(), INTERVAL 70 DAY),  false),
     (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false),
     (9,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
-    (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false);
+    (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false),
+(88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0);
 
 -- =====================================================================
 -- FAMILY MEMBER (12)
@@ -264,7 +275,8 @@ VALUES
     (9,  9,  9,  9,  0, NULL),
     (10, 10, 10, 10, 0, NULL),
     (11, 1,  11, 11, 0, NULL),
-    (12, 2,  12, 12, 0, NULL);
+    (12, 2,  12, 12, 0, NULL),
+    (88, 88, 99, 99, 0, CURRENT_TIMESTAMP);
 
 -- =====================================================================
 -- TIER RETENTION (12)
@@ -312,7 +324,8 @@ INSERT IGNORE INTO service_category
 VALUES
     (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
     (2, 'Family',      'Dich vu thuoc goi thanh vien Family (nhieu xe)'),
-    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
+    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)'),
+    (1, 'Single Wash', 'Các dịch vụ rửa xe, hút mùi và làm sạch chuyên sâu cho xe cơ giới');
 
 -- =====================================================================
 -- ADDON SERVICE (12) — addon la dich vu them theo lan (thuoc Single Wash)
@@ -329,11 +342,13 @@ VALUES
     (7,  'Pet Hair Removal',       90000,  15, 1, false),
     (8,  'Air Freshener',          20000,  0,  1, false),
     (9,  'Headlight Restoration',  130000, 30, 1, false),
-    (10, 'Ceramic Spray',          220000, 30, 1, false),
-    (11, 'Leather Conditioning',   140000, 30, 1, false),
+    (60, 'Ceramic Spray',          220000, 30, 1, false),
+    (55, 'Leather Conditioning',   140000, 30, 1, false),
     (12, 'Underbody Rust-proofing',160000, 30, 1, false),
 
-    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false);
+    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false),
+    (10, 'Hút Mùi Nội Thất', 30000.00, 15, 1, 0),
+    (11, 'Tẩy Ố Kính Lái', 70000.00, 20, 1, 0);
 
 -- =====================================================================
 -- SERVICE PACKAGE (3) — cac muc do rua xe; thuoc category Single Wash.
@@ -345,10 +360,12 @@ INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
     (4, 1, 'Basic',   100000, 'Rua xe co ban ben ngoai',               1, false),
-    (2, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
+    (6, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
     (3, 1, 'Premium', 300000, 'Rua xe cao cap, lam sach toan dien',    3, false),
 
-    (1, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false);
+    (5, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false),
+    (1, 1, 'Rửa Xe Phổ Thông', 50000.00, 'Gói rửa cơ bản cho xe 4 chỗ', 1, 0),
+    (2, 1, 'Rửa Xe Vô Cực Gold', 150000.00, 'Gói chăm sóc toàn diện bao gồm hút mùi', 1, 0);
 
 -- =====================================================================
 -- PACKAGE ADDON MAPPING (8)
@@ -358,9 +375,10 @@ INSERT IGNORE INTO package_addon_mapping
 VALUES
     (1, 1), (1, 8),
     (3, 2), (3, 3),
-    (2, 4), (2, 9),
-    (2, 6),
-    (3, 7);
+    (3, 4), (3, 9),
+    (3, 6),
+    (3, 7),
+    (2, 10);
 
 -- =====================================================================
 -- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
@@ -378,9 +396,11 @@ VALUES
     (7,  3, 2, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang', false),
     (8,  1, 2, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang', false),
     (9,  3, 2, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang', false),
-    (10, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
-    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false);
+    (98, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
+    (99, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
+    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false),
+(10, 1, 1, N'Gói Rửa Xe Vô Cực Single', 30, 200000.00, 'UNLIMITED', 1, N'Rửa xe tẹt ga cho 1 xe', 0),
+(11, 2, 1, N'Gói Gia Đình Đồng Lòng', 30, 500000.00, 'FAMILY', 3, N'Rửa xe cho cả nhà', 0);
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
@@ -397,7 +417,8 @@ VALUES
     (7,  7,  7,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
+    (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
+(50, 99, 99, 10, NULL, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
 
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
@@ -414,7 +435,8 @@ VALUES
     (7,  7,  7,  DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
+    (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
+     (60, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
 
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)

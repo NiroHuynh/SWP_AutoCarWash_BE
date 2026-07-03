@@ -1,12 +1,16 @@
 package com.swp.autocarwash.servicepackage.adapter;
 
+import com.swp.autocarwash.booking.dto.response.BookingContextResponse;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
+import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import com.swp.autocarwash.servicepackage.service.ServicePackageService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -30,6 +34,7 @@ public class ServicePackageBookingAdapter implements ServicePackagePort {
 
     private final ServicePackageService service;
 
+    private final ModelMapper modelMapper;
 
 
 
@@ -48,11 +53,27 @@ public class ServicePackageBookingAdapter implements ServicePackagePort {
      * @version 1.0
      */
     @Override
-    public List<ServicePackageContract> getAllPackages(){
-        return service.getAll();
+    public List<BookingContextResponse.ServicePackageDTO> getAllPackages(){
+        List<ServicePackage> servicePackageContracts = service.getAll();
+        return convertToServicePackageDTOs(servicePackageContracts);
     }
 
+    private List<BookingContextResponse.ServicePackageDTO>
+                    convertToServicePackageDTOs( List<ServicePackage> servicePackageContracts){
+        List<BookingContextResponse.ServicePackageDTO> servicePackageDTOs = new ArrayList<>();
+        for(ServicePackage servicePackage : servicePackageContracts){
+            BookingContextResponse.ServicePackageDTO servicePackageDTO = modelMapper.map(servicePackage,BookingContextResponse.ServicePackageDTO.class);
+            servicePackageDTO.setDurationMinutes(servicePackage.getRequiredSlot()*15);
+            List<Integer> addonServiceIds = getAddonIdsOfServicePackage(servicePackage);
+            servicePackageDTO.setAddonServiceIds(addonServiceIds);
+            servicePackageDTOs.add(servicePackageDTO);
+        }
+        return servicePackageDTOs;
+    }
 
+    private List<Integer> getAddonIdsOfServicePackage(ServicePackage servicePackage) {
+        return servicePackage.getAddonServices().stream().map((item)-> item.getId()).toList();
+    }
 
 
     /**
