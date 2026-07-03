@@ -30,5 +30,6 @@ public class WalkInFormDataResponse {
         private BigDecimal price;
         private String description;
         private Integer durationMinutes;
+        private List<Integer> includedInPackageIds;
     }
 }
