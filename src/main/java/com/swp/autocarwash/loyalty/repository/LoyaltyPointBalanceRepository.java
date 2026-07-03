@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface LoyaltyPointBalanceRepository extends JpaRepository<LoyaltyPointBalance,Long> {
     Optional<LoyaltyPointBalance> findLoyaltyPointBalanceByCustomerId(Long customerId);
 
+    
 }

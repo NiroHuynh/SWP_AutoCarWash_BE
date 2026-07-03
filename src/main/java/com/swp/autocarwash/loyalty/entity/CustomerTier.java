@@ -7,6 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,5 +43,7 @@ public class CustomerTier {
     @Column(name = "retention_target_amount", precision = 12, scale = 2)
     private BigDecimal retentionTargetAmount;
 
+    @OneToMany(mappedBy = "customerTier", fetch = FetchType.LAZY)
+    private List<TierBenefit> tierBenefits = new ArrayList<>();
 
 }

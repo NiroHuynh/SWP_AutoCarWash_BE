@@ -2,6 +2,9 @@ package com.swp.autocarwash.loyalty.entity;
 
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.loyalty.entity.enums.LoyaltyPointTransactionType;
+import com.swp.autocarwash.loyalty.entity.enums.LoyaltySourceType;
+import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -34,10 +37,24 @@ public class LoyaltyPointTransaction {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
-    @Size(max = 20)
+    /**
+     * Subscription Invoice liên quan (nếu có)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_invoice_id")
+    private SubscriptionInvoice subscriptionInvoice;
+
+    /**
+     * Nguồn phát sinh điểm
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", nullable = false, length = 30)
+    private LoyaltySourceType sourceType;
+
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false, length = 20)
-    private String transactionType;
+    private LoyaltyPointTransactionType transactionType;
 
     @NotNull
     @Column(name = "points", nullable = false)
