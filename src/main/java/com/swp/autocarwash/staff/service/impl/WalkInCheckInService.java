@@ -582,7 +582,7 @@ public class WalkInCheckInService {
                     .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
                     .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
                     //Trạng thái và Phân loại
-                    .status("CHECKED_IN")    // Trạng thái vé (status - NOT NULL)
+                    .status("CHECK_IN")    // Trạng thái vé (status - NOT NULL)
                     .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
                     .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
                     //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity

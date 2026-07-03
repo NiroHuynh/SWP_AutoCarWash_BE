@@ -179,6 +179,7 @@ public class AuthServiceImpl implements AuthService {
         // 3. Khởi tạo biến hứng tên và lấy Tên Role ra check
         String displayName = "User System"; // Tên mặc định đề phòng
         String roleName = user.getRole().getName(); // Lấy chuỗi "CUSTOMER", "STAFF", "ADMIN"
+        Integer finalStationId = null;
 
         if ("ADMIN".equals(roleName)) {
             displayName = "ADMIN";
@@ -197,6 +198,9 @@ public class AuthServiceImpl implements AuthService {
             Staff staff = staffRepository.findByUserId(user.getId());
             if (staff != null) {
                 displayName = staff.getLastName() + " " + staff.getFirstName();
+                if (staff.getStation() != null) {
+                    finalStationId = staff.getStation().getId();
+                }
             } else {
 
             throw new RuntimeException("Staff profile not found");
@@ -206,7 +210,8 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponse.builder()
                 .token(token)
                 .email(user.getEmail())
-                .name(displayName).build();
+                .name(displayName)
+                .stationId(finalStationId).build();
     }
 
 }
