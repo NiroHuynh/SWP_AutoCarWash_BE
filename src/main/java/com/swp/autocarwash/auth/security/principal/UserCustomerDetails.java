@@ -29,6 +29,13 @@ public class UserCustomerDetails implements UserDetails {
         return user;
     }
 
+    public Long getCustomerId(){
+        if(user.getCustomer() != null){
+            return user.getCustomer().getId();
+        }
+        return null;    // trả về null nếu tài khoản này là admin, staff,
+    }
+
     //Bật chức năng phân quyền (Authorization) Biến role của user thành GrantedAuthority
     //Trả về kiểu Collection -> hỗ trợ theo logic 1 user có thể có nhiều role
     // ? extends GrantedAuthority là trả về kiểu gì cũng được, miễn nó là CON hoặc chính là thằng GrantedAuthority

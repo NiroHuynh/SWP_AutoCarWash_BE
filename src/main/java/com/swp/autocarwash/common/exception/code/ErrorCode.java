@@ -359,6 +359,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "BOOKING_007",
             "The booking is not in WASHING status."
+    ),
+    PASSWORD_SAME_AS_CURRENT(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_003",
+            "The new password must not be the same as the current password"
+    ),
+    PASSWORD_CONFIRMATION_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_004",
+            "The password confirmation does not match."
     );
 
 

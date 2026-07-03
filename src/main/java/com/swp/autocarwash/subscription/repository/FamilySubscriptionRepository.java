@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
@@ -49,5 +50,25 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
     boolean existsActiveFamilySubscription(
             @Param("vehicleId") Long vehicleId,
             @Param("servicePackageId") Integer servicePackageId
+    );
+
+    //KIỂM TRA XE CÓ THUỘC GÓI FAMILY ĐANG ACTIVE KHÔNG
+    @Query("SELECT fs FROM FamilySubscription fs " +
+            "JOIN FETCH fs.subscriptionPlan sp " +
+            "JOIN fs.familyGroup fg " +
+            "JOIN FamilyMember fm ON fm.familyGroup.id = fg.id " + // Bắc cầu sang bảng family_member
+            "WHERE fm.vehicle.id = :vehicleId " +
+            "AND fs.status = 'ACTIVE' " +
+            "AND sp.planType = 'FAMILY'")
+    Optional<FamilySubscription> findActiveFamilySubByVehicleId(@Param("vehicleId") Long vehicleId);
+
+    @Query("SELECT fs FROM FamilySubscription fs " +
+            "JOIN FamilyMember fm ON fs.familyGroup.id = fm.familyGroup.id " +
+            "WHERE fm.vehicle.id = :vehicleId " +
+            "AND fs.status = 'ACTIVE' " +
+            "AND fs.startDate <= :today AND fs.endDate >= :today")
+    Optional<FamilySubscription> findActiveFamilySubscriptionByVehicle(
+            @Param("vehicleId") Long vehicleId,
+            @Param("today") LocalDate today
     );
 }
