@@ -21,8 +21,10 @@ import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueTicketService;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
+import com.swp.autocarwash.servicepackage.entity.PackageAddonMapping;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
+import com.swp.autocarwash.servicepackage.repository.PackageAddonMappingRepository;
 import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
 import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
@@ -73,6 +75,7 @@ public class WalkInCheckInService {
     private final BookingAddonRepository bookingAddonRepository;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
     private final FamilySubscriptionRepository familySubscriptionRepository;
+    private final PackageAddonMappingRepository packageAddonMapping;
 
 
     //Kiểm tra sdt để phân loại đối tượng khách cũ/mới(SELECT)
@@ -633,25 +636,26 @@ public class WalkInCheckInService {
         // =========================================================================
         // Lấy tất cả dịch vụ bổ sung từ Database lên
         List<AddonService> addons = addonServiceRepository.findByIsDeletedFalse();
-
-        // Khởi tạo một danh sách rỗng để chứa các DTO addon
+        List<PackageAddonMapping> allMapping = packageAddonMapping.findAllMappings();
         List<WalkInFormDataResponse.AddonServiceDTO> addonDTOs = new ArrayList<>();
+        for(AddonService a  : addons){
+            List<Integer> packageIds = new ArrayList<>();
+            for(PackageAddonMapping p : allMapping){
+                if(a.getId().equals(p.getId().getAddonServiceId())){
+                    packageIds.add(p.getId().getServicePackageId());
+                }
+            }
 
-        // Duyệt qua từng thực thể addon bằng vòng lặp for-each
-        for (AddonService a : addons) {
-            // Bốc tách dữ liệu từ thực thể a để đóng gói sang đối tượng DTO gọn nhẹ
             WalkInFormDataResponse.AddonServiceDTO dto = WalkInFormDataResponse.AddonServiceDTO.builder()
                     .id(a.getId())
                     .name(a.getName())
                     .price(a.getPrice())
                     .description(a.getDescription())
                     .durationMinutes(a.getDurationMinutes())
+                    .includedInPackageIds(packageIds)
                     .build();
-
-            // Thêm DTO vừa tạo vào danh sách hứng
             addonDTOs.add(dto);
         }
-
         // =========================================================================
         // 3. ĐÓNG GÓI VÀ TRẢ KẾT QUẢ VỀ CHO FRONT-END
         // =========================================================================
