@@ -12,6 +12,7 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointTransaction;
 import com.swp.autocarwash.loyalty.entity.enums.LoyaltyPointTransactionType;
+import com.swp.autocarwash.loyalty.entity.enums.LoyaltySourceType;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
@@ -258,11 +259,13 @@ public class PaymentServiceImpl implements PaymentService {
                 LoyaltyPointTransaction.builder()
                         .customer(customer)
                         .booking(booking)
-                        .transactionType(LoyaltyPointTransactionType.REDEEM.toString())
+                        .transactionType(LoyaltyPointTransactionType.REDEEM)
                         .points(usedPoints.intValue())
                         .balanceAfter(balance.getTotalPoints())
                         .createdAt(LocalDateTime.now())
+                        .sourceType(LoyaltySourceType.BOOKING)
                         .build();
+
 
         loyaltyPointTransactionRepository.save(transaction);
     }

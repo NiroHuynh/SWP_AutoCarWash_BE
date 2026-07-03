@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface CustomerTierRepository
@@ -29,4 +30,6 @@ public interface CustomerTierRepository
     findFirstByMinPointsLessThanEqualOrderByMinPointsDesc(
             Integer points
     );
+
+    List<CustomerTier> findAllByOrderByMinPointsAsc();
 }
