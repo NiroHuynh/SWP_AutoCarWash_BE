@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -32,7 +33,7 @@ public class FamilyMember {
     private Integer vehicleChangeCount;
 
     @Column(name = "vehicle_change_window_start")
-    private Instant vehicleChangeWindowStart;
+    private LocalDateTime vehicleChangeWindowStart;
 
 
 }

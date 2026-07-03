@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.entity;
 
 import com.swp.autocarwash.auth.entity.User;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
+import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -50,6 +51,9 @@ public class Customer {
 
     @Column(name = "restricted_until")
     private Instant restrictedUntil;
+
+    @OneToOne(mappedBy = "customer")
+    private LoyaltyPointBalance loyaltyBalance;
 
     //transient là bỏ qua cột này dưới DB, logic này chỉ chạy trên RAM
     //hàm tiện ích lấy FullName
