@@ -1,5 +1,6 @@
 package com.swp.autocarwash.auth.entity;
 
+import com.swp.autocarwash.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor
@@ -47,12 +49,15 @@ public class User {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Builder.Default
     @ColumnDefault("0")
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @OneToOne(mappedBy = "user")
+    private Customer customer;
 
 
 }

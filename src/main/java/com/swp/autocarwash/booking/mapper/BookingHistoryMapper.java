@@ -99,6 +99,9 @@ public class BookingHistoryMapper {
 
         return BookingDetailResponse.builder()
                 .bookingId(booking.getId())
+                .customerName(booking.getCustomer() != null
+                        ? booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName()
+                        : null)
                 .status(booking.getStatus())
                 .bookingType(booking.getBookingType())
                 .customerTier(booking.getCustomer() != null && booking.getCustomer().getCustomerTier() != null
@@ -106,6 +109,7 @@ public class BookingHistoryMapper {
                 .subscriptionPlanName(subscriptionInfo != null ? subscriptionInfo.planName() : null)
                 .subscriptionPlanType(subscriptionInfo != null ? subscriptionInfo.planType() : null)
                 .subscriptionDurationDays(subscriptionInfo != null ? subscriptionInfo.durationDays() : null)
+                .serviceCategoryName(booking.getServicePackage().getServiceCategory().getCategoryName())
                 .serviceName(booking.getServicePackage().getName())
                 .addons(addonInfos)
                 .licensePlate(booking.getVehicle().getLicensePlate())
@@ -116,12 +120,20 @@ public class BookingHistoryMapper {
                 .appointmentDate(booking.getAppointmentDate())
                 .startTime(startTime)
                 .endTime(endTime)
+                .checkInAt(booking.getCheckInAt())
+                .checkOutAt(booking.getCheckOutAt())
                 .technicianName(technicianName)
                 .servicePrice(booking.getTotalServiceAmount())
                 .addonTotal(booking.getTotalAddonAmount())
                 .voucherCode(voucherCode)
                 .voucherDiscountPercent(voucherDiscountPercent)
                 .voucherDiscountAmount(booking.getVoucherDiscountAmount())
+                .pointDiscountAmount(booking.getPointDiscountAmount())
+                .discountAmount(
+                        (booking.getVoucherDiscountAmount() != null
+                                ? booking.getVoucherDiscountAmount() : BigDecimal.ZERO)
+                        .add(booking.getPointDiscountAmount() != null
+                                ? booking.getPointDiscountAmount() : BigDecimal.ZERO))
                 .totalAmount(booking.getTotalAmount())
                 .isDepositPaid(booking.getIsDepositPaid())
                 .depositAmount(depositAmount)

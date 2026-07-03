@@ -38,6 +38,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking not found"
     ),
+    BOOKING_SLOT_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_001",
+            "Booking slot has expired"
+    ),
     BOOKING_CANCELLED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_002",
@@ -47,12 +52,23 @@ public enum ErrorCode {
     BOOKING_NOT_CHECKED_IN(
             HttpStatus.BAD_REQUEST,
             "BOOKING_006",
-            "Booking chưa ở trạng thái check-in, không thể hủy theo luồng này"
+            "The booking is not in check-in status and cannot be cancelled through this flow."
+    ),
+
+    BOOKING_NOT_COMPLETED(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "The booking is not in COMPLETED status and payment cannot be collected yet."
     ),
     VEHICLE_ALREADY_BOOKED(
             HttpStatus.BAD_REQUEST,
             "BOOKING_003",
             "Vehicle already has a booking on this date"
+    ),
+    VEHICLE_ALREADY_BOOKED_TODAY(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_008",
+            "Vehicle already has a booking today"
     ),
     BOOKING_SLOT_ALREADY_USED(
             HttpStatus.CONFLICT,
@@ -82,7 +98,7 @@ public enum ErrorCode {
     NO_AVAILABLE_SLOTS_FOR_DATE(
             HttpStatus.BAD_REQUEST,
             "NO_AVAILABLE_SLOTS_FOR_DATE",
-            "Không còn khung giờ trống trong ngày đã chọn. Vui lòng đổi ngày, đổi trạm hoặc đổi gói dịch vụ khác."
+            "No available time slots for the selected date. Please choose another date, station, or service package."
     ),
     SLOT_CAPACITY_EXCEEDED(
             HttpStatus.BAD_REQUEST,
@@ -92,7 +108,7 @@ public enum ErrorCode {
     NO_VEHICLE_REGISTERED(
             HttpStatus.BAD_REQUEST,
             "NO_VEHICLE_REGISTERED",
-            "Bạn chưa có phương tiện nào. Vui lòng thêm xe trước khi đặt lịch."
+            "You have no registered vehicles. Please add a vehicle before booking an appointment."
     ),
     CUSTOMER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -129,6 +145,11 @@ public enum ErrorCode {
             "PAYMENT_001",
             "Payment failed"
     ),
+    INSUFFICIENT_PAYMENT_AMOUNT(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_002",
+            "The payment amount provided is insufficient."
+    ),
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "COMMON_003",
@@ -156,8 +177,8 @@ public enum ErrorCode {
     ),
     LICENSE_PLATE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
-        "VEHICLE_001",
-                "Biển số xe đã tồn tại trong hệ thống"
+            "VEHICLE_001",
+            "The license plate already exists in the system."
     ),
     VEHICLE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -321,15 +342,37 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "QUEUE_002",
             "Queue ticket is not in WAITING status"
+    ),
+    QUEUE_TICKET_NOT_IN_SERVICE(
+            HttpStatus.BAD_REQUEST,
+            "QUEUE_003",
+            "Queue ticket is not in IN_SERVICE status"
+    ),
+    WASH_LANE_NONE_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_002",
+            "No available wash lanes."
+    ),
+
+    BOOKING_NOT_WASHING(
+            HttpStatus.BAD_REQUEST,
+            "BOOKING_007",
+            "The booking is not in WASHING status."
+    ),
+    PASSWORD_SAME_AS_CURRENT(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_003",
+            "The new password must not be the same as the current password"
+    ),
+    PASSWORD_CONFIRMATION_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "AUTH_004",
+            "The password confirmation does not match."
     );
-
-
 
 
     private final HttpStatus status;
     private final String code;
     private final String message;
-
-
 
 }
