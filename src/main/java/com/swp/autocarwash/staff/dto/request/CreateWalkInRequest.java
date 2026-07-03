@@ -1,5 +1,6 @@
 package com.swp.autocarwash.staff.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -21,6 +22,7 @@ public class CreateWalkInRequest {
     private Long existingVehicleId;
 
     /** Chỉ cần điền khi existingVehicleId = null (đang tạo xe mới). */
+    @NotBlank(message = "License plate must not be blank")
     private String licensePlate;
 
     /** Chỉ cần điền khi existingVehicleId = null. */

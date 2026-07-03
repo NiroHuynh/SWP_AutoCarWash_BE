@@ -1,10 +1,9 @@
 package com.swp.autocarwash.staff.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -18,6 +17,7 @@ public class CheckPhoneResponse {
     private Long customerId;
     private List<VehicleDTO> savedVehicles;
 
+
     @Getter
     @Setter
     @Builder
@@ -26,5 +26,22 @@ public class CheckPhoneResponse {
         private String licensePlate;
         private String brandName;
         private String color;
+        private List <VehicleSubscriptionDTO> subscriptionInfo;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VehicleSubscriptionDTO {
+        private Long subscriptionId;
+        private Integer subscriptionPlanId;
+        private Integer servicePackageId;
+        private String planName;
+        private String planType; // UNLIMITED hoặc FAMILY
+        private LocalDate endDate;
+        private String status;
+
     }
 }

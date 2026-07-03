@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -53,5 +55,12 @@ public class ServicePackage {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "package_addon_mapping",
+            schema = "swp_auto_car_wash",
+            joinColumns = @JoinColumn(name = "service_package_id"),
+            inverseJoinColumns = @JoinColumn(name = "addon_service_id")
+    )
+    private List<AddonService> addonServices = new ArrayList<>();
 }
