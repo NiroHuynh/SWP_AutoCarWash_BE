@@ -6,10 +6,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- =====================================================================
 INSERT IGNORE INTO role (id, name)
 VALUES
-    (4, 'ADMIN'),
+    (1, 'ADMIN'),
     (2, 'STAFF'),
 
-    (1, 'CUSTOMER');
+    (3, 'CUSTOMER');
 
 
 -- =====================================================================
@@ -47,7 +47,15 @@ VALUES
     (27, 'customer12@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY)),
 
     (10, 'khachvip@gmail.com', '0901234567', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, TRUE,DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE);
+    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE),
+    (999,
+     'customer@gmail.com',
+     '0912345678',
+     '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', -- Chuỗi BCrypt của 'OldPassword123'
+     2, -- Giả sử role_id = 2 là Khách hàng (Customer)
+     1, -- is_active = 1 (Tài khoản đang hoạt động)
+     NOW()
+    );
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
