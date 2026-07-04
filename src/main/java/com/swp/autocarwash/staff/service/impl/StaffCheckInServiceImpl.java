@@ -246,7 +246,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     private CheckInResultResponse doCheckIn(Booking booking, BookingSlot slot, int minutesDeviation, String message) {
         booking.setStatus(BookingStatus.CHECK_IN.toString());
         booking.setCheckInAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+         Booking savedBooking = bookingRepository.save(booking);
 
         QueueTicket ticket = QueueTicket.builder()
                 .station(slot.getStation())
@@ -264,6 +264,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .minutesDeviation(minutesDeviation)
                 .message(message)
                 .requiresWalkIn(false)
+                .checkInAt(savedBooking.getCheckInAt())
                 .build();
     }
 
