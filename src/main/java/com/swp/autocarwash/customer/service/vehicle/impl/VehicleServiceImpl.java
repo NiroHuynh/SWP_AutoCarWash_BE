@@ -3,7 +3,9 @@ package com.swp.autocarwash.customer.service.vehicle.impl;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.request.UpdateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
+import com.swp.autocarwash.customer.dto.response.UpdateVehicleResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.mapper.VehicleMapper;
@@ -18,10 +20,13 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.mapper.VehicleMapper;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
+import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 
@@ -50,6 +55,10 @@ public class VehicleServiceImpl implements VehicleService {
     private final CustomerPort customerPort;
 
     private final BookingRepository bookingRepository;
+
+    private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
+
+    private final FamilySubscriptionRepository familySubscriptionRepository;
     /**
      *
      * Chức năng: Lấy danh sách vehicle đang hoạt động của một customer.
@@ -177,9 +186,58 @@ public class VehicleServiceImpl implements VehicleService {
             if(bookingRepository.hasActiveBooking(vehicleId)){
                 throw new BusinessException(ErrorCode.VEHICLE_HAS_ACTIVE_BOOKING);
             }
+
+            LocalDate today = LocalDate.now();
+
+            boolean hasActiveUnlimited = unlimitSubscriptionRepository
+                .findActiveSubscriptionByVehicle(vehicleId, today).isPresent();
+
+            // Check gói Family hoạt động
+            boolean hasActiveFamily = familySubscriptionRepository
+                .findActiveFamilySubscriptionByVehicle(vehicleId, today).isPresent();
+
+            if (hasActiveUnlimited || hasActiveFamily) {
+                throw new BusinessException(ErrorCode.VEHICLE_HAS_ACTIVE_SUBSCRIPTION);
+        }
             //tiến hành xoá mềm
             vehicle.setIsDeleted(true);
             vehicleRepository.save(vehicle);
+    }
+
+    @Transactional
+    @Override
+    public UpdateVehicleResponse updateVehicle(Long customerId, Long vehicleId, UpdateVehicleRequest request) {
+        //tìm vehicle theo id nếu k có thì trả ra exception
+        Vehicle vehicle = vehicleRepository.findByIdAndIsDeletedFalse(vehicleId).orElseThrow(
+                () -> new ResourceNotFoundException(ErrorCode.VEHICLE_NOT_FOUND)
+        );
+
+        //check vehicle này thuộc về customer account này hay không
+        if(!vehicle.getCustomer().getId().equals(customerId)){
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS_VEHICLE);
+        }
+
+        //check xem thử license_plate mới đã tồn tại ở vehicle khác chưa
+        if(request.getLicensePlate() != null){
+            boolean isPlateDup = vehicleRepository.existsByLicensePlateAndIdNotAndIsDeletedFalse(request.getLicensePlate(), vehicleId);
+            if(isPlateDup){
+                throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
+            }
+        }
+
+        //update vào bảng vehicle
+        vehicle.setLicensePlate(request.getLicensePlate());
+        vehicle.setBrandName(request.getBrandName());
+        vehicle.setColor(request.getColor());
+
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+
+        return UpdateVehicleResponse.builder()
+                .id(savedVehicle.getId())
+                .licensePlate(savedVehicle.getLicensePlate())
+                .brandName(savedVehicle.getBrandName())
+                .color(savedVehicle.getColor())
+                .build();
     }
 
     /**
