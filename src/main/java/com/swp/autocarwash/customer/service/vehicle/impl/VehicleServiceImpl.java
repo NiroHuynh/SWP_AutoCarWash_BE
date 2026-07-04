@@ -1,5 +1,7 @@
 package com.swp.autocarwash.customer.service.vehicle.impl;
 
+import com.swp.autocarwash.booking.repository.BookingRepository;
+import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
 import com.swp.autocarwash.customer.entity.Customer;
@@ -46,6 +48,8 @@ public class VehicleServiceImpl implements VehicleService {
     private final VehicleMapper vehicleMapper;
 
     private final CustomerPort customerPort;
+
+    private final BookingRepository bookingRepository;
     /**
      *
      * Chức năng: Lấy danh sách vehicle đang hoạt động của một customer.
@@ -156,7 +160,29 @@ public class VehicleServiceImpl implements VehicleService {
 
     }
 
-        /**
+    @Transactional
+    @Override
+    public void deleteVehicle(Long customerId, Long vehicleId) {
+
+            //Tìm xe theo id và xe đó chưa bị xoá trước đây
+            Vehicle vehicle = vehicleRepository.findByIdAndIsDeletedFalse(vehicleId).orElseThrow(
+                    () -> new ResourceNotFoundException(ErrorCode.VEHICLE_NOT_FOUND)
+            );
+            //Secur: check xem xe này có đúng là của khách hàng đang đăng nhập không
+            if(!vehicle.getCustomer().getId().equals(customerId)){
+                throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS_VEHICLE);
+            }
+            //kiểm tra xem xe có thoả mãn trạng thái để xoá không
+            // nếu đang tồn tại trong booking ở pending, confirmed, check-in, washing thì không được xoá
+            if(bookingRepository.hasActiveBooking(vehicleId)){
+                throw new BusinessException(ErrorCode.VEHICLE_HAS_ACTIVE_BOOKING);
+            }
+            //tiến hành xoá mềm
+            vehicle.setIsDeleted(true);
+            vehicleRepository.save(vehicle);
+    }
+
+    /**
          *
          * Chức năng: Lấy thông tin chi tiết vehicle theo id.
          *

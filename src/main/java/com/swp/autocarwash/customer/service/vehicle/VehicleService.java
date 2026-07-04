@@ -89,4 +89,5 @@ public interface VehicleService {
             Long userId,
             CreateVehicleRequest request
     );
+    void deleteVehicle(Long customerId, Long vehicleId);
 }
