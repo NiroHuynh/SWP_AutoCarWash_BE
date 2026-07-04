@@ -1,7 +1,9 @@
 package com.swp.autocarwash.customer.service.vehicle;
 
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.request.UpdateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
+import com.swp.autocarwash.customer.dto.response.UpdateVehicleResponse;
 import org.springframework.transaction.annotation.Transactional;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 
@@ -89,5 +91,9 @@ public interface VehicleService {
             Long userId,
             CreateVehicleRequest request
     );
+
     void deleteVehicle(Long customerId, Long vehicleId);
+
+    UpdateVehicleResponse updateVehicle(Long customerId, Long vehicleId, UpdateVehicleRequest request);
+
 }

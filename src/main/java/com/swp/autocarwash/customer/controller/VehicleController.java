@@ -4,7 +4,9 @@ import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.request.UpdateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
+import com.swp.autocarwash.customer.dto.response.UpdateVehicleResponse;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,16 @@ public class VehicleController {
 
         vehicleService.deleteVehicle(customerId,id);
         return ResponseEntity.ok(ApiResponse.success("Vehicle deleted successfully",null));
+    }
+
+    @PutMapping("/{vehicleId}")
+    public ResponseEntity<ApiResponse<UpdateVehicleResponse>> updateVehicle(@AuthenticationPrincipal UserCustomerDetails userDetails,
+                                                                            @PathVariable("vehicleId") Long id,
+                                                                            @RequestBody UpdateVehicleRequest request){
+        Long customerId = userDetails.getCustomerId();
+        UpdateVehicleResponse response = vehicleService.updateVehicle(customerId, id, request);
+
+        return ResponseEntity.ok(ApiResponse.success("Vehicle updated successfully", response));
     }
 
 

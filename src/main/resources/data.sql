@@ -221,7 +221,7 @@ VALUES
     (7,  7,  '43B-77777', 'VinFast',  'White',  0, NULL, false),
     (8,  8,  '92A-88888', 'Suzuki',   'Blue',   0, NULL, false),
     (9,  9,  '92B-99999', 'Mitsubishi','Black', 0, NULL, false),
-    (10, 10, '65A-10101', 'Nissan',   'Red',    0, NULL, false),
+    (700, 10, '65A-10101', 'Nissan',   'Red',    0, NULL, false),
     (11, 11, '15A-11211', 'Audi',     'Black',  0, NULL, false),
     (12, 12, '16A-12121', 'Mercedes', 'White',  0, NULL, false),
     (13, 1,  '51A-13131', 'Honda',    'Green',  0, NULL, false),
@@ -235,7 +235,11 @@ VALUES
     (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE),
     (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0),
     (500, 12, '59P1-12345', 'Honda SH', 'Đỏ', 0, null,0),
-    (600, 12, '59P1-67890', 'Yamaha Exciter', 'Xanh', 0, null, 0);
+    (600, 12, '59P1-67890', 'Yamaha Exciter', 'Xanh', 0, null, 0),
+    (10, 12, '51F-11111', 'Toyota Vios', 'Trắng', 0, null,0),
+    (20, 99, '51F-22222', 'Honda Civic', 'Đen', 0, null,0),
+    (30, 88, '51F-99999', 'Mercedes C200', 'Xám', 0, null,0);
+
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)

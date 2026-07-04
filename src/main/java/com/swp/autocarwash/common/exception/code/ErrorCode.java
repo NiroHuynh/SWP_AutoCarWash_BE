@@ -378,6 +378,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VEHICLE_005",
             "Cannot delete a vehicle with an unfinished booking."
+    ),
+    VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_006",
+            "Cannot delete a vehicle that is associated with an active membership package."
     );
 
 
