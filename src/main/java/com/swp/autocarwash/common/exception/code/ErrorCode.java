@@ -368,6 +368,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "AUTH_004",
             "The password confirmation does not match."
+    ),
+    LOYALTY_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_002",
+            "Loyalty point balance not found"
+    ),
+    INVALID_LOYALTY_FILTER(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_003",
+            "Invalid year/month filter"
     );
 
 
