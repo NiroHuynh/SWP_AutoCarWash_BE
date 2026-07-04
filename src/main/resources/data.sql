@@ -8,7 +8,6 @@ INSERT IGNORE INTO role (id, name)
 VALUES
     (1, 'ADMIN'),
     (2, 'STAFF'),
-
     (3, 'CUSTOMER');
 
 
@@ -46,16 +45,6 @@ VALUES
     (26, 'trang@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY));
 
-    (10, 'khachvip@gmail.com', '0901234567', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 1, TRUE,DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (11, 'khach_tre_hen@gmail.com', '0909999888', 'hash', 1, TRUE, FALSE),
-    (999,
-     'customer@gmail.com',
-     '0912345678',
-     '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', -- Chuỗi BCrypt của 'OldPassword123'
-     2, -- Giả sử role_id = 2 là Khách hàng (Customer)
-     1, -- is_active = 1 (Tài khoản đang hoạt động)
-     NOW()
-    );
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
@@ -234,7 +223,7 @@ VALUES
     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE),
     (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE),
     (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0);
-    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE);
+
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
@@ -257,7 +246,7 @@ VALUES
     (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false),
     (9,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
     (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false),
-(88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0);
+    (88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0);
 
 -- =====================================================================
 -- FAMILY MEMBER (12)
@@ -400,8 +389,8 @@ VALUES
     (98, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
     (99, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
     (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false),
-(10, 1, 1, N'Gói Rửa Xe Vô Cực Single', 30, 200000.00, 'UNLIMITED', 1, N'Rửa xe tẹt ga cho 1 xe', 0),
-(11, 2, 1, N'Gói Gia Đình Đồng Lòng', 30, 500000.00, 'FAMILY', 3, N'Rửa xe cho cả nhà', 0);
+    (10, 1, 1, N'Gói Rửa Xe Vô Cực Single', 30, 200000.00, 'UNLIMITED', 1, N'Rửa xe tẹt ga cho 1 xe', 0),
+    (11, 2, 1, N'Gói Gia Đình Đồng Lòng', 30, 500000.00, 'FAMILY', 3, N'Rửa xe cho cả nhà', 0);
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
@@ -419,7 +408,7 @@ VALUES
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
     (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-(50, 99, 99, 10, NULL, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (50, 99, 99, 10, NULL, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
 
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
@@ -437,7 +426,7 @@ VALUES
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
     (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-     (60, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (60, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
 
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)
