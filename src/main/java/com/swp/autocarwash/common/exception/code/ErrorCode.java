@@ -362,12 +362,22 @@ public enum ErrorCode {
     PASSWORD_SAME_AS_CURRENT(
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
-            "The new password must not be the same as the current password"
+            "The new password must not be the same as the current password."
     ),
     PASSWORD_CONFIRMATION_MISMATCH(
             HttpStatus.BAD_REQUEST,
             "AUTH_004",
             "The password confirmation does not match."
+    ),
+    UNAUTHORIZED_ACCESS_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_004",
+            "Vehicle does not belong to customer."
+    ),
+    VEHICLE_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_005",
+            "Cannot delete a vehicle with an unfinished booking."
     );
 
 

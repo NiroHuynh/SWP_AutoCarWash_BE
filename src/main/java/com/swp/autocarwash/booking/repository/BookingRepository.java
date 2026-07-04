@@ -199,6 +199,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.status = 'CONFIRMED' AND b.bookingType = 'SUBSCRIPTION'")
     List<Booking> findUncheckedSubscriptionBookingsToday(@Param("date") LocalDate date);
 
-
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id = :vehicleId " +
+            "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECK_IN', 'WASHING')")
+    boolean hasActiveBooking(@Param("vehicleId") Long vehicleId);
 
 }

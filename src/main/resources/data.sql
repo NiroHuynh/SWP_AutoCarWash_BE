@@ -233,7 +233,9 @@ VALUES
 
     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE),
     (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE),
-    (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0);
+    (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0),
+    (500, 12, '59P1-12345', 'Honda SH', 'Đỏ', 0, null,0),
+    (600, 12, '59P1-67890', 'Yamaha Exciter', 'Xanh', 0, null, 0);
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
@@ -597,7 +599,9 @@ VALUES
     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
 
     (99, 101, 203, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0),
-    (1, 100, 201, 1, CURDATE(), 'CONFIRMED', 'ONLINE', TRUE, NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
+    (1, 100, 201, 1, CURDATE(), 'CONFIRMED', 'ONLINE', TRUE, NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0),
+    (701, 12, 500, 1, CURDATE(), 'PENDING', 'ADVANCE', 150000.00,NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0),
+    (702, 12, 600, 1, CURDATE(), 'CHECK_OUT', 'ADVANCE', 150000.00, NOW(),NULL, NULL, NULL, true, 100000, 0, 100000, 0, 0);
 #     (20, 9,  9,  1,  DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'NO_SHOW', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  NULL, NULL, NULL, true, 100000, 0,      100000, 0, 0),
 #
 #     -- waiting-in-queue bookings (today, CHECKED_IN) — cover FE-27-US-01 AC02-AC04
