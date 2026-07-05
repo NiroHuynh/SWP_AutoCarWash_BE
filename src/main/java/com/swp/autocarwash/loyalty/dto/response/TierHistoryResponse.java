@@ -32,5 +32,8 @@ public class TierHistoryResponse {
 
     private TierChangeType changeType;
 
+    /** Booking gay ra lan chuyen hang nay (null neu khong xac dinh duoc). */
+    private Long bookingId;
+
     private Instant createdAt;
 }

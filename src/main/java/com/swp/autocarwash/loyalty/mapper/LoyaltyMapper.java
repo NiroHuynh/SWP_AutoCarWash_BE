@@ -28,7 +28,7 @@ public class LoyaltyMapper {
                 .points(txn.getPoints())
                 .balanceAfter(txn.getBalanceAfter())
                 .bookingId(booking == null ? null : booking.getId())
-                .bookingDate(booking == null ? null : booking.getAppointmentDate())
+                .bookingCheckOutAt(booking == null ? null : booking.getCheckOutAt())
                 .servicePackageName(booking == null ? null : booking.getServicePackage().getName())
                 .createdAt(txn.getCreatedAt())
                 .build();
@@ -36,12 +36,14 @@ public class LoyaltyMapper {
 
     public TierHistoryResponse toTierHistoryResponse(CustomerTierHistory history) {
         CustomerTier oldTier = history.getOldTier();
+        Booking booking = history.getBooking();
         return TierHistoryResponse.builder()
                 .id(history.getId())
                 .oldTierName(oldTier == null ? null : oldTier.getTierName())
                 .newTierName(history.getNewTier().getTierName())
                 .pointsAtTransition(history.getPointsAtTransition())
                 .changeType(history.getChangeType())
+                .bookingId(booking == null ? null : booking.getId())
                 .createdAt(history.getCreatedAt())
                 .build();
     }

@@ -1,5 +1,6 @@
 package com.swp.autocarwash.loyalty.entity;
 
+import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.loyalty.entity.enums.TierChangeType;
 import jakarta.persistence.*;
@@ -44,6 +45,11 @@ public class CustomerTierHistory {
     @Enumerated(EnumType.STRING)
     @Column(name = "change_type", nullable = false, length = 20)
     private TierChangeType changeType;
+
+    /** Booking gay ra lan cong diem dan den chuyen hang nay (null neu khong xac dinh duoc). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id")
+    private Booking booking;
 
     @CreationTimestamp
     @Column(name = "created_at")
