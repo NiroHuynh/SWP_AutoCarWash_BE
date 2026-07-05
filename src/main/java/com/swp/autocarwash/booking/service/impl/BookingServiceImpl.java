@@ -1,7 +1,6 @@
 package com.swp.autocarwash.booking.service.impl;
 
 import com.swp.autocarwash.auth.util.SecurityUtils;
-import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
@@ -17,7 +16,6 @@ import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
 import com.swp.autocarwash.booking.service.BookingService;
-import com.swp.autocarwash.booking.service.BookingSlotService;
 import com.swp.autocarwash.booking.validator.BookingValidator;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.promotion.VoucherContract;
@@ -43,16 +41,12 @@ import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
 import com.swp.autocarwash.booking.port.VehiclePort;
 import com.swp.autocarwash.booking.port.VoucherPort;
-import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
-import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
 import com.swp.autocarwash.common.exception.BusinessException;
-import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,8 +62,6 @@ import java.util.*;
 
 import java.time.LocalDate;
 
-import static com.swp.autocarwash.booking.entity.enums.BookingStatus.CHECK_OUT;
-import static com.swp.autocarwash.booking.entity.enums.BookingStatus.CONFIRMED;
 
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
@@ -92,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of(CONFIRMED.name(),
+            List.of(BookingStatus.CONFIRMED.name(),
                     BookingStatus.CHECK_IN.name(),
                     BookingStatus.WASHING.name(),
                     BookingStatus.COMPLETED.name(),
@@ -102,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
      */
     private static final List<String> PAST_STATUSES =
-            List.of(CHECK_OUT.name(),
+            List.of(BookingStatus.CHECK_OUT.name(),
                     BookingStatus.CANCELED.name(),
                     BookingStatus.NO_SHOW.name());
 
@@ -603,7 +595,7 @@ public class BookingServiceImpl implements BookingService {
                 .vehicle(modelMapper.map(vehicle, Vehicle.class))
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
-                .status(CONFIRMED.toString())
+                .status(BookingStatus.CONFIRMED.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
