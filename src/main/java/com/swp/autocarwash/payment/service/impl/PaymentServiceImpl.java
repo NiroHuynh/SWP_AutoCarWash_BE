@@ -260,7 +260,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .customer(customer)
                         .booking(booking)
                         .transactionType(LoyaltyPointTransactionType.REDEEM)
-                        .points(usedPoints.intValue())
+                        .points(-usedPoints.intValue())
                         .balanceAfter(balance.getTotalPoints())
                         .createdAt(LocalDateTime.now())
                         .sourceType(LoyaltySourceType.BOOKING)
