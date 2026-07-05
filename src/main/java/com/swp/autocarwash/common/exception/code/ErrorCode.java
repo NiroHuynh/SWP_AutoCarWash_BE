@@ -128,7 +128,8 @@ public enum ErrorCode {
     CUSTOMER_RESTRICTED(
             HttpStatus.BAD_REQUEST,
         "CUSTOMER_005",
-                "Customer account is restricted"
+                "Customer account is restricted because violation exceeded the limit. " +
+                        "Please come back to book after 14 days or check in at the store"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,

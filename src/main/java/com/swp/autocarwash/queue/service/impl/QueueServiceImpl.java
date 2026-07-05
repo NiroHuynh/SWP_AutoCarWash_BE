@@ -121,7 +121,6 @@ public class QueueServiceImpl implements QueueService {
         Integer stationId = ticket.getStation().getId();
 
         booking.setStatus(BookingStatus.COMPLETED.name());
-        booking.setCheckOutAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
         ticket.setStatus(QueueStatus.COMPLETED.name());
