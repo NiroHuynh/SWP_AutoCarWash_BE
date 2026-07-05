@@ -98,6 +98,10 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             @Param("today") LocalDate today
     );
 
-
     Optional<UnlimitSubscription> findByVehicleIdAndStatus(Long vehicleId, String status);
+
+    @Query("SELECT COUNT(u) > 0 FROM UnlimitSubscription u WHERE u.vehicle.id = :vehicleId " +
+            "AND u.status = 'ACTIVE' " +
+            "AND :today BETWEEN u.startDate AND u.endDate")
+    boolean hasActiveSubscription(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
 }

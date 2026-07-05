@@ -393,6 +393,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "TRANSFER_LIMIT_001",
             "This vehicle has already used its transfer. Please try again after the lock period."
+    ),
+    TRANSFER_SAME_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_007",
+            "Source and target vehicle must be different."
+    ),
+    TARGET_VEHICLE_HAS_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_008",
+            "The target vehicle already has an active subscription."
     );
 
 
