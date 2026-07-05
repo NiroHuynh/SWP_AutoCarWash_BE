@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -72,6 +73,14 @@ public class BookingValidator {
             throw new BusinessException(
                     ErrorCode.CUSTOMER_NOT_FOUND
             );
+        }
+
+        // AC03: khách đang trong 14 ngày bị phạt (restricted_until còn hiệu lực)
+        // -> chặn tạo booking ("Book an Appointment" bị khóa ở backend, không chỉ ẩn nút FE).
+        if (customer.getRestrictedUntil() != null
+                && customer.getRestrictedUntil().isAfter(
+                        LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+            throw new BusinessException(ErrorCode.CUSTOMER_RESTRICTED);
         }
 
 
