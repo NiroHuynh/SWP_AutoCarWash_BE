@@ -68,6 +68,9 @@ import java.util.*;
 
 import java.time.LocalDate;
 
+import static com.swp.autocarwash.booking.entity.enums.BookingStatus.CHECK_OUT;
+import static com.swp.autocarwash.booking.entity.enums.BookingStatus.CONFIRMED;
+
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
  *
@@ -89,16 +92,17 @@ public class BookingServiceImpl implements BookingService {
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
      */
     private static final List<String> UPCOMING_STATUSES =
-            List.of(BookingStatus.CONFIRMED.name(),
+            List.of(CONFIRMED.name(),
                     BookingStatus.CHECK_IN.name(),
                     BookingStatus.WASHING.name(),
+                    BookingStatus.COMPLETED.name(),
                     BookingStatus.PENDING.name());
 
     /**
      * Danh sách trạng thái lịch sử theo AC-25.2.1.
      */
     private static final List<String> PAST_STATUSES =
-            List.of(BookingStatus.CHECK_OUT.name(),
+            List.of(CHECK_OUT.name(),
                     BookingStatus.CANCELED.name(),
                     BookingStatus.NO_SHOW.name());
 
@@ -438,12 +442,18 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if (!"CHECK_IN".equals(booking.getStatus())) {
-            throw new BusinessException(ErrorCode.BOOKING_NOT_CHECKED_IN);
+        if(!BookingStatus.CHECK_IN.name().equals(booking.getStatus())){
+            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
         booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
+        // AC02: booking single-package đã trả cọc online -> hủy do khách bỏ về => KHÔNG hoàn cọc.
+        // "Thu 100% cọc" chỉ là ghi nhận tịch thu (không refund). Gói không cọc (isDepositPaid=false)
+        // giữ nguyên depositConfiscatedAt = null. Mirror DepositConfiscationScheduler.
+        if (Boolean.TRUE.equals(booking.getIsDepositPaid())) {
+            booking.setDepositConfiscatedAt(LocalDateTime.now(ZONE));
+        }
         bookingRepository.save(booking);
 
         List<BookingSlotAllocation> allocations =
@@ -459,7 +469,7 @@ public class BookingServiceImpl implements BookingService {
             ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         });
-        if (booking.getCheckInEmployee() != null) {
+
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
@@ -469,7 +479,7 @@ public class BookingServiceImpl implements BookingService {
                     .isDepositPaid(booking.getIsDepositPaid())
                     .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
                     .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
-        }
+
 
         return getBookingDetail(bookingId);
     }
@@ -485,7 +495,7 @@ public class BookingServiceImpl implements BookingService {
     private List<String> determineAllowedActions(Booking booking, LocalTime startTime) {
         List<String> actions;
         switch (booking.getStatus()) {
-            case "PAID":
+            case "CHECK_OUT":
                 actions = List.of("WRITE_REVIEW", "VIEW_DETAILS");
                 break;
             case "CONFIRMED":
@@ -593,7 +603,7 @@ public class BookingServiceImpl implements BookingService {
                 .vehicle(modelMapper.map(vehicle, Vehicle.class))
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
-                .status(BookingStatus.CONFIRMED.toString())
+                .status(CONFIRMED.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
