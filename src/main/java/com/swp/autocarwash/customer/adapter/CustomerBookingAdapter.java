@@ -12,6 +12,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 
 /**
  *
@@ -61,13 +64,23 @@ public class CustomerBookingAdapter implements CustomerPort {
 
         Customer customer = customerService
                 .getCustomerById(customerId);
-        return modelMapper.map(customer, CustomerContract.class);
+        CustomerContract contract = modelMapper.map(customer, CustomerContract.class);
+        contract.setRestrictedUntil(toLocalDateTime(customer.getRestrictedUntil()));
+        return contract;
     }
 
     @Override
     public CustomerContract getCustomerByUserId(Long userId) {
         Customer customer = customerService.getCustomerByUserId(userId);
-        return modelMapper.map(customer,CustomerContract.class);
+        CustomerContract contract = modelMapper.map(customer, CustomerContract.class);
+        contract.setRestrictedUntil(toLocalDateTime(customer.getRestrictedUntil()));
+        return contract;
+    }
+
+    // ModelMapper không tự convert Instant (entity) -> LocalDateTime (contract),
+    // field restrictedUntil bị bỏ qua và luôn null nếu không convert thủ công ở đây.
+    private LocalDateTime toLocalDateTime(java.time.Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Ho_Chi_Minh"));
     }
 
 
