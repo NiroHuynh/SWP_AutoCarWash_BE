@@ -3,13 +3,16 @@ package com.swp.autocarwash.customer.service.vehicle.impl;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.request.TransferPlanRequest;
 import com.swp.autocarwash.customer.dto.request.UpdateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
 import com.swp.autocarwash.customer.dto.response.UpdateVehicleResponse;
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.entity.FamilyMember;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.mapper.VehicleMapper;
 import com.swp.autocarwash.customer.port.CustomerPort;
+import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import com.swp.autocarwash.customer.validator.VehicleValidator;
@@ -20,13 +23,19 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.mapper.VehicleMapper;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
+import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
+import com.swp.autocarwash.system.entity.SystemSetting;
+import com.swp.autocarwash.system.repository.SystemSettingRepository;
+import com.swp.autocarwash.system.service.SystemSettingService;
+import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
@@ -59,6 +68,12 @@ public class VehicleServiceImpl implements VehicleService {
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
 
     private final FamilySubscriptionRepository familySubscriptionRepository;
+
+    private final SystemSettingServiceImpl systemSettingServiceImpl;
+
+    private final FamilyMemberRepository familyMemberRepository;
+    private final SystemSettingRepository systemSettingRepository;
+
     /**
      *
      * Chức năng: Lấy danh sách vehicle đang hoạt động của một customer.
@@ -238,6 +253,54 @@ public class VehicleServiceImpl implements VehicleService {
                 .brandName(savedVehicle.getBrandName())
                 .color(savedVehicle.getColor())
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public void transferSubscription(Long customerId, TransferPlanRequest request) {
+        //validate source vehicle
+        Vehicle vehicle = vehicleRepository.findByIdAndIsDeletedFalse(request.getTargetVehicleId())
+                .orElseThrow( () -> new ResourceNotFoundException(ErrorCode.VEHICLE_NOT_FOUND));
+        if(!vehicle.getCustomer().getId().equals(customerId)){
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS_VEHICLE);
+        }
+        //Quét xem xe này đang thuộc gói nào
+        Optional<UnlimitSubscription> unlimitOpt = unlimitSubscriptionRepository.findByVehicleIdAndStatus(request.getSourceVehicleId(),
+                "ACTIVE");
+        Optional<FamilyMember> familyMemberOpt = familyMemberRepository.findByVehicleId(request.getSourceVehicleId());
+
+        if(unlimitOpt.isEmpty() && familyMemberOpt.isEmpty()){
+            throw new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND);
+        }
+        // Check từng gói một nếu có sở hữu -> lấy unlimitedDay ra và plus vào
+        int lockPeriodDays = systemSettingServiceImpl.getTransferLock("SUBSCRIPTION_TRANSFER_LOCK_DAYS");
+
+        //nếu xe sở hữu gói unlimited
+        if(unlimitOpt.isPresent()){
+            UnlimitSubscription unlimitSub = unlimitOpt.get();
+            if(unlimitSub.getLastVehicleChangeAt() != null) {
+                LocalDateTime lockDeadline = unlimitSub.getLastVehicleChangeAt().plusDays(lockPeriodDays);
+
+                if (LocalDateTime.now().isBefore(unlimitSub.getLastVehicleChangeAt())) {
+                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
+                }
+            }
+        }
+        else if(familyMemberOpt.isPresent()){
+            FamilyMember familyMember = familyMemberOpt.get();
+            if(familyMember.getVehicleChangeCount() != null && familyMember.getVehicleChangeCount() >= 1){
+                LocalDateTime lockDeadline = familyMember.getVehicleChangeWindowStart().plusDays(lockPeriodDays);
+                if(LocalDateTime.now().isBefore(lockDeadline)){
+                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
+                }
+            }
+        }
+
+        //Check xem xe đang có booking nào ở trạng thái không thoả không
+        boolean hasActiveBooking = bookingRepository.hasActiveBooking(request.getSourceVehicleId());
+
+
+
     }
 
     /**

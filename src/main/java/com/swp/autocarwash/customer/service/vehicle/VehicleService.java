@@ -1,6 +1,7 @@
 package com.swp.autocarwash.customer.service.vehicle;
 
 import com.swp.autocarwash.customer.dto.request.CreateVehicleRequest;
+import com.swp.autocarwash.customer.dto.request.TransferPlanRequest;
 import com.swp.autocarwash.customer.dto.request.UpdateVehicleRequest;
 import com.swp.autocarwash.customer.dto.response.CreateVehicleResponse;
 import com.swp.autocarwash.customer.dto.response.UpdateVehicleResponse;
@@ -95,5 +96,7 @@ public interface VehicleService {
     void deleteVehicle(Long customerId, Long vehicleId);
 
     UpdateVehicleResponse updateVehicle(Long customerId, Long vehicleId, UpdateVehicleRequest request);
+
+    void transferSubscription (Long customerId, TransferPlanRequest request);
 
 }
