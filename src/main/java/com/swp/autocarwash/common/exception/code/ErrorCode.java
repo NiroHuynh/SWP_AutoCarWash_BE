@@ -383,7 +383,18 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VEHICLE_006",
             "Cannot delete a vehicle that is associated with an active membership package."
+    ),
+    SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_001",
+            "This vehicle does not have an active subscription."
+    ),
+    TRANSFER_LIMIT_REACHED(
+            HttpStatus.BAD_REQUEST,
+            "TRANSFER_LIMIT_001",
+            "This vehicle has already used its transfer. Please try again after the lock period."
     );
+
 
 
     private final HttpStatus status;

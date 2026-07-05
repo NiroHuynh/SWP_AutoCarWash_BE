@@ -924,6 +924,11 @@ VALUES
     ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
     ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
     ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
-    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true);
+    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
+    ('SUBSCRIPTION_TRANSFER_LOCK_DAYS',
+    '30',
+    'Số ngày phương tiện bị khóa quyền chuyển đổi gói (Transfer) sau khi thực hiện đổi xe lần đầu',
+    'NUMBER',
+    true);
 
 SET FOREIGN_KEY_CHECKS = 1;

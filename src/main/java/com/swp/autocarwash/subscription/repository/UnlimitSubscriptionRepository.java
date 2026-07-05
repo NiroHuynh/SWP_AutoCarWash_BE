@@ -99,5 +99,5 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
     );
 
 
-
+    Optional<UnlimitSubscription> findByVehicleIdAndStatus(Long vehicleId, String status);
 }
