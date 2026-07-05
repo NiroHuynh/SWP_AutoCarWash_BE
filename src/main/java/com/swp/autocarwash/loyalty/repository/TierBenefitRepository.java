@@ -1,4 +1,4 @@
-package com.swp.autocarwash.loyalty.repository.custom;
+package com.swp.autocarwash.loyalty.repository;
 
 import com.swp.autocarwash.loyalty.entity.TierBenefit;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -9,6 +9,7 @@ import com.swp.autocarwash.loyalty.entity.CustomerTierHistory;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointTransaction;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -20,17 +21,19 @@ import java.util.List;
 @Component
 public class LoyaltyMapper {
 
+    private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
     public LoyaltyPointTransactionResponse toTransactionResponse(LoyaltyPointTransaction txn) {
         Booking booking = txn.getBooking();
         return LoyaltyPointTransactionResponse.builder()
                 .id(txn.getId())
-                .transactionType(txn.getTransactionType())
+                .transactionType(String.valueOf(txn.getTransactionType()))
                 .points(txn.getPoints())
                 .balanceAfter(txn.getBalanceAfter())
                 .bookingId(booking == null ? null : booking.getId())
                 .bookingCheckOutAt(booking == null ? null : booking.getCheckOutAt())
                 .servicePackageName(booking == null ? null : booking.getServicePackage().getName())
-                .createdAt(txn.getCreatedAt())
+                .createdAt(txn.getCreatedAt() == null ? null : txn.getCreatedAt().atZone(ZONE).toInstant())
                 .build();
     }
 
