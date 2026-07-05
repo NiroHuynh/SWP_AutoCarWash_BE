@@ -31,5 +31,7 @@ public interface CustomerTierRepository
             Integer points
     );
 
+    Optional<CustomerTier> findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(int currentPoints);
+
     List<CustomerTier> findAllByOrderByMinPointsAsc();
 }

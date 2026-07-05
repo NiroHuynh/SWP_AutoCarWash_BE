@@ -15,7 +15,7 @@ import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.customer.CustomerService;
 import com.swp.autocarwash.customer.validator.CustomerValidator;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
-import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
+import com.swp.autocarwash.loyalty.repository.CustomerTierRepository;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
