@@ -44,7 +44,6 @@ public class LoyaltyController {
 
     private final LoyaltyProfileService loyaltyService;
     private final CustomerRepository customerRepository;
-    private final LoyaltyService loyaltyService;
 
     /** Suy ra customerId cua khach dang dang nhap tu token. */
     private Long resolveCustomerId(UserCustomerDetails principal) {

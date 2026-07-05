@@ -2,8 +2,9 @@ package com.swp.autocarwash.loyalty.scheduler;
 
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointTransaction;
-import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
-import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointTransactionRepository;
+import com.swp.autocarwash.loyalty.entity.enums.LoyaltyPointTransactionType;
+import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
+import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ import java.util.List;
 public class LoyaltyResetScheduler {
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-    private static final String RESET_TYPE = "RESET";
+
 
     private final LoyaltyPointBalanceRepository balanceRepository;
     private final LoyaltyPointTransactionRepository transactionRepository;
@@ -65,7 +66,7 @@ public class LoyaltyResetScheduler {
             LoyaltyPointTransaction txn = new LoyaltyPointTransaction();
             txn.setCustomer(balance.getCustomer());
             txn.setBooking(null);
-            txn.setTransactionType(RESET_TYPE);
+            txn.setTransactionType(LoyaltyPointTransactionType.RESET);
             txn.setPoints(-current);
             txn.setBalanceAfter(0);
             transactionRepository.save(txn);
