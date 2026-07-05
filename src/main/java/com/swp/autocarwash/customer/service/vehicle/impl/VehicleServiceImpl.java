@@ -260,7 +260,7 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public void transferSubscription(Long customerId, TransferPlanRequest request) {
         //validate source vehicle
-        Vehicle vehicle = vehicleRepository.findByIdAndIsDeletedFalse(request.getTargetVehicleId())
+        Vehicle vehicle = vehicleRepository.findByIdAndIsDeletedFalse(request.getSourceVehicleId())
                 .orElseThrow( () -> new ResourceNotFoundException(ErrorCode.VEHICLE_NOT_FOUND));
         if(!vehicle.getCustomer().getId().equals(customerId)){
             throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS_VEHICLE);
@@ -282,7 +282,7 @@ public class VehicleServiceImpl implements VehicleService {
             if(unlimitSub.getLastVehicleChangeAt() != null) {
                 LocalDateTime lockDeadline = unlimitSub.getLastVehicleChangeAt().plusDays(lockPeriodDays);
 
-                if (LocalDateTime.now().isBefore(unlimitSub.getLastVehicleChangeAt())) {
+                if (LocalDateTime.now().isBefore(lockDeadline)) {
                     throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
                 }
             }
@@ -339,7 +339,7 @@ public class VehicleServiceImpl implements VehicleService {
             }
             familyMember.setVehicleChangeCount(currentCount + 1);
             familyMember.setVehicle(targetVehicle);
-            familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
+            //familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
             familyMemberRepository.save(familyMember);
         }
     }
