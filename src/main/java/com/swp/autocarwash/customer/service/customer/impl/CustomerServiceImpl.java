@@ -1,10 +1,12 @@
 package com.swp.autocarwash.customer.service.customer.impl;
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
+import com.swp.autocarwash.auth.entity.User;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerUpdateProfileResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.FamilyMember;
 import com.swp.autocarwash.customer.entity.Vehicle;
@@ -271,7 +273,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional //Đảm bảo tính ACID, tự động Rollback nếu quá trình lưu bị lỗi DB
-    public void updateCustomerProfile(Long customerId, UpdateProfileRequest request) {
+    public CustomerUpdateProfileResponse updateCustomerProfile(Long customerId, UpdateProfileRequest request) {
         // 1. Tìm Customer dưới DB
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
@@ -280,8 +282,17 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
         customer.setBirthday(request.getBirthday());
+
+        User user = customer.getUser();
         // 3. Lưu lại xuống Database
-        customerRepository.save(customer);
+        Customer savedCustomer = customerRepository.save(customer);
+        return CustomerUpdateProfileResponse.builder()
+                .id(savedCustomer.getId())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .birthday(savedCustomer.getBirthday())
+                .lastName(savedCustomer.getLastName())
+                .firstName(savedCustomer.getFirstName()).build();
     }
 
 

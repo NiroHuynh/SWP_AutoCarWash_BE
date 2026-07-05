@@ -91,4 +91,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     // reset chủ động: restricted_until < now tự loại trừ NULL, không cần IS NOT NULL riêng
     List<Vehicle> findByRestrictedUntilBefore(Instant now);
+
+    Optional<Vehicle> findByIdAndIsDeletedFalse(Long vehicleId);
+
+    boolean existsByLicensePlateAndIdNotAndIsDeletedFalse(String licensePlate, Long id);
 }
