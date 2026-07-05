@@ -10,7 +10,7 @@ import com.swp.autocarwash.loyalty.dto.response.LoyaltyHistoryResponse;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyProfileResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierHistoryResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierResponse;
-import com.swp.autocarwash.loyalty.service.LoyaltyService;
+import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +37,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LoyaltyController {
 
-    private final LoyaltyService loyaltyService;
+    private final LoyaltyProfileService loyaltyService;
     private final CustomerRepository customerRepository;
 
     /** Suy ra customerId cua khach dang dang nhap tu token. */
