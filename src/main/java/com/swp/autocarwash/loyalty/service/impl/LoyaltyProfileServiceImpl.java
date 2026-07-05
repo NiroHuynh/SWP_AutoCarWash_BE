@@ -19,11 +19,7 @@ import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import com.swp.autocarwash.loyalty.entity.TierBenefit;
 import com.swp.autocarwash.loyalty.mapper.LoyaltyMapper;
 import com.swp.autocarwash.loyalty.port.SpendingPort;
-import com.swp.autocarwash.loyalty.repository.custom.CustomerTierHistoryRepository;
-import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
-import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
-import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointTransactionRepository;
-import com.swp.autocarwash.loyalty.repository.custom.TierBenefitRepository;
+import com.swp.autocarwash.loyalty.repository.*;
 import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
@@ -34,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -103,15 +100,15 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
                 .daysUntilReset(ChronoUnit.DAYS.between(today, resetDate));
 
         // Tong chi tieu nam hien tai (year-to-date)
-        Instant startOfYear = startOfYear(today.getYear());
-        builder.currentTotalSpending(spendingPort.getTotalSpending(customerId, startOfYear, Instant.now()));
+        LocalDateTime startOfYear = startOfYearDateTime(today.getYear());
+        builder.currentTotalSpending(spendingPort.getTotalSpending(customerId, startOfYear, LocalDateTime.now(ZONE)));
 
         // Tien do giu hang (retention): chu ky = 1 nam, bat dau dung vao ngay reset diem gan nhat
         // va ket thuc vao ngay reset ke tiep. Tinh real-time tu SpendingPort thay vi doc mot cot
         // luu san (khong ai cap nhat), de dam bao luon dung voi du lieu hoa don thuc te.
         LocalDate cycleStart = resetDate.minusYears(1);
-        Instant cycleStartInstant = cycleStart.atStartOfDay(ZONE).toInstant();
-        BigDecimal retentionCurrent = spendingPort.getTotalSpending(customerId, cycleStartInstant, Instant.now());
+        LocalDateTime cycleStartLdt = cycleStart.atStartOfDay();
+        BigDecimal retentionCurrent = spendingPort.getTotalSpending(customerId, cycleStartLdt, LocalDateTime.now(ZONE));
         BigDecimal retentionTarget = currentTier == null ? null : currentTier.getRetentionTargetAmount();
         builder.retentionTargetAmount(retentionTarget)
                 .retentionCurrentAmount(retentionCurrent)
@@ -133,17 +130,17 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
         }
 
         // Total spending luon tinh CA NAM (khong doi khi loc thang)
-        Instant yearStart = startOfYear(resolvedYear);
-        Instant yearEnd = startOfYear(resolvedYear + 1);
+        LocalDateTime yearStart = startOfYearDateTime(resolvedYear);
+        LocalDateTime yearEnd = startOfYearDateTime(resolvedYear + 1);
         BigDecimal totalSpending = spendingPort.getTotalSpending(customerId, yearStart, yearEnd);
 
         // Khoang giao dich: neu co thang -> chi thang do; neu khong -> ca nam
-        Instant txnFrom;
-        Instant txnTo;
+        LocalDateTime txnFrom;
+        LocalDateTime txnTo;
         if (month != null) {
             LocalDate monthStart = LocalDate.of(resolvedYear, month, 1);
-            txnFrom = monthStart.atStartOfDay(ZONE).toInstant();
-            txnTo = monthStart.plusMonths(1).atStartOfDay(ZONE).toInstant();
+            txnFrom = monthStart.atStartOfDay();
+            txnTo = monthStart.plusMonths(1).atStartOfDay();
         } else {
             txnFrom = yearStart;
             txnTo = yearEnd;
@@ -187,6 +184,11 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
 
     private Instant startOfYear(int year) {
         return LocalDate.of(year, 1, 1).atStartOfDay(ZONE).toInstant();
+    }
+
+    /** Dau nam duong lich theo gio tuong VN (dung cho query cot LocalDateTime: invoice.paidAt, transaction.createdAt). */
+    private LocalDateTime startOfYearDateTime(int year) {
+        return LocalDate.of(year, 1, 1).atStartOfDay();
     }
 
     @Override

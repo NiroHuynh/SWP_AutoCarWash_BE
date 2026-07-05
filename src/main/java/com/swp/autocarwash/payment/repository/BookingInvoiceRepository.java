@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -26,6 +26,6 @@ public interface BookingInvoiceRepository extends JpaRepository<BookingInvoice, 
     @Query("SELECT COALESCE(SUM(bi.finalAmount), 0) FROM BookingInvoice bi " +
            "WHERE bi.customer.id = :cid AND bi.paidAt >= :from AND bi.paidAt < :to")
     BigDecimal sumFinalAmountPaidBetween(@Param("cid") Long cid,
-                                         @Param("from") Instant from,
-                                         @Param("to") Instant to);
+                                         @Param("from") LocalDateTime from,
+                                         @Param("to") LocalDateTime to);
 }

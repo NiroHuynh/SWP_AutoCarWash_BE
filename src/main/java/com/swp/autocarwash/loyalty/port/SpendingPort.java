@@ -1,7 +1,7 @@
 package com.swp.autocarwash.loyalty.port;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * Port cho phep module loyalty doc tong chi tieu cua khach hang tu module payment,
@@ -20,5 +20,5 @@ public interface SpendingPort {
      * @param to         moc ket thuc (exclusive)
      * @return tong tien (>= 0), khong bao gio null
      */
-    BigDecimal getTotalSpending(Long customerId, Instant from, Instant to);
+    BigDecimal getTotalSpending(Long customerId, LocalDateTime from, LocalDateTime to);
 }
