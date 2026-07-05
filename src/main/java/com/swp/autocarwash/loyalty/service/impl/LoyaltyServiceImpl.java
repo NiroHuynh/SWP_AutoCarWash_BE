@@ -1,5 +1,7 @@
 package com.swp.autocarwash.loyalty.service.impl;
 
+import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
@@ -53,6 +55,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyPointBalanceRepository balanceRepository;
     private final LoyaltyPointTransactionRepository transactionRepository;
     private final CustomerRepository customerRepository;
+    private final BookingRepository bookingRepository;
     private final CustomerTierRepository customerTierRepository;
     private final CustomerTierHistoryRepository tierHistoryRepository;
     private final TierBenefitRepository tierBenefitRepository;
@@ -232,7 +235,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     @Transactional
-    public void recordTierTransitionIfChanged(Long customerId, int previousAccumulatedPoints, int newAccumulatedPoints) {
+    public void recordTierTransitionIfChanged(Long customerId, int previousAccumulatedPoints,
+                                               int newAccumulatedPoints, Long bookingId) {
         CustomerTier oldTier = customerTierRepository
                 .findTop1ByMinPointsLessThanEqualOrderByMinPointsDesc(previousAccumulatedPoints)
                 .orElse(null);
@@ -252,12 +256,15 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
+        Booking booking = bookingId == null ? null : bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
         CustomerTierHistory history = new CustomerTierHistory();
         history.setCustomer(customer);
         history.setOldTier(oldTier);
         history.setNewTier(newTier);
         history.setPointsAtTransition(newAccumulatedPoints);
         history.setChangeType(changeType);
+        history.setBooking(booking);
         tierHistoryRepository.save(history);
     }
 }

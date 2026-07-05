@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Mot dong giao dich diem trong "Points History".
@@ -34,8 +34,8 @@ public class LoyaltyPointTransactionResponse {
     /** Booking lien quan (null neu giao dich khong gan booking). */
     private Long bookingId;
 
-    /** Ngay hen cua booking lien quan (null neu giao dich khong gan booking). */
-    private LocalDate bookingDate;
+    /** Thoi diem check-out (hoan tat) cua booking lien quan; null neu booking chua check-out hoac khong gan booking. */
+    private LocalDateTime bookingCheckOutAt;
 
     /** Ten goi dich vu cua booking lien quan (null neu giao dich khong gan booking). */
     private String servicePackageName;

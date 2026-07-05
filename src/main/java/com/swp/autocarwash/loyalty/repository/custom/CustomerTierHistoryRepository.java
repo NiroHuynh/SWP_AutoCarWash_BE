@@ -15,7 +15,7 @@ public interface CustomerTierHistoryRepository extends JpaRepository<CustomerTie
      * fetch san oldTier/newTier de tranh N+1.
      */
     @Query("SELECT h FROM CustomerTierHistory h " +
-           "LEFT JOIN FETCH h.oldTier LEFT JOIN FETCH h.newTier " +
+           "LEFT JOIN FETCH h.oldTier LEFT JOIN FETCH h.newTier LEFT JOIN FETCH h.booking " +
            "WHERE h.customer.id = :cid AND h.createdAt >= :from AND h.createdAt < :to " +
            "ORDER BY h.createdAt DESC")
     List<CustomerTierHistory> findByCustomerAndPeriod(@Param("cid") Long cid,

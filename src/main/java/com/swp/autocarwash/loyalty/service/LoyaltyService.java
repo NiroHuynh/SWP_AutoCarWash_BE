@@ -44,6 +44,8 @@ public interface LoyaltyService {
      *
      * @param previousAccumulatedPoints diem tich luy TRUOC khi cong/tru
      * @param newAccumulatedPoints      diem tich luy SAU khi cong/tru
+     * @param bookingId                 booking gay ra lan cong diem nay, null neu khong xac dinh duoc
      */
-    void recordTierTransitionIfChanged(Long customerId, int previousAccumulatedPoints, int newAccumulatedPoints);
+    void recordTierTransitionIfChanged(Long customerId, int previousAccumulatedPoints,
+                                        int newAccumulatedPoints, Long bookingId);
 }
