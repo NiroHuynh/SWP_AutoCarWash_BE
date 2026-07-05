@@ -3,15 +3,19 @@ package com.swp.autocarwash.loyalty.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "customer_tier", schema = "swp_auto_car_wash")
 public class CustomerTier {
     @Id
@@ -39,5 +43,7 @@ public class CustomerTier {
     @Column(name = "retention_target_amount", precision = 12, scale = 2)
     private BigDecimal retentionTargetAmount;
 
+    @OneToMany(mappedBy = "customerTier", fetch = FetchType.LAZY)
+    private List<TierBenefit> tierBenefits = new ArrayList<>();
 
 }
