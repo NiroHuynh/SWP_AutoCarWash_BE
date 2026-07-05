@@ -102,6 +102,7 @@ public class QueueServiceImpl implements QueueService {
         queueTicketRepository.save(ticket);
 
         lane.setStatus(WashLaneStatus.WASHING.name());
+        lane.setCurrentBooking(booking);
         washLaneRepository.save(lane);
 
         return buildBoard(stationId);
@@ -132,6 +133,7 @@ public class QueueServiceImpl implements QueueService {
             washLaneRepository.findById(laneId).ifPresent(lane -> {
                 if (WashLaneStatus.WASHING.name().equals(lane.getStatus())) {
                     lane.setStatus(WashLaneStatus.AVAILABLE.name());
+                    lane.setCurrentBooking(null);
                     washLaneRepository.save(lane);
                 }
             });
@@ -140,6 +142,7 @@ public class QueueServiceImpl implements QueueService {
                     .findFirstByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.WASHING.name())
                     .ifPresent(lane -> {
                         lane.setStatus(WashLaneStatus.AVAILABLE.name());
+                        lane.setCurrentBooking(null);
                         washLaneRepository.save(lane);
                     });
         }
@@ -155,28 +158,16 @@ public class QueueServiceImpl implements QueueService {
         long availableLaneCount = washLaneRepository
                 .countByStation_IdAndStatusAndIsDeletedFalse(stationId, WashLaneStatus.AVAILABLE.name());
 
-        // WASHING tickets theo thứ tự ưu tiên (cùng thứ tự startService gán vào làn)
-        List<Long> washingBookingIds = new ArrayList<>();
-        for (QueueTicketResponse t : queue) {
-            if (BookingStatus.WASHING.name().equals(t.getStatus())) {
-                washingBookingIds.add(t.getBookingId());
-            }
-        }
-
-        // Ghép WASHING lanes (sorted by id) với WASHING tickets theo thứ tự → currentBookingId
+        // currentBookingId đọc trực tiếp từ WashLane.currentBooking (FK, set/clear ở start/completeService),
+        // không suy đoán theo vị trí nữa — tránh gán nhầm xe sang làn khác khi nhiều làn cùng WASHING.
         List<WashLane> allLanes = washLaneRepository.findByStation_IdAndIsDeletedFalseOrderById(stationId);
-        int washIdx = 0;
         List<WashLaneResponse> lanes = new ArrayList<>();
         for (WashLane lane : allLanes) {
-            Long currentBookingId = null;
-            if (WashLaneStatus.WASHING.name().equals(lane.getStatus()) && washIdx < washingBookingIds.size()) {
-                currentBookingId = washingBookingIds.get(washIdx++);
-            }
             lanes.add(WashLaneResponse.builder()
                     .id(lane.getId())
                     .laneName(lane.getLaneName())
                     .status(lane.getStatus())
-                    .currentBookingId(currentBookingId)
+                    .currentBookingId(lane.getCurrentBooking() != null ? lane.getCurrentBooking().getId() : null)
                     .build());
         }
 

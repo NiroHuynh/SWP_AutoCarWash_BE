@@ -1,5 +1,6 @@
 package com.swp.autocarwash.wash.entity;
 
+import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.station.entity.Station;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -41,5 +42,10 @@ public class WashLane {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    // Booking đang được rửa trong làn này (null nếu làn trống). Set khi startService,
+    // clear khi completeService — nguồn sự thật duy nhất để buildBoard() biết xe nào ở làn nào.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_booking_id")
+    private Booking currentBooking;
 
 }
