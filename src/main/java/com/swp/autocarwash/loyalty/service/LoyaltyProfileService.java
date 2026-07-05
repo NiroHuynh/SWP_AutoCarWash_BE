@@ -13,7 +13,7 @@ import java.util.List;
  * @author KimNgan
  * @version 1.0
  */
-public interface LoyaltyService {
+public interface LoyaltyProfileService {
 
     /** Du lieu trang Loyalty Profile cua khach dang dang nhap. */
     LoyaltyProfileResponse getLoyaltyProfile(Long customerId);

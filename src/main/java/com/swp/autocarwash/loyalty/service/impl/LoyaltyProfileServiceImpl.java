@@ -24,7 +24,7 @@ import com.swp.autocarwash.loyalty.repository.custom.CustomerTierRepository;
 import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.custom.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.loyalty.repository.custom.TierBenefitRepository;
-import com.swp.autocarwash.loyalty.service.LoyaltyService;
+import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class LoyaltyServiceImpl implements LoyaltyService {
+public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final String DEFAULT_TIER_NAME = "MEMBER";
