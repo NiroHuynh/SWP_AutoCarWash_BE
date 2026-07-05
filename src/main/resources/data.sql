@@ -238,7 +238,11 @@ VALUES
     (600, 12, '59P1-67890', 'Yamaha Exciter', 'Xanh', 0, null, 0),
     (10, 12, '51F-11111', 'Toyota Vios', 'Trắng', 0, null,0),
     (20, 99, '51F-22222', 'Honda Civic', 'Đen', 0, null,0),
-    (30, 88, '51F-99999', 'Mercedes C200', 'Xám', 0, null,0);
+    (30, 88, '51F-99999', 'Mercedes C200', 'Xám', 0, null,0),
+    (101, 12, '51F-10101', 'Honda SH', 'Đỏ', 0, null,0),
+    (102, 12, '51F-10202', 'Yamaha Exciter', 'Xanh', 0, null,0),
+    (103, 12, '51F-10303', 'Honda Vision', 'Trắng', 0, null,0);
+
 
 
 
@@ -260,9 +264,12 @@ VALUES
     (6,  'Gia dinh Vo',    6,  DATE_SUB(NOW(), INTERVAL 75 DAY),  false),
     (7,  'Gia dinh Dang',  7,  DATE_SUB(NOW(), INTERVAL 70 DAY),  false),
     (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false),
-    (9,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
+    (99,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
     (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false),
-(88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0);
+    (88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0),
+    (9, 'Bình Family Group', 12, NOW(), 0);
+
+
 
 -- =====================================================================
 -- FAMILY MEMBER (12)
@@ -282,7 +289,9 @@ VALUES
     (10, 10, 10, 10, 0, NULL),
     (11, 1,  11, 11, 0, NULL),
     (12, 2,  12, 12, 0, NULL),
-    (88, 88, 99, 99, 0, CURRENT_TIMESTAMP);
+    (88, 88, 99, 99, 0, CURRENT_TIMESTAMP),
+    (80, 9, 12, 201, 0, NULL),
+    (81, 9, 99, 202, 1, NOW());
 
 -- =====================================================================
 -- TIER RETENTION (12)
@@ -424,7 +433,8 @@ VALUES
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
     (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-(50, 99, 99, 10, NULL, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (50, 12, 101, 1, NULL, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'ACTIVE', NULL),
+    (51, 12, 103, 1, NOW(), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'ACTIVE', NULL);
 
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
@@ -442,7 +452,8 @@ VALUES
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
     (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-     (60, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (66, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL),
+    (60, 9, 2, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'ACTIVE', NULL);
 
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)

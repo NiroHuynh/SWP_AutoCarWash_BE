@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -298,9 +299,49 @@ public class VehicleServiceImpl implements VehicleService {
 
         //Check xem xe đang có booking nào ở trạng thái không thoả không
         boolean hasActiveBooking = bookingRepository.hasActiveBooking(request.getSourceVehicleId());
+        if(hasActiveBooking){
+            throw new BusinessException(ErrorCode.VEHICLE_HAS_ACTIVE_BOOKING);
+        }
 
+        //VALID XE ĐÍCH
+        Vehicle targetVehicle = vehicleRepository.findByIdAndIsDeletedFalse(request.getTargetVehicleId())
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.VEHICLE_NOT_FOUND));
+        if (!targetVehicle.getCustomer().getId().equals(customerId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS_VEHICLE);
+        }
+        if (Objects.equals(request.getSourceVehicleId(), request.getTargetVehicleId())) {
+            throw new BusinessException(ErrorCode.TRANSFER_SAME_VEHICLE);
+        }
+        LocalDate today = LocalDate.now();
+        //check xem xe đích có đang dính gói unli/family không
+        boolean isTargetInUnlimit = unlimitSubscriptionRepository.hasActiveSubscription(request.getTargetVehicleId(), today);
+        boolean isTargetInFamily = familyMemberRepository.existsActiveFamilyByVehicleId(request.getTargetVehicleId(), today);
 
+        if (isTargetInUnlimit || isTargetInFamily) {
+            throw new BusinessException(ErrorCode.TARGET_VEHICLE_HAS_SUBSCRIPTION);
+        }
 
+        //PERFORM TRANSFER PLAN (CẬP NHẬT XE MỚI XUỐNG DB)
+        // Nhánh A: Cập nhật cho gói Unlimited
+        if(unlimitOpt.isPresent()){
+            UnlimitSubscription unlimitSub = unlimitOpt.get();
+            unlimitSub.setVehicle(targetVehicle);
+            unlimitSub.setLastVehicleChangeAt(LocalDateTime.now());
+            unlimitSubscriptionRepository.save(unlimitSub);
+        }
+        else if(familyMemberOpt.isPresent()){
+            FamilyMember familyMember = familyMemberOpt.get();
+            // Lấy số lần đổi cũ
+            int currentCount = (familyMember.getVehicleChangeCount() != null) ? familyMember.getVehicleChangeCount() : 0;
+            // Nếu chưa từng đổi (lần đầu của chu kỳ), găm mốc thời gian bắt đầu tính 30 ngày
+            if (currentCount == 0) {
+                familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
+            }
+            familyMember.setVehicleChangeCount(currentCount + 1);
+            familyMember.setVehicle(targetVehicle);
+            familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
+            familyMemberRepository.save(familyMember);
+        }
     }
 
     /**
