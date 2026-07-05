@@ -600,6 +600,7 @@ public class WalkInCheckInService {
                     .ticketNumber(nextTicketNumber)
                     .status(savedBooking.getStatus())
                     .remainingBalance(remainingBalanceAtCheckout)
+                    .checkInAt(savedBooking.getCheckInAt())
                     .message("Walk-in booking has been created successfully. The vehicle has been added to the service queue.")
                     .build();
         }

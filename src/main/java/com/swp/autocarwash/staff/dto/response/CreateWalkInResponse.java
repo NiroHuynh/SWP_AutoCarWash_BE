@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,6 +28,8 @@ public class CreateWalkInResponse {
 
         /** Số tiền khách còn phải trả lúc lấy xe (copy lại từ bước calculate-invoice, để Staff đối chiếu lần cuối). */
         private BigDecimal remainingBalance;
+
+        private LocalDateTime checkInAt;
 
         private String message;
 }
