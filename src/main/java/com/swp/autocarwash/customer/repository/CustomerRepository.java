@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -45,5 +47,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     @Query("SELECT c FROM Customer c WHERE c.user.phone = :phone")
     Optional<Customer> findByUserPhone(@Param("phone") String phone);
+
+    // reset chủ động: restricted_until < now tự loại trừ NULL, không cần IS NOT NULL riêng
+    List<Customer> findByRestrictedUntilBefore(Instant now);
 
 }
