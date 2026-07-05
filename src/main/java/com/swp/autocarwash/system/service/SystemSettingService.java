@@ -13,4 +13,8 @@ public interface SystemSettingService {
      * Nem BusinessException(SYSTEM_SETTING_NOT_FOUND) neu khong tim thay key.
      */
     String getStringValue(String settingKey);
+
+    BigDecimal getLoyaltyEarnRate();
+
+    BigDecimal getLoyaltyRedeemRate();
 }

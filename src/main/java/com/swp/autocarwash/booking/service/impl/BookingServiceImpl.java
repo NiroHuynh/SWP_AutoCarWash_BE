@@ -141,6 +141,7 @@ public class BookingServiceImpl implements BookingService {
     private final SecurityUtils securityUtils;
     private final VoucherUsagePort voucherUsagePort;
     private final BookingInvoicePort bookingInvoicePort;
+    private final LoyaltyPort loyaltyPort;
     private final SystemSettingPort systemSettingPort;
 
     private final ModelMapper modelMapper;
@@ -352,11 +353,15 @@ public class BookingServiceImpl implements BookingService {
                             .orElse(null));
         }
 
+//        lấy loyalty point
+        Integer loyaltyPoint = loyaltyPort.getLotaltyPoint(booking.getCustomer().getId());
+
+
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
                 technicianName, voucherCode, voucherDiscountPercent, deposit, remainingAmount,
-                subscriptionInfo);
+                subscriptionInfo,loyaltyPoint);
     }
 
     /**

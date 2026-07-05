@@ -34,7 +34,7 @@ public class CustomerContract {
      */
     private LocalDate birthday;
 
-      private Integer violationCount;
+    private Integer violationCount;
     private LocalDateTime restrictedUntil;
 
     public CustomerContract(Long userId) {

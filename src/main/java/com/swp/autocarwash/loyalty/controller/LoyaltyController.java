@@ -11,10 +11,15 @@ import com.swp.autocarwash.loyalty.dto.response.LoyaltyProfileResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierHistoryResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierResponse;
 import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
+import com.swp.autocarwash.loyalty.dto.response.LoyaltyOverviewResponse;
+import com.swp.autocarwash.loyalty.dto.response.LoyaltyTransactionPageResponse;
+import com.swp.autocarwash.loyalty.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,6 +44,7 @@ public class LoyaltyController {
 
     private final LoyaltyProfileService loyaltyService;
     private final CustomerRepository customerRepository;
+    private final LoyaltyService loyaltyService;
 
     /** Suy ra customerId cua khach dang dang nhap tu token. */
     private Long resolveCustomerId(UserCustomerDetails principal) {
