@@ -373,13 +373,47 @@ public enum ErrorCode {
     PASSWORD_SAME_AS_CURRENT(
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
-            "The new password must not be the same as the current password"
+            "The new password must not be the same as the current password."
     ),
     PASSWORD_CONFIRMATION_MISMATCH(
             HttpStatus.BAD_REQUEST,
             "AUTH_004",
             "The password confirmation does not match."
     ),
+    UNAUTHORIZED_ACCESS_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_004",
+            "Vehicle does not belong to customer."
+    ),
+    VEHICLE_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_005",
+            "Cannot delete a vehicle with an unfinished booking."
+    ),
+    VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_006",
+            "Cannot delete a vehicle that is associated with an active membership package."
+    ),
+    SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_001",
+            "This vehicle does not have an active subscription."
+    ),
+    TRANSFER_LIMIT_REACHED(
+            HttpStatus.BAD_REQUEST,
+            "TRANSFER_LIMIT_001",
+            "This vehicle has already used its transfer. Please try again after the lock period."
+    ),
+    TRANSFER_SAME_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_007",
+            "Source and target vehicle must be different."
+    ),
+    TARGET_VEHICLE_HAS_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_008",
+            "The target vehicle already has an active subscription."
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOYALTY_002",
@@ -390,6 +424,7 @@ public enum ErrorCode {
             "LOYALTY_003",
             "Invalid year/month filter"
     );
+
 
 
     private final HttpStatus status;

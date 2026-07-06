@@ -3,6 +3,8 @@ package com.swp.autocarwash.staff.dto.response;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,8 +24,8 @@ public class CheckInResultResponse {
      //true nếu nghiệp vụ yêu cầu Frontend chuyển sang màn hình tạo đơn Walk-in mới
      //(trường hợp Booking bị chuyển NO_SHOW và khách là khách lẻ).
     private boolean requiresWalkIn;
-
      //Mã booking cũ (đã NO_SHOW) cần đính kèm khi Frontend gọi API tạo Walk-in mới,
      //để chuyển 100% deposit_amount sang đơn mới. Null nếu không áp dụng
     private Long oldBookingId;
+    private LocalDateTime checkInAt;
 }

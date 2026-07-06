@@ -1,5 +1,6 @@
 package com.swp.autocarwash.subscription.repository;
 
+import com.swp.autocarwash.customer.entity.FamilyMember;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -71,4 +72,5 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             @Param("vehicleId") Long vehicleId,
             @Param("today") LocalDate today
     );
+
 }
