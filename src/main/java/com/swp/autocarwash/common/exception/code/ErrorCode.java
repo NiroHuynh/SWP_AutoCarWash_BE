@@ -415,6 +415,26 @@ public enum ErrorCode {
             "VEHICLE_008",
             "The target vehicle already has an active subscription."
     ),
+    STATION_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_001",
+            "The station not valid or not operate"
+    ),
+    LANE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_001",
+            "Name of the new lane existed in this station"
+    ),
+    LANE_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_002",
+            "Lane can not be found"
+    ),
+    CANNOT_DELETE_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_003",
+            "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
+    ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOYALTY_002",
