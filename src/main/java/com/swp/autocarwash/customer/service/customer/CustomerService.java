@@ -60,6 +60,9 @@ public interface CustomerService {
 
     Customer getCustomerByUserId(Long userId);
 
+
+    void updateTier(Long customerId, Integer customerTierId);
+
     CustomerProfileResponse getCustomerProfile(Long customerId);
 
     CustomerUpdateProfileResponse updateCustomerProfile(Long customerId, UpdateProfileRequest request);

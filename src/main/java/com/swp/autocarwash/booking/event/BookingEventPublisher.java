@@ -18,4 +18,8 @@ public class BookingEventPublisher {
     public void publishBookingCanceled(BookingCanceledEvent event) {
         applicationEventPublisher.publishEvent(event);
     }
+
+    public void publicBookingCompleted(BookingCompletedEvent event){
+        applicationEventPublisher.publishEvent(event);
+    }
 }
