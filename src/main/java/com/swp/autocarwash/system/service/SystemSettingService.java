@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 @Service
 public interface SystemSettingService {
     BigDecimal getDepositAmount(String settingKey);
+    Integer getTransferLock(String settingKey);
 
     /**
      * Doc gia tri String tho cua 1 setting theo key.

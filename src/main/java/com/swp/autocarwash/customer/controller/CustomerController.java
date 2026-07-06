@@ -4,6 +4,7 @@ import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerUpdateProfileResponse;
 import com.swp.autocarwash.customer.service.customer.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +30,16 @@ public class CustomerController {
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
 
-    @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfile(
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<CustomerUpdateProfileResponse>> updateProfile(
             @AuthenticationPrincipal UserCustomerDetails userDetails,
             @Valid @RequestBody UpdateProfileRequest request) {
 
         // 1. Lấy customerId an toàn từ Token đã giải mã ở Filter
         Long customerId = userDetails.getCustomerId();
         // 2. Gọi xuống Service xử lý
-        customerService.updateCustomerProfile(customerId, request);
+        CustomerUpdateProfileResponse response = customerService.updateCustomerProfile(customerId, request);
         // 3. Trả về thông báo thành công
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Cập nhật thông tin cá nhân thành công!"
-        ));
+        return ResponseEntity.ok(ApiResponse.success("Your information has been updated successfully.",response));
     }
 }

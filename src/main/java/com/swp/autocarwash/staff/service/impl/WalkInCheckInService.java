@@ -545,6 +545,14 @@ public class WalkInCheckInService {
                 }
             }
 
+            // Ghi lại đúng số tiền lên chính Booking (không chỉ BookingInvoice) — nếu không,
+            // các field này giữ nguyên default 0 (@Builder.Default), khiến GET booking detail /
+            // Payment page luôn hiện Total Due = 0 cho mọi đơn walk-in.
+            savedBooking.setTotalServiceAmount(serviceAmount);
+            savedBooking.setTotalAddonAmount(addonAmount);
+            savedBooking.setTotalAmount(remainingBalanceAtCheckout);
+            bookingRepository.save(savedBooking);
+
             //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
             //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
             BookingInvoice invoice = BookingInvoice.builder()
@@ -600,6 +608,7 @@ public class WalkInCheckInService {
                     .ticketNumber(nextTicketNumber)
                     .status(savedBooking.getStatus())
                     .remainingBalance(remainingBalanceAtCheckout)
+                    .checkInAt(savedBooking.getCheckInAt())
                     .message("Walk-in booking has been created successfully. The vehicle has been added to the service queue.")
                     .build();
         }

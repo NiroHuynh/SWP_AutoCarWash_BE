@@ -60,6 +60,15 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     }
 
     @Override
+    public Integer getTransferLock(String settingKey) {
+        String transferLock = systemSettingRepository.findBySettingKey(settingKey).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(transferLock);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
     public String getStringValue(String settingKey) {
         return systemSettingRepository.findBySettingKey(settingKey)
                 .orElseThrow(() -> new BusinessException(SYSTEM_SETTING_NOT_FOUND))

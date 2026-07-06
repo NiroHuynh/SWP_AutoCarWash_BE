@@ -1,4 +1,3 @@
-
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- =====================================================================
@@ -190,9 +189,7 @@ VALUES
 
     (100, 10, 'Nguyen Van', 'A', '2005-10-11', 3,  0, NULL),
 
-    (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL),
-    (99, 5, N'Viết', N'Bình', '2004-01-01', 1, 0, NULL);
-
+    (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
 
 -- =====================================================================
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
@@ -220,10 +217,7 @@ VALUES
     (201, 100, '51G-111.11', 'Toyota Vios', 'Đen', 0, NULL, false),
     (202, NULL, '51G-222.22', 'Kia Morning', 'Đỏ', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
 
-    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE),
-    (201, 100, '51G-111.11', 'Toyota', 'Đen', 0, FALSE,FALSE),
-    (99, 99, '59A-99999', 'Audi R8', 'Chrome Gold', 0, NULL, 0);
-
+    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE);
 
 
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
@@ -245,8 +239,7 @@ VALUES
     (7,  'Gia dinh Dang',  7,  DATE_SUB(NOW(), INTERVAL 70 DAY),  false),
     (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false),
     (9,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
-    (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false),
-    (88, N'Gia Đình Trùm Rửa Xe', 99, CURRENT_TIMESTAMP, 0);
+    (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false);
 
 -- =====================================================================
 -- FAMILY MEMBER (12)
@@ -265,8 +258,7 @@ VALUES
     (9,  9,  9,  9,  0, NULL),
     (10, 10, 10, 10, 0, NULL),
     (11, 1,  11, 11, 0, NULL),
-    (12, 2,  12, 12, 0, NULL),
-    (88, 88, 99, 99, 0, CURRENT_TIMESTAMP);
+    (12, 2,  12, 12, 0, NULL);
 
 -- =====================================================================
 -- TIER RETENTION (12)
@@ -314,61 +306,45 @@ INSERT IGNORE INTO service_category
 VALUES
     (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
     (2, 'Family',      'Dich vu thuoc goi thanh vien Family (nhieu xe)'),
-    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)'),
-    (1, 'Single Wash', 'Các dịch vụ rửa xe, hút mùi và làm sạch chuyên sâu cho xe cơ giới');
+    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
 
 -- =====================================================================
--- ADDON SERVICE (12) — addon la dich vu them theo lan (thuoc Single Wash)
+-- ADDON SERVICE (7) — addon tuong ung 3 goi Basic/Medium/Premium (FE mock)
 -- =====================================================================
 INSERT IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id, is_deleted)
 VALUES
-    (1,  'Vacuum',                 50000,  15, 1, false),
-    (2,  'Polish',                 150000, 45, 1, false),
-    (3,  'Wax Coating',            180000, 30, 1, false),
-    (4,  'Tire Shine',             40000,  0,  1, false),
-    (5,  'Interior Shampoo',       120000, 30, 1, false),
-    (6,  'Engine Degrease',        100000, 30, 1, false),
-    (7,  'Pet Hair Removal',       90000,  15, 1, false),
-    (8,  'Air Freshener',          20000,  0,  1, false),
-    (9,  'Headlight Restoration',  130000, 30, 1, false),
-    (60, 'Ceramic Spray',          220000, 30, 1, false),
-    (55, 'Leather Conditioning',   140000, 30, 1, false),
-    (12, 'Underbody Rust-proofing',160000, 30, 1, false),
+    (1, 'Exterior Foam Wash',      60000,  15, 1, false),
+    (2, 'Wheel Cleaning',          40000,  15, 1, false),
+    (3, 'Hand Dry',                30000,  0,  1, false),
+    (4, 'Interior Vacuum',         70000,  15, 1, false),
+    (5, 'Window Cleaning',         30000,  15, 1, false),
+    (6, 'Ceramic Boost Spray',     150000, 15, 1, false),
+    (7, 'Dashboard UV Protection', 80000,  15, 1, false),
 
-    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false),
-    (10, 'Hút Mùi Nội Thất', 30000.00, 15, 1, 0),
-    (11, 'Tẩy Ố Kính Lái', 70000.00, 20, 1, 0);
+    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false);
 
 -- =====================================================================
--- SERVICE PACKAGE (3) — cac muc do rua xe; thuoc category Single Wash.
--- Booking va subscription_plan deu chon 1 trong 3 muc nay (BL-BK-03:
--- khach Family/Unlimited van chon package, gia chi bi giam ve 0d).
--- required_slot = number of 15-minute slots
+-- SERVICE PACKAGE (3) — dung dung 3 muc Basic/Medium/Premium theo FE mock.
+-- required_slot = durationMinutes / 15 (Basic 15p, Medium 30p, Premium 45p)
 -- =====================================================================
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
-    (4, 1, 'Basic',   100000, 'Rua xe co ban ben ngoai',               1, false),
-    (6, 1, 'Medium',  220000, 'Rua xe + cham soc them noi/ngoai that', 2, false),
-    (3, 1, 'Premium', 300000, 'Rua xe cao cap, lam sach toan dien',    3, false),
-
-    (5, 1, 'Gói Rửa Xe Tiêu Chuẩn', 100000.00, 'Rua xe cao cap, lam sach toan dien',3, false),
-    (1, 1, 'Rửa Xe Phổ Thông', 50000.00, 'Gói rửa cơ bản cho xe 4 chỗ', 1, 0),
-    (2, 1, 'Rửa Xe Vô Cực Gold', 150000.00, 'Gói chăm sóc toàn diện bao gồm hút mùi', 1, 0);
+    (1, 1, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                     1, false),
+    (2, 1, 'Medium',  299000, 'Lam moi toan dien tu trong ra ngoai: bao gom Basic + hut bui noi that va lau kinh',                    2, false),
+    (3, 1, 'Premium', 499000, 'Cham soc va bao ve toi uu: bao gom Medium + xit ceramic boost va chong tia UV cho bang dieu khien',    3, false);
 
 -- =====================================================================
--- PACKAGE ADDON MAPPING (8)
+-- PACKAGE ADDON MAPPING (15) — addon cong don theo tung muc (Basic 3,
+-- Medium 5, Premium 7) dung khop danh sach addons trong FE mock
 -- =====================================================================
 INSERT IGNORE INTO package_addon_mapping
 (service_package_id, addon_service_id)
 VALUES
-    (1, 1), (1, 8),
-    (3, 2), (3, 3),
-    (3, 4), (3, 9),
-    (3, 6),
-    (3, 7),
-    (2, 10);
+    (1, 1), (1, 2), (1, 3),
+    (2, 1), (2, 2), (2, 3), (2, 4), (2, 5),
+    (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7);
 
 -- =====================================================================
 -- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
@@ -386,11 +362,9 @@ VALUES
     (7,  3, 2, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang', false),
     (8,  1, 2, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang', false),
     (9,  3, 2, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang', false),
-    (98, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
-    (99, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
-    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false),
-    (10, 1, 1, N'Gói Rửa Xe Vô Cực Single', 30, 200000.00, 'UNLIMITED', 1, N'Rửa xe tẹt ga cho 1 xe', 0),
-    (11, 2, 1, N'Gói Gia Đình Đồng Lòng', 30, 500000.00, 'FAMILY', 3, N'Rửa xe cho cả nhà', 0);
+    (10, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
+    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false);
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
@@ -407,8 +381,7 @@ VALUES
     (7,  7,  7,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-    (50, 99, 99, 10, NULL, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
 
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
@@ -425,8 +398,7 @@ VALUES
     (7,  7,  7,  DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (9,  9,  9,  DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELLED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
-    (60, 88, 11, '2026-01-01', '2026-12-31', 'ACTIVE', NULL);
+    (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
 
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)
@@ -511,11 +483,11 @@ VALUES
     (5,  5,    'BDAY2025',  80000,  0,      50,  50,  DATE_SUB(NOW(), INTERVAL 90 DAY), 'USED_UP', DATE_SUB(NOW(), INTERVAL 100 DAY), false, 30, DATE_SUB(NOW(), INTERVAL 100 DAY)),
     (6,  6,    'GRANDOPEN', 70000,  100000, 300, 60,  DATE_ADD(NOW(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY),  true,  20, DATE_SUB(NOW(), INTERVAL 2 DAY)),
     (7,  7,    'BLACKFRI',  150000, 300000, 80,  80,  DATE_SUB(NOW(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), false, 35, DATE_SUB(NOW(), INTERVAL 220 DAY)),
-    (8,  8,    'DOUBLEPT',  NULL,   0,      1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), true,  NULL, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    (8,  8,    'DOUBLEPT',  100000,   50000,      1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), true,  10, DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (9,  9,    'RAINY10',   30000,  50000,  120, 120, DATE_SUB(NOW(), INTERVAL 30 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), false, 10, DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (10, 10,   'FAMILY5',   45000,  100000, 200, 18,  DATE_ADD(NOW(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY),  true,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY)),
-    (11, NULL, 'WELCOME50', 50000,  0,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 50, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  NULL, DATE_SUB(NOW(), INTERVAL 7 DAY));
+    (11, NULL, 'WELCOME50', 50000,  10000,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 5, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY));
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -546,9 +518,9 @@ VALUES
 -- matter when this script runs. Nullable timestamps that have not
 -- happened yet use NULL instead of a fixed placeholder date.
 -- PENDING/CONFIRMED (future): 1,2,3,4,5
--- CHECKED_IN/WASHING (today, already in a wash lane): 6,7,8,9,10
--- PAID (past): 11,12,13,14   CANCELLED (past): 15,16,17   NO_SHOW (past): 18,19,20
--- CHECKED_IN waiting in queue (today, covers FE-27-US-01 AC02-AC04):
+-- CHECK_IN/WASHING (today, already in a wash lane): 6,7,8,9,10
+-- COMPLETED (past): 11,12,13,14   CANCELED (past): 15,16,17   NO_SHOW (past): 18,19,20
+-- CHECK_IN waiting in queue (today, covers FE-27-US-01 AC02-AC04):
 --   21 ONLINE+deposit/GOLD (AC02), 22 WALK_IN registered/SILVER (AC04),
 --   23 ONLINE+no-deposit subscription/PLATINUM (AC03),
 --   24 WALK_IN anonymous guest/no customer (AC04), 25 ONLINE+deposit/MEMBER (AC02)
@@ -639,7 +611,7 @@ INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
     -- booking 1 (station1, +3d, 1 slot)
-    (1,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 1, 'AVAILABLE'),
+    (1,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 2, 'AVAILABLE'),
     -- booking 2 (station2, +5d, 2 slots)
     (2,  2, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
     (3,  2, '08:15', '08:30', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
@@ -2272,7 +2244,7 @@ VALUES
 
 -- =====================================================================
 -- QUEUE TICKET (13) — today's queue
--- WAITING tickets (6,7,8,9,13) are all linked to a real CHECKED_IN booking
+-- WAITING tickets (6,7,8,9,13) are all linked to a real CHECK_IN booking
 -- (21-25) so the Queue Dashboard / cancel-guest-left flow has full vehicle,
 -- customer tier, and package data to render — covers FE-27-US-01 AC02-AC04:
 --   #6  booking21 ONLINE+deposit,        customer tier GOLD     -> AC02
@@ -2294,11 +2266,6 @@ VALUES
     (10, 4, NULL, 'A010', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
     (11, 1, NULL, 'A011', 'CANCELED',   DATE_SUB(NOW(), INTERVAL 2 HOUR),    false, 1),
     (12, 2, NULL, 'A012', 'COMPLETED',  DATE_SUB(NOW(), INTERVAL 4 HOUR),    false, 1),
-    (13, 2, 25,   'A013', 'WAITING',    DATE_SUB(NOW(), INTERVAL 8 MINUTE),  true,  3),
-
-    -- demo thêm cho station 1 — WAITING with booking_id (not null)
-    (14, 1, 26,   'A014', 'WAITING',   DATE_SUB(NOW(), INTERVAL 5 MINUTE),  true,  3),
-    (15, 1, 27,   'A015', 'WAITING',   DATE_SUB(NOW(), INTERVAL 3 MINUTE),  true,  3),
     -- COMPLETED without booking_id (null)
     (16, 1, NULL, 'A016', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 3 HOUR),    false, 1),
     (17, 1, NULL, 'A017', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 90 MINUTE), false, 1);
