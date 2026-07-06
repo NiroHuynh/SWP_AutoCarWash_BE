@@ -1,10 +1,13 @@
 package com.swp.autocarwash.station.repository;
 
 import com.swp.autocarwash.station.entity.Station;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -36,4 +39,5 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
      */
     List<Station> findByCommuneId(Integer communeId);
 
+    Optional<Station> findByIdAndIsDeletedFalse(@NotNull(message = "Station Id can not be null") Integer stationId);
 }
