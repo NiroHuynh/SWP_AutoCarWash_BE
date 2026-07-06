@@ -149,7 +149,9 @@ public class PaymentServiceImpl implements PaymentService {
         bookingRepository.save(booking);
 
         updateAndCreatePointBalanceAndTransaction(booking.getCustomer(),booking,redeem.getUsedPoints());
-        createBookingCompletedEvent(booking);
+        if (booking.getCustomer() != null) {
+            createBookingCompletedEvent(booking);
+        }
 
         return CashPaymentResponse.builder()
                 .invoiceId(invoice.getId())
