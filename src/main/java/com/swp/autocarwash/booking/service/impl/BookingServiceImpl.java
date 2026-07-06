@@ -353,15 +353,17 @@ public class BookingServiceImpl implements BookingService {
                             .orElse(null));
         }
 
+
+
+
         // Bước 6.6: Điểm loyalty — chỉ chốt & hiển thị khi booking đã CHECK_OUT
         // (COMPLETED = rửa xong nhưng chưa thanh toán nên chưa phát sinh điểm).
         // Đồng thời tránh NPE khi booking là walk-in (customer == null).
-        Integer loyaltyPoint = null;
+        Integer loyaltyPoint = loyaltyPort.getLotaltyPoint(booking.getCustomer().getId());
         Integer pointsEarned = null;
         Integer pointsRedeemed = null;
         if (BookingStatus.CHECK_OUT.name().equals(booking.getStatus())
                 && booking.getCustomer() != null) {
-            loyaltyPoint = loyaltyPort.getLotaltyPoint(booking.getCustomer().getId());
             pointsEarned = loyaltyPort.getEarnedPointForBooking(bookingId);
             pointsRedeemed = loyaltyPort.getRedeemedPointForBooking(bookingId);
         }
