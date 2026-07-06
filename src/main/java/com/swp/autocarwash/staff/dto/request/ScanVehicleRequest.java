@@ -12,4 +12,9 @@ public class ScanVehicleRequest {
 
     @NotBlank(message="License plate must not be blank")
     private String licensePlate;
+
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = (licensePlate != null) ? licensePlate.trim().toUpperCase() : null;
+    }
+
 }
