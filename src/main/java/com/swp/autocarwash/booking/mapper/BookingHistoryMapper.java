@@ -89,7 +89,9 @@ public class BookingHistoryMapper {
             BigDecimal depositAmount,
             BigDecimal remainingAmount,
             SubscriptionInfo subscriptionInfo,
-            Integer loyaltyPoint) {
+            Integer loyaltyPoint,
+            Integer pointsEarned,
+            Integer pointsRedeemed) {
 
         List<AddonInfo> addonInfos = addons.stream()
                 .map(ba -> AddonInfo.builder()
@@ -140,6 +142,8 @@ public class BookingHistoryMapper {
                 .depositAmount(depositAmount)
                 .remainingAmount(remainingAmount)
                 .loyaltyPoint(loyaltyPoint)
+                .pointsEarned(pointsEarned)
+                .pointsRedeemed(pointsRedeemed)
                 .build();
     }
 }
