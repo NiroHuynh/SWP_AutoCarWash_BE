@@ -403,6 +403,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VEHICLE_008",
             "The target vehicle already has an active subscription."
+    ),
+    STATION_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_001",
+            "The station not valid or not operate"
+    ),
+    LANE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_001",
+            "Name of the new lane existed in this station"
     );
 
 
