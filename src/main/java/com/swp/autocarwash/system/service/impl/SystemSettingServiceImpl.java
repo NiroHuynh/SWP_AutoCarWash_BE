@@ -2,6 +2,8 @@ package com.swp.autocarwash.system.service.impl;
 
 
 import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.system.entity.SystemSetting;
 import com.swp.autocarwash.system.repository.SystemSettingRepository;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +18,28 @@ import static com.swp.autocarwash.common.exception.code.ErrorCode.SYSTEM_SETTING
 @RequiredArgsConstructor
 public class SystemSettingServiceImpl implements SystemSettingService {
 
+    /**
+     * Số tiền cần chi để nhận 1 điểm.
+     * Ví dụ:
+     * 10000 => 10.000 VND = 1 Point
+     */
+    public static final String LOYALTY_EARN_RATE_VND_PER_POINT =
+            "LOYALTY_EARN_RATE_VND_PER_POINT";
+
+    /**
+     * Giá trị quy đổi của 1 điểm.
+     * Ví dụ:
+     * 1000 => 1 Point = 1.000 VND
+     */
+    public static final String LOYALTY_REDEEM_RATE_VND_PER_POINT =
+            "LOYALTY_REDEEM_RATE_VND_PER_POINT";
+
     /** Key duy nhat luu muc coc co dinh ap dung cho toan he thong (20.000d). */
     public static final String DEFAULT_DEPOSIT_AMOUNT = "DEFAULT_DEPOSIT_AMOUNT";
+    /** Key cau hinh ngay reset diem loyalty thuong nien, dinh dang MM-DD (vd 01-01). */
+    public static final String LOYALTY_RESET_MONTH_DAY = "LOYALTY_RESET_MONTH_DAY";
+    /** Key cau hinh ty le VND tren 1 diem loyalty (vd 1000 = 1000d/diem). */
+    public static final String LOYALTY_POINT_PER_VND = "LOYALTY_POINT_PER_VND";
     private final SystemSettingRepository systemSettingRepository;
 
     /**
@@ -46,5 +68,28 @@ public class SystemSettingServiceImpl implements SystemSettingService {
         }catch(NumberFormatException e ){
             throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
         }
+    }
+    public String getStringValue(String settingKey) {
+        return systemSettingRepository.findBySettingKey(settingKey)
+                .orElseThrow(() -> new BusinessException(SYSTEM_SETTING_NOT_FOUND))
+                .getSettingValue();
+    }
+
+
+    @Override
+    public BigDecimal getLoyaltyEarnRate() {
+        return getIntegerValue(LOYALTY_EARN_RATE_VND_PER_POINT);
+    }
+
+    @Override
+    public BigDecimal getLoyaltyRedeemRate() {
+        return getIntegerValue(LOYALTY_REDEEM_RATE_VND_PER_POINT);
+    }
+
+    private BigDecimal getIntegerValue(String key) {
+        SystemSetting setting = systemSettingRepository
+                .findSystemSettingBySettingKeyAndIsActiveTrue(key)
+                .orElseThrow(() -> new BusinessException(SYSTEM_SETTING_NOT_FOUND));
+        return new BigDecimal(setting.getSettingValue());
     }
 }

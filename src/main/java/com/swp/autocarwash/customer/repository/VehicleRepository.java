@@ -2,7 +2,7 @@ package com.swp.autocarwash.customer.repository;
 
 import com.swp.autocarwash.customer.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,8 +89,10 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             String licensePlate
     );
 
+    // reset chủ động: restricted_until < now tự loại trừ NULL, không cần IS NOT NULL riêng
+    List<Vehicle> findByRestrictedUntilBefore(Instant now);
 
-    Optional <Vehicle> findByIdAndIsDeletedFalse(Long vehicleId);
+    Optional<Vehicle> findByIdAndIsDeletedFalse(Long vehicleId);
 
     boolean existsByLicensePlateAndIdNotAndIsDeletedFalse(String licensePlate, Long id);
 }

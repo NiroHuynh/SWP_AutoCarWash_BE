@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -78,6 +79,6 @@ public class BookingInvoice {
     private BigDecimal addonAmount = BigDecimal.ZERO ;
 
     @Column(name = "paid_at")
-    private Instant paidAt;
+    private LocalDateTime paidAt;
 
 }

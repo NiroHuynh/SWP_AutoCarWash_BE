@@ -45,7 +45,7 @@ public class CustomerValidator {
 
         if(customer.getViolationCount()!=null
                 &&
-                customer.getViolationCount() >= 3){
+                customer.getViolationCount() > 3){
 
             throw new BusinessException(
                     ErrorCode.CUSTOMER_NOT_ELIGIBLE_FOR_BOOKING

@@ -13,10 +13,20 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    LOYALTY_POINT_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_001",
+            "Loyalty point balance not found"
+    ),
     UNAUTHORIZED(
             HttpStatus.UNAUTHORIZED,
             "AUTH_001",
             "Unauthorized access"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found"
     ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
@@ -128,7 +138,8 @@ public enum ErrorCode {
     CUSTOMER_RESTRICTED(
             HttpStatus.BAD_REQUEST,
         "CUSTOMER_005",
-                "Customer account is restricted"
+                "Customer account is restricted because violation exceeded the limit. " +
+                        "Please come back to book after 14 days or check in at the store"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -277,10 +288,10 @@ public enum ErrorCode {
             "CHECK_IN_QUEUE_005",
             "This vehicle is not currently restricted - no penalty deposit required"
     ),
-    SYSTEM_SETTING_NOT_FOUND(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "SYSTEM_SETTING_001",
-            "System setting not found for key. Please ask Admin to configure"
+    INSUFFICIENT_LOYALTY_POINTS(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_001",
+            "Insufficient loyalty points"
     ),
     INVALID_CONFIG_VALUE_FORMAT(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -423,6 +434,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_003",
             "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
+    ),
+    LOYALTY_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_002",
+            "Loyalty point balance not found"
+    ),
+    INVALID_LOYALTY_FILTER(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_003",
+            "Invalid year/month filter"
     );
 
 
