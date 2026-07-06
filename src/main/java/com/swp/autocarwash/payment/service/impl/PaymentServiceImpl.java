@@ -87,10 +87,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(ErrorCode.BOOKING_NOT_COMPLETED);
         }
 
-        if (booking.getCustomer() == null) {
-            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
-        }
-
         // Bước 1: Tính số tiền còn phải thu = tổng tiền - tiền cọc đã trả - điểm sử dụng (nếu có)
         BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
                 ? DEFAULT_DEPOSIT_AMOUNT
