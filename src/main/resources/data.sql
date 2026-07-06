@@ -2320,8 +2320,9 @@ VALUES
     ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
     ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
     ('LOYALTY_RESET_MONTH_DAY',     '01-01',   'Annual loyalty point reset date (MM-DD)',        'STRING',  true),
-    ('LOYALTY_REDEEM_RATE_VND_PER_POINT', '1000', 'VND value of 1 loyalty point when redeeming',  'NUMBER', true),
-    ('LOYALTY_EARN_RATE_VND_PER_POINT',   '1000', 'VND spent per 1 loyalty point when earning',   'NUMBER', true);
+    ('LOYALTY_EARN_RATE_VND_PER_POINT', '1000', 'Customer earns 1 loyalty point for every 1,000 VND spent','NUMBER', TRUE),
+    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
+    ( 'LOYALTY_REDEEM_RATE_VND_PER_POINT', '100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER', TRUE);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
