@@ -20,6 +20,7 @@ import com.swp.autocarwash.loyalty.port.CustomerPort;
 import com.swp.autocarwash.loyalty.repository.CustomerTierRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
+import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import com.swp.autocarwash.loyalty.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -43,6 +44,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final CustomerTierRepository customerTierRepository;
     private final CustomerRepository customerRepository;
     private final CustomerPort customerPort;
+    private final LoyaltyProfileService loyaltyProfileService;
     private final SecurityUtils securityUtils;
     private final ModelMapper modelMapper;
 
@@ -52,6 +54,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         LoyaltyPointBalance balance = getBalance(event);
 
+//        điểm tích luỹ trước khi cộng (dùng để xác định lên/xuống hạng)
+        int previousAccumulated = balance.getAccumulatedPoints();
 
 //        lấy điểm nhân của cutsomer
         BigDecimal multiple = event.pointMultiple();
@@ -64,6 +68,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         balance.setAccumulatedPoints(balance.getAccumulatedPoints() + earnedPoint);
 
+        int newAccumulated = balance.getAccumulatedPoints();
+
         loyaltyPointBalanceRepository.save(balance);
 
         LoyaltyPointTransaction transaction = createTransaction(event, earnedPoint, newBalance);
@@ -71,6 +77,10 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         loyaltyPointTransactionRepository.save(transaction);
 
         processTierUpgrade(event.customerId(), event.customerTierId(), balance);
+
+//        ghi lịch sử lên/xuống hạng (nếu hạng thay đổi)
+        loyaltyProfileService.recordTierTransitionIfChanged(
+                event.customerId(), previousAccumulated, newAccumulated, event.bookingId());
     }
 
 

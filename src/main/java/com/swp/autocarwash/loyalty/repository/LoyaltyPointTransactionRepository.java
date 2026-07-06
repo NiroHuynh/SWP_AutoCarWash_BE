@@ -15,6 +15,9 @@ public interface LoyaltyPointTransactionRepository
 
     List<LoyaltyPointTransaction> findTop5ByCustomer_IdOrderByCreatedAtDesc(Long customerId);
 
+    /** Cac giao dich diem gan voi mot booking (EARN duong, REDEEM am). */
+    List<LoyaltyPointTransaction> findByBooking_Id(Long bookingId);
+
     Page<LoyaltyPointTransaction> findByCustomer_IdOrderByCreatedAtDesc(
             Long customerId,
             Pageable pageable
