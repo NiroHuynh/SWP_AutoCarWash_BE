@@ -145,4 +145,10 @@ public class BookingDetailResponse {
 
     /** số điểm hiện có */
     private Integer loyaltyPoint;
+
+    /** Số điểm cộng từ booking này. {@code null} nếu booking chưa CHECK_OUT. */
+    private Integer pointsEarned;
+
+    /** Số điểm đã dùng cho booking này (số dương). {@code null} nếu booking chưa CHECK_OUT. */
+    private Integer pointsRedeemed;
 }
