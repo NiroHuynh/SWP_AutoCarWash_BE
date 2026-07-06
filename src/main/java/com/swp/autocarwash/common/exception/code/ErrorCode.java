@@ -413,6 +413,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_001",
             "Name of the new lane existed in this station"
+    ),
+    LANE_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_002",
+            "Lane can not be found"
+    ),
+    CANNOT_DELETE_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_003",
+            "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
     );
 
 

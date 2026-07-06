@@ -1,10 +1,13 @@
 package com.swp.autocarwash.wash.repository.custom;
 
+import com.swp.autocarwash.wash.dto.response.WashLaneResponse;
 import com.swp.autocarwash.wash.entity.WashLane;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface WashLaneRepository extends JpaRepository<WashLane, Integer> {
     //check xem hệ thống có bất kỳ làn rửa nào ở trạng thái đc truyền vào hay ko
@@ -22,4 +25,8 @@ public interface WashLaneRepository extends JpaRepository<WashLane, Integer> {
     boolean existsByStationIdAndLaneName(
             @Param("stationId") Integer stationId,
             @Param("laneName") String laneName);
+
+    //Lấy danh sách làn sạch (chưa bị xóa) theo trạm chỉ định
+    @Query("SELECT w FROM WashLane w WHERE w.station.id = :stationId AND w.isDeleted = false ORDER BY w.laneName ASC")
+    List<WashLane> findByStationIdAndIsDeletedFalse(@Param("stationId") Integer stationId);
 }
