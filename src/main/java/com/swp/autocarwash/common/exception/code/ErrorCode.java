@@ -414,6 +414,7 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VEHICLE_008",
             "The target vehicle already has an active subscription."
+    ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOYALTY_002",
