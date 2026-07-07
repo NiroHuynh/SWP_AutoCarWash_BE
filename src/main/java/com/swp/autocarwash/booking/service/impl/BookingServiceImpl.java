@@ -26,7 +26,8 @@ import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
-import com.swp.autocarwash.queue.entity.enums.QueueStatus;
+import com.swp.autocarwash.queue.entity.enums
+        .QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;
@@ -359,7 +360,9 @@ public class BookingServiceImpl implements BookingService {
         // Bước 6.6: Điểm loyalty — chỉ chốt & hiển thị khi booking đã CHECK_OUT
         // (COMPLETED = rửa xong nhưng chưa thanh toán nên chưa phát sinh điểm).
         // Đồng thời tránh NPE khi booking là walk-in (customer == null).
-        Integer loyaltyPoint = loyaltyPort.getLotaltyPoint(booking.getCustomer().getId());
+        Integer loyaltyPoint = booking.getCustomer() != null
+                ? loyaltyPort.getLotaltyPoint(booking.getCustomer().getId())
+                : null;
         Integer pointsEarned = null;
         Integer pointsRedeemed = null;
         if (BookingStatus.CHECK_OUT.name().equals(booking.getStatus())
