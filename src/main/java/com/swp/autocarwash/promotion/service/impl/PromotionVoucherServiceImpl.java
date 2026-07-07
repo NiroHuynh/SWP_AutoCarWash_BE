@@ -35,6 +35,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
     private final PromotionStationMappingRepository promotionStationMappingRepository;
     private final StationRepository stationRepository;
 
+
     @Override
     public CreatePromotionVoucherResponse createPromotionOrVoucher(CreatePromotionVoucherRequest request) {
         //Valid date cho cả 3 chế độ
@@ -65,6 +66,9 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getCampaignStartDate()))
                 .build();
         promotion = promotionRepository.save(promotion); // Sinh ra ID thực tế
+
+        //Lưu cấu hình chi nhánh áp dụng
+        saveStationMappings(promotion.getId(), request.getStationIds());
 
         // 2. Lưu bảng trung gian mapping đối tượng áp dụng
         saveTargetMappings(promotion.getId(), request.getTargetCustomerTierIds());
@@ -114,6 +118,9 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getCampaignStartDate()))
                 .build();
         promotion = promotionRepository.save(promotion);
+
+        //Lưu cấu hình chi nhánh áp dụng
+        saveStationMappings(promotion.getId(), request.getStationIds());
 
         // 3. Lưu bảng trung gian mapping
         saveTargetMappings(promotion.getId(), request.getTargetCustomerTierIds());
@@ -202,6 +209,38 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         }
     }
 
+    /**
+     * Hàm xử lý gác cổng, chặn lỗi chi nhánh không tồn tại và lưu bảng trung gian
+     */
+    private void saveStationMappings(Integer promotionId, List<Integer> stationIds) {
+        // Chốt chặn 1: Chế độ 1 và 2 bắt buộc phải truyền danh sách chi nhánh lên
+        if (stationIds == null || stationIds.isEmpty()) {
+            throw new BusinessException(ErrorCode.STATION_LIST_CANNOT_BE_EMPTY);
+        }
+
+        for (Integer stationId : stationIds) {
+            // Chốt chặn 2: Chặn lỗi nếu truyền trúng stationId không tồn tại hoặc đã bị xóa/ngừng hoạt động
+            Station station = stationRepository.findById(stationId).orElse(null);
+            if (station == null || station.getIsDeleted() || !station.getIsOperating()) {
+                throw new BusinessException(ErrorCode.STATION_NOT_FOUND_OR_INACTIVE);
+            }
+
+            // Đúc khóa chính phức hợp
+            PromotionStationMappingId mappingId = PromotionStationMappingId.builder()
+                    .promotionId(promotionId)
+                    .stationId(stationId)
+                    .build();
+
+            // Đóng gói lưu bảng trung gian liên kết Nhiều - Nhiều
+            PromotionStationMapping mappingEntity = PromotionStationMapping.builder()
+                    .id(mappingId)
+
+                    .build();
+
+            promotionStationMappingRepository.save(mappingEntity);
+        }
+    }
+
     private void saveTargetMappings(Integer promotionId, List<Integer> targetIds) {
         if (targetIds != null && !targetIds.isEmpty()) {
             for (Integer targetId : targetIds) {
@@ -221,6 +260,8 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
             }
         }
     }
+
+
 
     private String calculateStatus(LocalDate startDate) {
         // Khớp với thống nhất: Nếu ngày bắt đầu ở tương lai -> UPCOMING, ngược lại -> ACTIVE

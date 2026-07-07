@@ -459,6 +459,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PROMOTION_001",
             "The mode config invalid."
+    ),
+    STATION_LIST_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "STATION_001",
+            "Please select at least one branch that applies to the campaign."
+    ),
+    STATION_NOT_FOUND_OR_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_002",
+            "The configured branch does not exist or has ceased operation."
     );
 
 

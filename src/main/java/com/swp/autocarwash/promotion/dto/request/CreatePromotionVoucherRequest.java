@@ -30,4 +30,6 @@ public class CreatePromotionVoucherRequest {
     // ====== RIÊNG VOUCHER ĐỘC LẬP (MODE 3) ======
     private LocalDate voucherStartDate;
     private LocalDate voucherEndDate;
+
+    private List<Integer> stationIds;
 }
