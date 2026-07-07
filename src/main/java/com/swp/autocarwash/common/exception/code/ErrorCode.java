@@ -444,7 +444,22 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "LOYALTY_003",
             "Invalid year/month filter"
-    );
+    ),
+    INVALID_SUBSCRIPTION_PLAN_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "SUBSCRIPTION_001",
+                "Invalid status filter"
+    ),
+    SUBSCRIPTION_PLAN_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "SUBSCRIPTION_002",
+                "No subscription plans found"
+    ),
+    FAILED_TO_RETRIEVE_SUBSCRIPTION_PLANS(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+        "SUBSCRIPTION_003",
+                "Failed to retrieve subscription plans"
+    ),;
 
 
 
