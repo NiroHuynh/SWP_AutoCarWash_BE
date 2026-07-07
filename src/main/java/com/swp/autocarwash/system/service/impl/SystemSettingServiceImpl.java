@@ -69,6 +69,18 @@ public class SystemSettingServiceImpl implements SystemSettingService {
             throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
         }
     }
+
+    @Override
+    public Integer getMaxViolationLimit(String settingKey) {
+        String violationLimit = systemSettingRepository.findBySettingKey(settingKey).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(violationLimit);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
+
     public String getStringValue(String settingKey) {
         return systemSettingRepository.findBySettingKey(settingKey)
                 .orElseThrow(() -> new BusinessException(SYSTEM_SETTING_NOT_FOUND))

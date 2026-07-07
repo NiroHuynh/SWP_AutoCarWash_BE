@@ -18,4 +18,6 @@ public interface SystemSettingService {
     BigDecimal getLoyaltyEarnRate();
 
     BigDecimal getLoyaltyRedeemRate();
+
+    Integer getMaxViolationLimit(String settingKey);
 }
