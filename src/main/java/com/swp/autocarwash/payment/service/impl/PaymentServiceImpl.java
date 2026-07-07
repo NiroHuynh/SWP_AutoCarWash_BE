@@ -20,6 +20,9 @@ import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
 import com.swp.autocarwash.payment.dto.response.RedeemResult;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
 import com.swp.autocarwash.payment.entity.Payment;
+import com.swp.autocarwash.payment.entity.enums.PaymentMethod;
+import com.swp.autocarwash.payment.entity.enums.PaymentStatus;
+import com.swp.autocarwash.payment.entity.enums.PaymentType;
 import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.payment.repository.PaymentRepository;
 import com.swp.autocarwash.payment.service.PaymentService;
@@ -134,11 +137,11 @@ public class PaymentServiceImpl implements PaymentService {
         // Bước 3: Ghi nhận giao dịch thanh toán tiền mặt, gắn vào hoá đơn vừa tạo/cập nhật
         Payment payment = new Payment();
         payment.setBookingInvoice(invoice);
-        payment.setPaymentMethod("CASH");
-        payment.setPaymentType("FULL_PAYMENT");
+        payment.setPaymentMethod(PaymentMethod.CASH.name());
+        payment.setPaymentType(PaymentType.FULL_PAYMENT.name());
         payment.setAmount(amountDue);
         payment.setReceivedAmount(receivedAmount);
-        payment.setPaymentStatus("SUCCESS");
+        payment.setPaymentStatus(PaymentStatus.SUCCESS.name());
         payment.setPaidAt(LocalDateTime.now());
         payment = paymentRepository.save(payment);
 
