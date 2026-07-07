@@ -1,8 +1,16 @@
 package com.swp.autocarwash.servicepackage.service.impl;
 
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
+import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.dto.request.CreateAddonServiceRequest;
+import com.swp.autocarwash.servicepackage.dto.request.UpdateAddonServiceRequest;
+import com.swp.autocarwash.servicepackage.dto.response.AddonServiceResponse;
+import com.swp.autocarwash.servicepackage.entity.AddonService;
+import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.mapper.AddonServiceMapper;
 import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
+import com.swp.autocarwash.servicepackage.repository.ServiceCategoryRepository;
 import com.swp.autocarwash.servicepackage.service.AddonServiceService;
 import com.swp.autocarwash.servicepackage.validator.AddonServiceValidator;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +42,9 @@ public class AddonServiceServiceImpl implements AddonServiceService {
     private final AddonServiceMapper mapper;
 
     private final AddonServiceValidator validator;
+
+    private final ServiceCategoryRepository serviceCategoryRepository;
+
 
 
 
@@ -186,6 +197,126 @@ public class AddonServiceServiceImpl implements AddonServiceService {
                         BigDecimal::add
                 );
 
+    }
+
+    /**
+     * Lấy toàn bộ addon chưa xóa, map sang response
+     */
+    @Override
+    public List<AddonServiceResponse> getAllAddonServices() {
+
+        return repository
+                .findAllByIsDeletedFalse()
+                .stream()
+                .map(addon -> AddonServiceResponse.builder()
+                        .id(addon.getId())
+                        .name(addon.getName())
+                        .price(addon.getPrice())
+                        .durationMinutes(addon.getDurationMinutes())
+                        .description(addon.getDescription())
+                        .build()
+                )
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public AddonServiceResponse createAddonService(CreateAddonServiceRequest request) {
+
+        ServiceCategory category = serviceCategoryRepository.findById(1)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_CATEGORY_NOT_FOUND));
+
+        // Tạo entity trực tiếp từ request
+        AddonService addon = AddonService.builder()
+                .name(request.getName())
+                .price(request.getPrice())
+                .durationMinutes(request.getDurationMinutes())
+                .description(request.getDescription())
+                .serviceCategory(category)
+                .isDeleted(false)
+                .build();
+
+        AddonService saved = repository.save(addon);
+
+        // Build response trực tiếp
+        return AddonServiceResponse.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .price(saved.getPrice())
+                .durationMinutes(saved.getDurationMinutes())
+                .description(saved.getDescription())
+                .build();
+    }
+
+    /**
+     * Cập nhật addon service
+     * Flow:
+     * 1. Tìm addon theo id — không tồn tại hoặc đã xóa mềm → SERVICE_001
+     * 2. Update các field từ request (giữ nguyên id, isDeleted, serviceCategoryId)
+     * 3. Save → trả response
+     */
+    @Override
+    @Transactional
+    public AddonServiceResponse updateAddonService(
+            Integer addonServiceId,
+            UpdateAddonServiceRequest request
+    ) {
+
+        // 1. Tìm addon, không có hoặc đã xóa → lỗi
+        AddonService addon = repository
+                .findById(addonServiceId)
+                .filter(a -> !Boolean.TRUE.equals(a.getIsDeleted()))
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.ADDON_SERVICE_NOT_FOUND
+                ));
+
+        // 2. Update trực tiếp
+        addon.setName(request.getName());
+        addon.setPrice(request.getPrice());
+        addon.setDurationMinutes(request.getDurationMinutes());
+        addon.setDescription(request.getDescription());
+
+        AddonService saved = repository.save(addon);
+
+        // 3. Build response trực tiếp
+        return AddonServiceResponse.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .price(saved.getPrice())
+                .durationMinutes(saved.getDurationMinutes())
+                .description(saved.getDescription())
+                .build();
+    }
+
+    /**
+     * Xóa mềm addon service
+     * Flow:
+     * 1. Tìm addon → không có hoặc đã xóa → SERVICE_001
+     * 2. Kiểm tra có service_package (active) nào đang dùng → SERVICE_003
+     * 3. Set is_deleted = true → save
+     */
+    @Override
+    @Transactional
+    public void deleteAddonService(Integer addonServiceId) {
+
+        // 1. Tìm addon, không có hoặc đã xóa mềm → lỗi
+        AddonService addon = repository
+                .findById(addonServiceId)
+                .filter(a -> !Boolean.TRUE.equals(a.getIsDeleted()))
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.ADDON_SERVICE_NOT_FOUND
+                ));
+
+        // 2. Đang được service_package active sử dụng → không cho xóa
+        if (repository.isUsedByActiveServicePackage(addonServiceId)) {
+            throw new BusinessException(
+                    ErrorCode.ADDON_SERVICE_IN_USE
+            );
+        }
+
+        // 3. Soft-delete
+        addon.setIsDeleted(true);
+        repository.save(addon);
     }
 
 }

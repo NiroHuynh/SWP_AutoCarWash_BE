@@ -252,6 +252,11 @@ public enum ErrorCode {
         "SERVICE_002",
                 "Invalid addon service request"
     ),
+    ADDON_SERVICE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_003",
+            "Cannot delete addon service because it is being used by an active service package"
+    ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
             "SERVICE_PACKAGE_001",
@@ -297,6 +302,11 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SYSTEM_SETTING_002",
             "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_CATEGORY_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SERVICE_CATEGORY_001",
+            "Service category not found"
     ),
     SERVICE_PACKAGE_NOT_EXIST(
             HttpStatus.BAD_REQUEST,
