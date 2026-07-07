@@ -10,4 +10,9 @@ public interface StaffCheckinService {
     //tính toán độ lệch thời gian và áp dụng các luồng nghiệp vụ tương ứng
     CheckInResultResponse confirmCheckIn(Long boookingId);
 
+    /**
+     * AC04: Staff thu 20.000đ cọc tại quầy cho khách Walk-in đang bị restricted_until,
+     * trước khi có thể gọi confirmCheckIn() cho booking đó.
+     */
+    CheckInResultResponse collectWalkInPenaltyDeposit(Long bookingId);
 }
