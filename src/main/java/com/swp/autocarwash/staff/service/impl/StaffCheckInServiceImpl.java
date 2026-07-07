@@ -201,13 +201,6 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         }
         Integer currentStationId = firstSlot.getStation().getId();
 
-        if (booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
-            Vehicle vehicle = booking.getVehicle();
-            if (isVehiclePenalized(vehicle) && !Boolean.TRUE.equals(booking.getIsDepositPaid())) {
-                throw new BusinessException(ErrorCode.VEHICLE_CHECKIN_RESTRICTED);
-            }
-        }
-
         //Tính độ lệch thời gian thực tế so với slot đầu tiên.
         LocalTime scheduledStart = slots.get(0).getStartTime();
         LocalTime now = LocalTime.now();
@@ -336,33 +329,6 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
         // Bước 2.3: Định dạng chuỗi số đủ 3 chữ số, ghép với Prefix
         return prefix + String.format("%03d", nextNumber);
-    }
-
-    // ===================== AC04 - Thu cọc phạt cho Walk-in bị restricted =====================
-
-    @Override
-    public CheckInResultResponse collectWalkInPenaltyDeposit(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BOOKING_NOT_FOUND));
-
-        if (!booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
-            throw new BusinessException(ErrorCode.PENALTY_ONLY_FOR_WALK_IN);
-        }
-
-        Vehicle vehicle = booking.getVehicle();
-        if (!isVehiclePenalized(vehicle)) {
-            throw new BusinessException(ErrorCode.VEHICLE_CLEAR_NO_PENALTY);
-        }
-
-        booking.setIsDepositPaid(true);
-        bookingRepository.save(booking);
-
-        return CheckInResultResponse.builder()
-                .bookingId(booking.getId())
-                .status(booking.getStatus())
-                .message("Collected 20,000 VND penalty deposit. You may now proceed with check-in.")
-                .requiresWalkIn(false)
-                .build();
     }
 
 }
