@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ public class QueueTicketResponse {
         private String serviceName;
         private Integer stationId;
         private String stationName;
+        private BigDecimal totalAmount;
 
 }
 
