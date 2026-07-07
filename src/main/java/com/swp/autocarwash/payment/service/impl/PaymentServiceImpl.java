@@ -17,6 +17,7 @@ import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
 import com.swp.autocarwash.payment.dto.response.RedeemResult;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
 import com.swp.autocarwash.payment.entity.Payment;
@@ -38,6 +39,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static java.lang.Math.min;
 
@@ -269,5 +271,40 @@ public class PaymentServiceImpl implements PaymentService {
 
 
         loyaltyPointTransactionRepository.save(transaction);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaymentHistoryResponse> getPaymentHistory(
+            Long customerId, String type, LocalDateTime fromDate, LocalDateTime toDate) {
+
+        return paymentRepository
+                .findSuccessfulPaymentsByCustomerId(customerId, type, fromDate, toDate)
+                .stream()
+                .map(this::toPaymentHistoryResponse)
+                .toList();
+    }
+
+    private PaymentHistoryResponse toPaymentHistoryResponse(Payment payment) {
+        Long bookingId = payment.getBookingInvoice() != null && payment.getBookingInvoice().getBooking() != null
+                ? payment.getBookingInvoice().getBooking().getId()
+                : null;
+        Long subscriptionInvoiceId = payment.getSubscriptionInvoice() != null
+                ? payment.getSubscriptionInvoice().getId()
+                : null;
+
+        return PaymentHistoryResponse.builder()
+                .id(payment.getId())
+                .amount(payment.getAmount())
+                .paymentMethod(payment.getPaymentMethod())
+                .paymentType(payment.getPaymentType())
+                .transactionCode(payment.getTransactionCode())
+                .paidAt(payment.getPaidAt())
+                .bookingId(bookingId)
+                .subscriptionInvoiceId(subscriptionInvoiceId)
+                .build();
     }
 }

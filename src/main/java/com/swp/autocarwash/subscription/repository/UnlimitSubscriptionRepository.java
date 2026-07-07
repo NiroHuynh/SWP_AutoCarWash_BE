@@ -104,4 +104,11 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             "AND u.status = 'ACTIVE' " +
             "AND :today BETWEEN u.startDate AND u.endDate")
     boolean hasActiveSubscription(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
+
+    /** Gói unlimit đang ACTIVE của khách hàng, không giới hạn theo xe cụ thể — dùng cho màn "gói đang hoạt động". */
+    @Query("SELECT u FROM UnlimitSubscription u JOIN FETCH u.subscriptionPlan " +
+            "WHERE u.customer.id = :customerId " +
+            "AND u.status = 'ACTIVE' " +
+            "AND CURRENT_DATE BETWEEN u.startDate AND u.endDate")
+    Optional<UnlimitSubscription> findActiveByCustomerId(@Param("customerId") Long customerId);
 }
