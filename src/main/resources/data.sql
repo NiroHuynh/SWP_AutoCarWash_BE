@@ -93,15 +93,18 @@ INSERT IGNORE INTO station
 (id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
 VALUES
     (9,  'AutoWash My Tho',         '123 Ap Bac, My Tho',              1,  true, 20, false),
-    (2,  'AutoWash HCM Thu Duc',    '456 Vo Van Ngan, Thu Duc, HCM',   2,  true, 30, false),
-    (3,  'AutoWash Ha Noi',         '12 Cau Giay, Ha Noi',             3,  true, 25, false),
+    (99,  'AutoWash HCM Thu Duc',    '456 Vo Van Ngan, Thu Duc, HCM',   2,  true, 30, false),
+    (100,  'AutoWash Ha Noi',         '12 Cau Giay, Ha Noi',             3,  true, 25, false),
     (4,  'AutoWash Da Nang',        '78 Nguyen Van Linh, Da Nang',     4,  true, 20, false),
     (5,  'AutoWash Can Tho',        '34 Mau Than, Ninh Kieu, Can Tho', 5,  true, 18, false),
     (6,  'AutoWash HCM Thu Duc 2',  '12 Kha Van Can, Thu Duc, HCM',    2,  true, 22, false),
     (7,  'AutoWash HCM Go Vap',     '34 Quang Trung, Go Vap, HCM',     11, true, 20, false),
     (8,  'AutoWash Ha Noi Ba Dinh', '7 Doi Can, Ba Dinh, Ha Noi',      12, true, 18, false),
 
-    (1, 'AutoWash Chi nhánh Q9', 'Lê Văn Việt', TRUE, true,3, false);
+    (101, 'AutoWash Chi nhánh Q9', 'Lê Văn Việt', TRUE, true,3, false),
+(1, 'HCM - Quận 1', '123 Nguyễn Huệ', 10, true, 5, false),
+(2, 'HCM - Quận 7', '456 Nguyễn Thị Thập', 20, true, 8, false),
+(3, 'HCM - Thủ Đức', '789 Võ Văn Ngân', 30, true, 4, false);
 
 -- =====================================================================
 -- WASH LANE (15)
@@ -434,7 +437,10 @@ VALUES
     (7,  'Black Friday',                       'Sale lon nhat nam', DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY)),
     (8,  'Tich diem gap doi',                  'Nhan diem x2 cho moi luot rua xe', DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (9,  'Uu dai mua mua',                     'Khuyen mai mua mua', DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY)),
-    (10, 'Combo gia dinh',                     'Uu dai cho goi gia dinh', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY));
+    (11, 'Combo gia dinh',                     'Uu dai cho goi gia dinh', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY)),
+       (10, 'Chiến dịch Hè Rực Rỡ 2026', 'Giảm giá cực sâu ngày hè', '2026-07-01', '2026-07-31', 'ACTIVE',DATE_SUB(NOW(), INTERVAL 1 DAY)),
+-- Chiến dịch 2: Sắp diễn ra (UPCOMING), bắt đầu từ tháng sau
+(20, 'Chiến dịch Chào Thu 2026', 'Khuyến mãi chào tháng mới', '2026-08-01', '2026-08-31', 'UPCOMING',DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- =====================================================================
 -- PROMOTION TARGET (10)
@@ -456,6 +462,12 @@ VALUES
 -- =====================================================================
 -- PROMOTION TARGET MAPPING (15)
 -- =====================================================================
+
+INSERT IGNORE INTO promotion_station_mapping (promotion_id, station_id) VALUES
+    (10, 1), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 1
+    (10, 2), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 7
+    (20, 1); -- Chiến dịch Chào Thu CHỈ áp dụng cho Quận 1
+
 INSERT IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
@@ -487,7 +499,9 @@ VALUES
     (9,  9,    'RAINY10',   30000,  50000,  120, 120, DATE_SUB(NOW(), INTERVAL 30 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), false, 10, DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (10, 10,   'FAMILY5',   45000,  100000, 200, 18,  DATE_ADD(NOW(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY),  true,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY)),
     (11, NULL, 'WELCOME50', 50000,  10000,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 5, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY));
+    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+       (101, NULL, 'VOUCHER_LE_ACTIVE', 30000, 50000, 100, 0, '2026-07-31 23:59:59', 'ACTIVE', '2026-07-01 00:00:00', true, 10, '2026-07-01 00:00:00'),
+(102, NULL, 'VOUCHER_LE_UPCOMING', 40000, 60000, 150, 0, '2026-08-31 23:59:59', 'UPCOMING', '2026-08-01 00:00:00', true, 15, '2026-07-07 00:00:00');
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
