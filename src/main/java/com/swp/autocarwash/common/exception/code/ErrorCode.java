@@ -444,6 +444,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "LOYALTY_003",
             "Invalid year/month filter"
+    ),
+    INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The start date wrong or must not be later than the end date."
+    ),
+    VOUCHER_CODE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "This voucher code already exists in the system. Please enter a different code."
+    ),
+    INVALID_CONFIG_MODE(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_001",
+            "The mode config invalid."
     );
 
 
