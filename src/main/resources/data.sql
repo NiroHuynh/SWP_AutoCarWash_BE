@@ -299,6 +299,23 @@ VALUES
     (12, 340,  840);
 
 -- =====================================================================
+-- Dong bo customer.customer_tier_id theo accumulated_points vua seed o tren,
+-- KHONG gan cung tier_id trong INSERT customer nua - tranh lech du lieu nhu
+-- truong hop Phong (id=1) tung bi seed cung MEMBER trong khi accumulated_points=820
+-- (dang le phai la SILVER). Dung cung nguong min_points nhu logic that cua app
+-- (CustomerTierRepository.findFirstByMinPointsLessThanEqualOrderByMinPointsDesc).
+-- =====================================================================
+UPDATE customer c
+JOIN loyalty_point_balance lb ON lb.customer_id = c.id
+SET c.customer_tier_id = (
+    SELECT ct.id
+    FROM customer_tier ct
+    WHERE ct.min_points <= lb.accumulated_points
+    ORDER BY ct.min_points DESC
+    LIMIT 1
+);
+
+-- =====================================================================
 -- SERVICE CATEGORY (3) — dong san pham: rua le, goi Family, goi Unlimited
 -- =====================================================================
 INSERT IGNORE INTO service_category
@@ -408,14 +425,16 @@ INSERT IGNORE INTO subscription_invoice
 VALUES
     (1,  1,  1,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (2,  2,  2,    NULL, 900000,   'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (3,  3,  3,    NULL, 1350000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    -- Sua tu 1.350.000 xuong 400.000: cung subscription_invoice(10) tao tong chi tieu 2026
+    -- cua customer 3 = 873.500d, khop accumulated_points=1310 theo calculatePoint(amount,1.5) GOLD
+    (3,  3,  3,    NULL, 400000,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (4,  4,  4,    NULL, 2400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (5,  5,  5,    NULL, 8500000,  'PAID',    DATE_SUB(NOW(), INTERVAL 100 DAY), DATE_SUB(NOW(), INTERVAL 100 DAY)),
     (6,  6,  6,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 60 DAY),  DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (7,  8,  8,    NULL, 1350000,  'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL),
     (8,  1,  NULL, 1,    1200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (10, 3,  NULL, 3,    3200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (10, 3,  NULL, 3,    353500,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL);
 
@@ -2070,14 +2089,14 @@ VALUES
 -- Chi luu cac lan NANG/HA hang thuc su (phai co ca hang cu va hang moi)
 -- =====================================================================
 INSERT IGNORE INTO customer_tier_history
-(id, customer_id, old_tier_id, new_tier_id, points_at_transition, change_type, created_at)
+(id, customer_id, old_tier_id, new_tier_id, value_at_transition, change_type, created_at)
 VALUES
     (1, 1, 1, 2, 520,  'UPGRADE', DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (2, 5, 1, 4, 2050, 'UPGRADE', DATE_SUB(NOW(), INTERVAL 30 DAY));
 
 -- Lich su len/ha hang nam 2025 cho customer 1 (phong@gmail.com) — khop ngay + gan booking cua moc doi hang
 INSERT IGNORE INTO customer_tier_history
-(id, customer_id, old_tier_id, new_tier_id, points_at_transition, change_type, created_at, booking_id)
+(id, customer_id, old_tier_id, new_tier_id, value_at_transition, change_type, created_at, booking_id)
 VALUES
     (3, 1, 1, 2, 600,  'UPGRADE',   '2025-02-14 10:30:00', 502),
     (4, 1, 2, 3, 1200, 'UPGRADE',   '2025-05-09 14:00:00', 505),
@@ -2124,7 +2143,11 @@ VALUES
     (29, 514, 1, 100000, 0,      100000, 'PAID', 0, 0,      100000, 0, '2026-02-22 14:15:00', '2026-02-22 14:15:00'),
     (30, 515, 1, 150000, 50000,  100000, 'PAID', 0, 50000,  150000, 0, '2026-03-15 10:45:00', '2026-03-15 10:45:00'),
     (31, 516, 1, 90000,  0,      90000,  'PAID', 0, 0,      90000,  0, '2026-04-20 16:00:00', '2026-04-20 16:00:00'),
-    (32, 517, 1, 200000, 90000,  110000, 'PAID', 0, 90000,  200000, 0, '2026-05-16 11:20:00', '2026-05-16 11:20:00');
+    (32, 517, 1, 200000, 90000,  110000, 'PAID', 0, 90000,  200000, 0, '2026-05-16 11:20:00', '2026-05-16 11:20:00'),
+    -- Hoa don test nam 2025 cho customer 7/8 (co chi tieu 2025, chua co chi tieu 2026) -
+    -- dung de kiem tra annual tier evaluation job (BR-FE-44): customer 7 -> GOLD, customer 8 -> PLATINUM
+    (33, NULL, 7, 1000000, 0, 1000000, 'PAID', 0, 0, 1000000, 0, '2025-06-15 10:00:00', '2025-06-15 10:00:00'),
+    (34, NULL, 8, 3000000, 0, 3000000, 'PAID', 0, 0, 3000000, 0, '2025-06-15 10:00:00', '2025-06-15 10:00:00');
 
 -- =====================================================================
 -- PAYMENT (15)
@@ -2139,13 +2162,13 @@ VALUES
     (5,  10,   NULL, 'CASH',  20000,   NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 6 DAY),    20000,  'REFUND'),
     (6,  NULL, 1,    'MOMO',  500000,  'TXN-0000000006', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   500000, 'PAYMENT'),
     (7,  NULL, 2,    'CASH',  900000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    900000, 'PAYMENT'),
-    (8,  NULL, 3,    'VNPAY', 1350000, 'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   1350000,'PAYMENT'),
+    (8,  NULL, 3,    'VNPAY', 400000,  'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   400000, 'PAYMENT'),
     (9,  NULL, 4,    'MOMO',  2400000, 'TXN-0000000009', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   2400000,'PAYMENT'),
     (10, NULL, 5,    'CASH',  8500000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 100 DAY),  8500000,'PAYMENT'),
     (11, NULL, 6,    'MOMO',  500000,  'TXN-0000000011', 'FAILED',  DATE_SUB(NOW(), INTERVAL 60 DAY),   0,      'PAYMENT'),
     (12, NULL, 8,    'CASH',  1200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   1200000,'PAYMENT'),
     (13, NULL, 9,    'VNPAY', 2000000, 'TXN-0000000013', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    2000000,'PAYMENT'),
-    (14, NULL, 10,   'CASH',  3200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   3200000,'PAYMENT'),
+    (14, NULL, 10,   'CASH',  353500,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   353500, 'PAYMENT'),
     (15, NULL, 11,   'MOMO',  5400000, 'TXN-0000000015', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   5400000,'PAYMENT'),
     -- Thanh toan cho hoa don 16-32 (booking lich su 501-517 cua customer 1)
     (16, 16, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-01-12 09:00:00', 300000, 'PAYMENT'),
