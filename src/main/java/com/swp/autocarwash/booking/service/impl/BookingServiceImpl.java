@@ -26,7 +26,8 @@ import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
-import com.swp.autocarwash.queue.entity.enums.QueueStatus;
+import com.swp.autocarwash.queue.entity.enums
+        .QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.station.entity.Station;

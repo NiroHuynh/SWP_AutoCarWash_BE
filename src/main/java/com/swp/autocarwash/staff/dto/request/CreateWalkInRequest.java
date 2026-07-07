@@ -57,4 +57,7 @@ public class CreateWalkInRequest {
     @Builder.Default
     private Boolean penaltyDepositCollected = false;
 
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = (licensePlate != null) ? licensePlate.trim().toUpperCase() : null;
+    }
 }
