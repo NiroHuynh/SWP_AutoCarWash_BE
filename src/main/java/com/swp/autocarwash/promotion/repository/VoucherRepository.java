@@ -67,5 +67,16 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
             Long id
     );
 
+    @Modifying
+    @Query("""
+        UPDATE Voucher v
+        SET v.usedCount = v.usedCount - 1
+        WHERE v.id = :id
+        AND v.usedCount > 0
+    """)
+    int decreaseUsedCount(
+            Long id
+    );
+
     Voucher findVoucherById(Long id);
 }
