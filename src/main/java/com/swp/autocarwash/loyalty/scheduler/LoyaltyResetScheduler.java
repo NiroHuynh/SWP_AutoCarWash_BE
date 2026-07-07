@@ -45,9 +45,9 @@ public class LoyaltyResetScheduler {
     private final SystemSettingService systemSettingService;
 
     /** Chay luc 00:05:00 moi ngay theo gio Viet Nam. */
-    //@Scheduled(cron = "0 5 0 * * ?", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "0 5 0 * * ?", zone = "Asia/Ho_Chi_Minh")
     // TODO: chi de test thu cong - GO BO truoc khi merge/deploy production.
-    @Scheduled(cron = "0/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+    //@Scheduled(cron = "0/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
     public void resetLoyaltyPoints() {
         MonthDay configured = parseConfig(); // configured lấy từ database - bảng system_setting, key = LOYALTY_RESET_MONTH_DAY, value = "MM-DD"
         MonthDay todayMd = MonthDay.now(ZONE);
