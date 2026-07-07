@@ -417,7 +417,8 @@ VALUES
     (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
     (10, 3,  NULL, 3,    3200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
-    (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL);
+    (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL),
+    (13, 1,  NULL, NULL, 500000,   'PENDING', NOW(),                             NULL);
 
 -- =====================================================================
 -- PROMOTION (10)
@@ -2468,3 +2469,5 @@ VALUES
     (506, 9506), (507, 9507), (508, 9508), (509, 9509), (510, 9510),
     (511, 9511), (512, 9512), (513, 9513), (514, 9514), (515, 9515),
     (516, 9516), (517, 9517);
+
+
