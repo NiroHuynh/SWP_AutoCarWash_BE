@@ -4,14 +4,15 @@ import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.promotion.dto.request.CreatePromotionVoucherRequest;
 import com.swp.autocarwash.promotion.dto.response.CreatePromotionVoucherResponse;
+import com.swp.autocarwash.promotion.dto.response.PromotionBranchSummaryResponse;
+import com.swp.autocarwash.promotion.dto.response.PromotionDashboardListViewResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionTargetResponse;
 import com.swp.autocarwash.promotion.entity.*;
 import com.swp.autocarwash.promotion.entity.enums.PromotionVoucherStatus;
-import com.swp.autocarwash.promotion.repository.PromotionRepository;
-import com.swp.autocarwash.promotion.repository.PromotionTargetMappingRepository;
-import com.swp.autocarwash.promotion.repository.PromotionTargetRepository;
-import com.swp.autocarwash.promotion.repository.VoucherRepository;
+import com.swp.autocarwash.promotion.repository.*;
 import com.swp.autocarwash.promotion.service.PromotionVoucherService;
+import com.swp.autocarwash.station.entity.Station;
+import com.swp.autocarwash.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -30,6 +32,8 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
     private final PromotionTargetMappingRepository promotionTargetMappingRepository;
     private final PromotionTargetRepository promotionTargetRepository;
 
+    private final PromotionStationMappingRepository promotionStationMappingRepository;
+    private final StationRepository stationRepository;
 
     @Override
     public CreatePromotionVoucherResponse createPromotionOrVoucher(CreatePromotionVoucherRequest request) {
@@ -243,5 +247,132 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         }
 
         return result;
+    }
+
+    @Override
+    public List<PromotionBranchSummaryResponse> getBranchPromotionSummary(String status) {
+        // Ép trạng thái về mặc định nếu FE truyền trống
+        String filterStatus = (status == null || status.trim().isEmpty()) ? PromotionVoucherStatus.ACTIVE.name() : status.toUpperCase();
+
+        List<Object[]> rawResults = stationRepository.countPromotionsPerBranch(filterStatus);
+        List<PromotionBranchSummaryResponse> summaryList = new ArrayList<>();
+
+        for (Object[] row : rawResults) {
+            summaryList.add(PromotionBranchSummaryResponse.builder()
+                    .stationId((Integer) row[0])
+                    .stationName((String) row[1])
+                    .totalActivePromotions(((Number) row[2]).longValue())
+                    .build());
+        }
+        return summaryList;
+    }
+
+    @Override
+    public List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer stationId, String status) {
+
+        // 1. Chuẩn hóa trạng thái bộ lọc (Mặc định nếu FE gửi trống là "ALL")
+        String filterStatus = "ALL";
+        if (status != null && !status.trim().isEmpty()) {
+            filterStatus = status.toUpperCase();
+        }
+
+        // Danh sách tổng hợp cuối cùng chứa toàn bộ dữ liệu trả về cho FE
+        List<PromotionDashboardListViewResponse> allItems = new ArrayList<>();
+
+        //PHẦN 1: BỐC DỮ LIỆU TỪ BẢNG PROMOTION (CHIẾN DỊCH VÀ VOUCHER CHẾ ĐỘ 1, 2)
+
+        List<Promotion> promotions = promotionRepository.findAll();
+
+        for (Promotion p : promotions) {
+            // Điểm chặn 1: Lọc theo trạng thái chiến dịch
+            if (!filterStatus.equals("ALL") && !p.getStatus().equalsIgnoreCase(filterStatus)) {
+                continue; // Bỏ qua nếu không khớp trạng thái Admin chọn
+            }
+
+            // Bước A: Tìm danh sách ID các chi nhánh áp dụng của chiến dịch từ bảng trung gian
+            List<PromotionStationMapping> stationMappings = promotionStationMappingRepository.findById_PromotionId(p.getId());
+            List<Integer> assignedStationIds = new ArrayList<>();
+            for (PromotionStationMapping mapping : stationMappings) {
+                assignedStationIds.add(mapping.getId().getStationId());
+            }
+
+            // Điểm chặn 2: Lọc theo chi nhánh Admin chọn trên giao diện
+            if (stationId != null && !assignedStationIds.contains(stationId)) {
+                continue; // Bỏ qua nếu chiến dịch này không áp dụng cho chi nhánh đang chọn
+            }
+
+            // Bước B: Chuyển đổi danh sách ID chi nhánh sang danh sách "Tên chi nhánh" để hiển thị
+            List<String> stationNames = new ArrayList<>();
+            List<Station> stations = stationRepository.findAllById(assignedStationIds);
+            for (Station s : stations) {
+                stationNames.add(s.getStationName());
+            }
+
+            // Bước C: Tìm danh sách "Tên nhóm đối tượng khách hàng" (Ví dụ: Hạng Vàng, Khách mới)
+            List<String> targetNames = new ArrayList<>();
+            List<PromotionTargetMapping> targetMappings = promotionTargetMappingRepository.findById_PromotionId(p.getId());
+            for (PromotionTargetMapping mapping : targetMappings) {
+                PromotionTarget target = promotionTargetRepository.findById(mapping.getId().getPromotionTargetId()).orElse(null);
+                if (target != null) {
+                    targetNames.add(target.getTargetName());
+                }
+            }
+
+            // Bước D: Đóng gói toàn bộ thông tin chiến dịch vào DTO
+            PromotionDashboardListViewResponse dto = PromotionDashboardListViewResponse.builder()
+                    .id(p.getId())
+                    .type("CAMPAIGN")
+                    .name(p.getTitle())
+                    .appliedStations(stationNames)
+                    .targetSegments(targetNames)
+                    .startDate(p.getStartDate())
+                    .endDate(p.getEndDate())
+                    .status(p.getStatus())
+                    .build();
+
+            allItems.add(dto);
+        }
+
+
+        //PHẦN 2: BỐC DỮ LIỆU VOUCHER LẺ (CHẾ ĐỘ 3 - PROMOTION_ID LÀ NULL)
+
+        List<Voucher> vouchers = voucherRepository.findAll();
+
+        for (Voucher v : vouchers) {
+            // Chỉ lấy những Voucher độc lập (Không thuộc chiến dịch nào)
+            if (v.getPromotion() == null) {
+
+                // Điểm chặn 1: Lọc trạng thái của Voucher lẻ
+                if (!filterStatus.equals("ALL") && !v.getStatus().equalsIgnoreCase(filterStatus)) {
+                    continue;
+                }
+
+                // Mặc định Voucher lẻ áp dụng công khai cho "Toàn hệ thống" và "Tất cả khách hàng"
+                PromotionDashboardListViewResponse dto = PromotionDashboardListViewResponse.builder()
+                        .id(v.getId().intValue()) // Ép kiểu Long của Voucher sang Integer để gom chung bảng
+                        .type("STANDALONE_VOUCHER")
+                        .name("Voucher lẻ: " + v.getVoucherCode())
+                        .appliedStations(List.of("Toàn hệ thống"))
+                        .targetSegments(List.of("Tất cả khách hàng"))
+                        .startDate(v.getStartDate().toLocalDate()) // Ép LocalDateTime về LocalDate
+                        .endDate(v.getExpiryDate().toLocalDate())
+                        .status(v.getStatus())
+                        .build();
+
+                allItems.add(dto);
+            }
+        }
+
+        //PHẦN 3: SẮP XẾP THEO NGÀY BẮT ĐẦU MỚI NHẤT (MỚI NHẤT LÊN ĐẦU)
+
+        allItems.sort( new Comparator<PromotionDashboardListViewResponse>(){
+            @Override
+            public int compare(PromotionDashboardListViewResponse a, PromotionDashboardListViewResponse b) {
+                return b.getStartDate().compareTo(a.getStartDate()); // Ngày lớn hơn (mới hơn) đứng trước
+            }
+        });
+
+        // Trả thẳng nguyên cái List đã gộp và sắp xếp về cho Controller
+        return allItems;
     }
 }
