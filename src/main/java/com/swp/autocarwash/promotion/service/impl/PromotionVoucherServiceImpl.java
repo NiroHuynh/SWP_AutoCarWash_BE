@@ -3,21 +3,26 @@ package com.swp.autocarwash.promotion.service.impl;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.promotion.dto.request.CreatePromotionVoucherRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdatePromotionRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdateVoucherRequest;
 import com.swp.autocarwash.promotion.dto.response.CreatePromotionVoucherResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionBranchSummaryResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionDashboardListViewResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionTargetResponse;
 import com.swp.autocarwash.promotion.entity.*;
 import com.swp.autocarwash.promotion.entity.enums.PromotionVoucherStatus;
+import com.swp.autocarwash.promotion.entity.enums.VoucherStatus;
 import com.swp.autocarwash.promotion.repository.*;
 import com.swp.autocarwash.promotion.service.PromotionVoucherService;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -245,12 +250,12 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         if (targetIds != null && !targetIds.isEmpty()) {
             for (Integer targetId : targetIds) {
                 // Đúc class Khóa chính phức hợp
-                        PromotionTargetMappingId mappingId = PromotionTargetMappingId.builder()
+                PromotionTargetMappingId mappingId = PromotionTargetMappingId.builder()
                         .promotionId(promotionId)
                         .promotionTargetId(targetId)
                         .build();
 
-                        // Đóng gói vào Entity trung gian
+                // Đóng gói vào Entity trung gian
                 PromotionTargetMapping mappingEntity = PromotionTargetMapping.builder()
                         .id(mappingId)
                         .build();
@@ -260,7 +265,6 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
             }
         }
     }
-
 
 
     private String calculateStatus(LocalDate startDate) {
@@ -406,7 +410,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
         //PHẦN 3: SẮP XẾP THEO NGÀY BẮT ĐẦU MỚI NHẤT (MỚI NHẤT LÊN ĐẦU)
 
-        allItems.sort( new Comparator<PromotionDashboardListViewResponse>(){
+        allItems.sort(new Comparator<PromotionDashboardListViewResponse>() {
             @Override
             public int compare(PromotionDashboardListViewResponse a, PromotionDashboardListViewResponse b) {
                 return b.getStartDate().compareTo(a.getStartDate()); // Ngày lớn hơn (mới hơn) đứng trước
@@ -416,4 +420,167 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         // Trả thẳng nguyên cái List đã gộp và sắp xếp về cho Controller
         return allItems;
     }
+
+    //CODE SERVICE PHỤC VỤ LOGIC CONFIG - UPDATE PROMOTION/VOUCHER
+
+    public static String determinePromotionStatus(LocalDate start, LocalDate end) {
+        LocalDate now = LocalDate.now();
+        if (start.isAfter(now)) return PromotionVoucherStatus.UPCOMING.name();
+        if (now.isAfter(end)) return PromotionVoucherStatus.EXPIRED.name();
+        return PromotionVoucherStatus.ACTIVE.name();
+    }
+
+    public static String determineVoucherStatus(LocalDateTime start, LocalDateTime expiry, int usedCount, int limit) {
+        if (usedCount >= limit) return VoucherStatus.USED_UP.name();
+        LocalDateTime now = LocalDateTime.now();
+        if (start.isAfter(now)) return VoucherStatus.UPCOMING.name();
+        if (now.isAfter(expiry)) return VoucherStatus.EXPIRED.name();
+        return VoucherStatus.ACTIVE.name();
+    }
+
+    @Transactional
+    public void updatePromotion(Integer promotionId, UpdatePromotionRequest request) {
+        // 1. Kiểm tra tồn tại Chiến dịch
+        Promotion promotion = promotionRepository.findById(promotionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        // 2. Validate Khoảng ngày tháng của Chiến dịch
+        LocalDate now = LocalDate.now();
+        if (request.getStartDate().isBefore(now) || request.getEndDate().isBefore(now)) {
+            throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+        }
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
+        // 3. Cập nhật Metadata cơ bản
+        promotion.setTitle(request.getTitle());
+        promotion.setDescription(request.getDescription());
+        promotion.setStartDate(request.getStartDate());
+        promotion.setEndDate(request.getEndDate());
+
+        // Tự động tính toán lại Trạng thái Chiến dịch
+        String newPromoStatus = determinePromotionStatus(request.getStartDate(), request.getEndDate());
+        promotion.setStatus(newPromoStatus);
+        promotionRepository.save(promotion);
+
+        // 4. Xử lý đồng bộ Mappings Chi nhánh (AC03) - Xóa cũ, thêm mới an toàn
+        promotionStationMappingRepository.deleteByPromotionId(promotionId);
+        for (Integer stationId : request.getStationIds()) {
+            Station station = stationRepository.findById(stationId).orElse(null);
+            if (station == null || station.getIsDeleted() || !station.getIsOperating()) {
+                throw new BusinessException(ErrorCode.STATION_NOT_FOUND_OR_INACTIVE);
+            }
+
+            PromotionStationMappingId mappingId = PromotionStationMappingId.builder()
+                    .promotionId(promotionId)
+                    .stationId(stationId)
+                    .build();
+            PromotionStationMapping mapping = PromotionStationMapping.builder().id(mappingId).build();
+            promotionStationMappingRepository.save(mapping);
+        }
+
+        // 5. Xử lý đồng bộ Mappings Nhóm đối tượng (AC02)
+        promotionTargetMappingRepository.deleteByPromotionId(promotionId);
+        if (request.getTargetCustomerTierIds() != null) {
+            for (Integer targetId : request.getTargetCustomerTierIds()) {
+                // Logic kiểm tra targetId hợp lệ dưới DB...
+                PromotionTargetMappingId targetMappingId = PromotionTargetMappingId.builder()
+                        .promotionId(promotionId)
+                        .promotionTargetId(targetId)
+                        .build();
+                PromotionTargetMapping targetMapping = PromotionTargetMapping.builder().id(targetMappingId).build();
+                promotionTargetMappingRepository.save(targetMapping);
+            }
+        }
+
+        //6. CRUCIAL BE RULE: Tự động đồng bộ ăn theo thời gian cho Voucher con liên kết (Nếu có)
+        Voucher linkedVoucher = voucherRepository.findByPromotionId(promotionId).orElse(null);
+        if (linkedVoucher != null) {
+            // Ép kiểu LocalDate sang LocalDateTime đầu ngày và cuối ngày
+            LocalDateTime voucherStart = request.getStartDate().atStartOfDay();
+            LocalDateTime voucherExpiry = request.getEndDate().atTime(LocalTime.MAX);
+
+            linkedVoucher.setStartDate(voucherStart);
+            linkedVoucher.setExpiryDate(voucherExpiry);
+
+            // Tính toán lại trạng thái Voucher con
+            String newVoucherStatus = determineVoucherStatus(
+                    voucherStart, voucherExpiry, linkedVoucher.getUsedCount(), linkedVoucher.getUsageLimit()
+            );
+            linkedVoucher.setStatus(newVoucherStatus);
+            voucherRepository.save(linkedVoucher);
+        }
+    }
+
+    @Transactional
+    public void updateVoucherFinancialRules(Integer voucherId, UpdateVoucherRequest request) {
+        // Kiểm tra tồn tại Voucher
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_NOT_FOUND));
+
+        //Chốt chặn 1: Bảo vệ hệ thống (Cấm sửa Voucher Chế độ 1)
+        if (voucher.getVoucherCode().startsWith("AUTO_PROMO_")) {
+            throw new BusinessException(ErrorCode.CANNOT_EDIT_AUTO_PROMOTION_RULES);
+        }
+
+        //Chốt chặn 2: Bảo vệ Trạng thái (Hết hạn thì không cho sửa)
+        if ("EXPIRED".equalsIgnoreCase(voucher.getStatus())) {
+            throw new BusinessException(ErrorCode.CANNOT_EDIT_EXPIRED_VOUCHER);
+        }
+
+        //Chốt chặn 3: Kiểm tra Trùng mã Code khi thay đổi tên mã
+        String cleanNewCode = request.getVoucherCode().trim().toUpperCase();
+        if (!voucher.getVoucherCode().equals(cleanNewCode)) {
+            if (voucherRepository.existsByVoucherCode(cleanNewCode)) {
+                throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS);
+            }
+            voucher.setVoucherCode(cleanNewCode);
+        }
+
+        //Chốt chặn 4: Kiểm soát Giới hạn lượt dùng (Usage Limit Guard - Ép buộc lớn hơn)
+        if (request.getUsageLimit() <= voucher.getUsedCount()) {
+            throw new BusinessException(ErrorCode.USAGE_LIMIT_MUST_BE_GREATER_THAN_USED_COUNT);
+        }
+
+        //Chốt chặn 5: Kiểm tra Tính nhất quán Thời gian
+        if (voucher.getPromotion() == null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            // 5.1: Ngày hết hạn mới không được ở quá khứ
+            if (request.getExpiryDate().isBefore(now)) {
+                throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+            }
+
+            // 5.3: Gác cổng ngày bắt đầu (Chỉ check nếu Admin chủ động THAY ĐỔI ngày bắt đầu)
+            if (!voucher.getStartDate().isEqual(request.getStartDate())) {
+                // Nếu Admin cố tình đổi ngày bắt đầu sang một mốc mới, thì mốc mới đó không được ở quá khứ
+                if (request.getStartDate().isBefore(now)) {
+                    throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+                }
+            }
+
+            if (request.getExpiryDate().isBefore(request.getStartDate())) {
+                throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+            }
+        }
+
+        // 6. Ghi nhận dữ liệu tài chính mới sau khi vượt qua tất cả chốt chặn
+        voucher.setDiscountPercentage(request.getDiscountPercentage());
+        voucher.setMaxDiscountAmount(request.getMaxDiscountAmount());
+        voucher.setMinOrderValue(request.getMinOrderValue());
+        voucher.setUsageLimit(request.getUsageLimit());
+        voucher.setStartDate(request.getStartDate());
+        voucher.setExpiryDate(request.getExpiryDate());
+        voucher.setReusable(request.getReusable());
+
+        // Tự động tính toán lại trạng thái Voucher mới
+        String updatedStatus = determineVoucherStatus(
+                request.getStartDate(), request.getExpiryDate(), voucher.getUsedCount(), request.getUsageLimit()
+        );
+        voucher.setStatus(updatedStatus);
+
+        voucherRepository.save(voucher);
+    }
+    
 }

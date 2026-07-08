@@ -70,4 +70,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     Voucher findVoucherById(Long id);
 
     boolean existsByVoucherCode(String voucherCode);
+
+    Optional <Voucher> findByPromotionId(Integer promotionId);
 }

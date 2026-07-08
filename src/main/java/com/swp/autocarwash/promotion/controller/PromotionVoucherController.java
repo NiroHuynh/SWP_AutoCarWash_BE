@@ -2,11 +2,14 @@ package com.swp.autocarwash.promotion.controller;
 
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.promotion.dto.request.CreatePromotionVoucherRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdatePromotionRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdateVoucherRequest;
 import com.swp.autocarwash.promotion.dto.response.CreatePromotionVoucherResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionBranchSummaryResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionDashboardListViewResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionTargetResponse;
 import com.swp.autocarwash.promotion.service.PromotionVoucherService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -71,5 +74,23 @@ public class PromotionVoucherController {
 
         // 2. Đóng gói JSON trả về mảng danh sách trực tiếp cho FE dễ map vòng lặp render
         return ResponseEntity.ok(ApiResponse.success("Successfully retrieved the list of promotions!" , response));
+    }
+
+    @PutMapping("/{promotionId}")
+    public ResponseEntity<ApiResponse<?>> updatePromotion(
+            @PathVariable Integer promotionId,
+            @Valid @RequestBody UpdatePromotionRequest request) {
+
+        promotionVoucherService.updatePromotion(promotionId, request);
+        return ResponseEntity.ok(ApiResponse.success("The campaign configuration and applicable affiliates have been successfully updated!", null));
+    }
+
+    @PutMapping("/vouchers/{voucherId}")
+    public ResponseEntity<?> updateVoucherFinancialRules(
+            @PathVariable Integer voucherId,
+            @Valid @RequestBody UpdateVoucherRequest request) {
+
+        promotionVoucherService.updateVoucherFinancialRules(voucherId, request);
+        return ResponseEntity.ok(ApiResponse.success("Voucher configurations updated successfully!", null));
     }
 }
