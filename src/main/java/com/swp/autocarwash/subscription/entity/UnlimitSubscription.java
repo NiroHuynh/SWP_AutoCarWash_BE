@@ -6,8 +6,7 @@ import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,6 +15,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "unlimit_subscription", schema = "swp_auto_car_wash")
 public class UnlimitSubscription {
     @Id
@@ -49,10 +51,11 @@ public class UnlimitSubscription {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Size(max = 20)
+    @Enumerated(EnumType.STRING)
     @NotNull
+    @Builder.Default
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
     @Column(name = "canceled_at")
     private Instant canceledAt;
