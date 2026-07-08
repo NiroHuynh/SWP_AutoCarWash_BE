@@ -9,6 +9,7 @@ import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.subscription.dto.request.CreateSubscriptionPlanRequest;
 import com.swp.autocarwash.subscription.dto.request.UpdateSubscriptionPlanRequest;
 import com.swp.autocarwash.subscription.dto.response.CreateSubscriptionPlanResponse;
+import com.swp.autocarwash.subscription.dto.response.CustomerSubscriptionPlanResponse;
 import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanDetailResponse;
 import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanResponse;
 
@@ -257,5 +258,34 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         subscriptionPlan.setIsDeleted(true);
 
         subscriptionPlanRepository.save(subscriptionPlan);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CustomerSubscriptionPlanResponse> getActiveSubscriptionPlans() {
+
+        List<SubscriptionPlan> subscriptionPlans =
+                subscriptionPlanRepository.findByStatusAndIsDeletedFalse(
+                        SubscriptionPlanStatus.ACTIVE
+                );
+
+        return subscriptionPlans.stream()
+                .map(this::toCustomerResponse)
+                .toList();
+    }
+
+    private CustomerSubscriptionPlanResponse toCustomerResponse(
+            SubscriptionPlan subscriptionPlan
+    ) {
+
+        return CustomerSubscriptionPlanResponse.builder()
+                .planName(subscriptionPlan.getPlanName())
+                .price(subscriptionPlan.getPrice())
+                .durationDays(subscriptionPlan.getDurationDays())
+                .planType(PlanType.valueOf(subscriptionPlan.getPlanType()))
+                .servicePackageName(subscriptionPlan.getServicePackage().getName())
+                .maxVehicleCount(subscriptionPlan.getMaxVehicleCount())
+                .description(subscriptionPlan.getDescription())
+                .build();
     }
 }

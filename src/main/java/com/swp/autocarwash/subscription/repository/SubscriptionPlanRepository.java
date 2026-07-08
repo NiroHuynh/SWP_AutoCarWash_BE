@@ -18,4 +18,8 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
     Optional<SubscriptionPlan> findByIdAndIsDeletedFalse(Integer id);
 
     boolean existsByPlanNameIgnoreCaseAndIdNot(String planName, Integer id);
+
+    List<SubscriptionPlan> findByStatusAndIsDeletedFalse(
+            SubscriptionPlanStatus status
+    );
 }
