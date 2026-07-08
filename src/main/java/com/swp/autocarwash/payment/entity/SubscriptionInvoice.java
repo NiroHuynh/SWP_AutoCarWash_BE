@@ -6,8 +6,7 @@ import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -17,6 +16,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "subscription_invoice", schema = "swp_auto_car_wash")
 public class SubscriptionInvoice {
     @Id

@@ -22,4 +22,9 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
     List<SubscriptionPlan> findByStatusAndIsDeletedFalse(
             SubscriptionPlanStatus status
     );
+
+    Optional<SubscriptionPlan> findByIdAndStatusAndIsDeletedFalse(
+            Integer id,
+            SubscriptionPlanStatus status
+    );
 }

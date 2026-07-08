@@ -541,7 +541,30 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_013",
             "Subscription plan is already inactive."
-    ),;
+    ),
+    SUBSCRIPTION_PLAN_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_014",
+            "Subscription plan is required."
+    ),
+
+    VEHICLE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_015",
+            "Vehicle is required."
+    ),
+
+    VEHICLE_ALREADY_SUBSCRIBED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_016",
+            "The vehicle is already registered with another subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_PLAN(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_017",
+            "Invalid subscription plan."
+    );
 
 
 

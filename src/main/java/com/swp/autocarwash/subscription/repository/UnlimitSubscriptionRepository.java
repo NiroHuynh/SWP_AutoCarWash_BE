@@ -104,4 +104,9 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             "AND u.status = 'ACTIVE' " +
             "AND :today BETWEEN u.startDate AND u.endDate")
     boolean hasActiveSubscription(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
+
+    boolean existsByVehicleIdAndStatus(
+            Long vehicleId,
+            SubscriptionStatus status
+            );
 }
