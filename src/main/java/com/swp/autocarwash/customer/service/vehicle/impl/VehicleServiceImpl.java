@@ -123,66 +123,32 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     @Transactional
-    public CreateVehicleResponse createVehicle(
-            Long userId,
-            CreateVehicleRequest request
-    ){
+    public CreateVehicleResponse createVehicle(Long userId, CreateVehicleRequest request) {
 
-        Optional<Vehicle> existingVehicleOpt =
-                vehicleRepository.findByLicensePlate(
-                        request.getLicensePlate()
-                );
+        String licensePlate = request.getLicensePlate().trim().toUpperCase();
 
-        vehicleValidator
-                .validateCreate(existingVehicleOpt);
+        boolean isPlateExists =
+                vehicleRepository.existsByLicensePlateAndIsDeletedFalse(licensePlate);
 
-
-
-        // Xác định customer đang đăng nhập dựa vào userId lấy từ JWT,
-        // không còn nhận customerId trực tiếp từ FE (tránh client tự ý add xe cho người khác)
-        Customer customer =
-                customerPort.getCustomerReferenceByUserId(userId);
-
-
-
-        Vehicle savedVehicle;
-
-        if (existingVehicleOpt.isPresent()) {
-
-            // Xe walk-in cũ chưa có chủ -> gắn customer hiện tại vào,
-            // KHÔNG tạo dòng mới để tránh trùng license_plate và mất lịch sử cũ của xe
-            Vehicle existingVehicle =
-                    existingVehicleOpt.get();
-
-            existingVehicle.setCustomer(customer);
-
-            savedVehicle =
-                    vehicleRepository.save(existingVehicle);
-
-        } else {
-
-            Vehicle vehicle =
-                    Vehicle.builder()
-                            .customer(customer)
-                            .licensePlate(request.getLicensePlate())
-                            .brandName(request.getBrandName())
-                            .color(request.getColor())
-                            // các field FE không gửi -> set giá trị mặc định
-                            .violationCount(0)
-                            .restrictedUntil(null)
-                            .isDeleted(false)
-                            .build();
-
-            savedVehicle =
-                    vehicleRepository.save(vehicle);
-
+        if (isPlateExists) {
+            throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
         }
 
-        return vehicleMapper
-                .toResponse(
-                        savedVehicle
-                );
+        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
 
+        Vehicle vehicle = Vehicle.builder()
+                .customer(customer)
+                .licensePlate(request.getLicensePlate())
+                .brandName(request.getBrandName())
+                .color(request.getColor())
+                .violationCount(0)
+                .restrictedUntil(null)
+                .isDeleted(false)
+                .build();
+
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+
+        return vehicleMapper.toResponse(savedVehicle);
     }
 
     @Transactional
