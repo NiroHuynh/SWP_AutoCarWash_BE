@@ -12,4 +12,5 @@ public interface PromotionStationMappingRepository extends JpaRepository<Promoti
 
     List<PromotionStationMapping> findById_PromotionId(Integer promotionId);
 
+    void deleteByPromotionId(Integer promotionId);
 }

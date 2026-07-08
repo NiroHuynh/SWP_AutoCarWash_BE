@@ -469,7 +469,28 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "STATION_002",
             "The configured branch does not exist or has ceased operation."
+    ),
+    PROMOTION_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_001",
+            "No promotional offers were found."
+    ),
+    CANNOT_EDIT_AUTO_PROMOTION_RULES(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_002",
+            "The system blocks unauthorized editing of the financial rules for platform-wide discount codes."
+    ),
+    CANNOT_EDIT_EXPIRED_VOUCHER(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_003",
+            "It is not possible to edit the financial configuration of an expired voucher code"
+    ),
+    USAGE_LIMIT_MUST_BE_GREATER_THAN_USED_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The limit for new uses must be greater than the actual number of uses already made."
     );
+
 
 
 

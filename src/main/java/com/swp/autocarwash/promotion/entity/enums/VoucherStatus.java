@@ -1,7 +1,8 @@
 package com.swp.autocarwash.promotion.entity.enums;
 
-public enum PromotionVoucherStatus {
+public enum VoucherStatus {
     UPCOMING,
     ACTIVE,
-    EXPIRED
+    EXPIRED,
+    USED_UP
 }

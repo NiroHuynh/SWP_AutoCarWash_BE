@@ -1,6 +1,8 @@
 package com.swp.autocarwash.promotion.service;
 
 import com.swp.autocarwash.promotion.dto.request.CreatePromotionVoucherRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdatePromotionRequest;
+import com.swp.autocarwash.promotion.dto.request.UpdateVoucherRequest;
 import com.swp.autocarwash.promotion.dto.response.CreatePromotionVoucherResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionBranchSummaryResponse;
 import com.swp.autocarwash.promotion.dto.response.PromotionDashboardListViewResponse;
@@ -14,4 +16,6 @@ public interface PromotionVoucherService {
     List<PromotionTargetResponse> getAllPromotionTargets();
     List<PromotionBranchSummaryResponse> getBranchPromotionSummary(String status);
     List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer stationId, String status);
+    void updatePromotion(Integer promotionId, UpdatePromotionRequest request);
+    void updateVoucherFinancialRules(Integer voucherId, UpdateVoucherRequest request);
 }

@@ -13,4 +13,5 @@ import java.util.List;
 public interface PromotionTargetMappingRepository extends JpaRepository<PromotionTargetMapping, PromotionTargetMappingId> {
     List<PromotionTargetMapping> findById_PromotionId(Integer promotionId);
 
+    void deleteByPromotionId(Integer promotionId);
 }
