@@ -1,29 +1,30 @@
 package com.swp.autocarwash.subscription.controller;
 
 import com.swp.autocarwash.common.response.ApiResponse;
-import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanResponseDTO;
+import com.swp.autocarwash.subscription.dto.request.CreateSubscriptionPlanRequest;
+import com.swp.autocarwash.subscription.dto.request.UpdateSubscriptionPlanRequest;
+import com.swp.autocarwash.subscription.dto.response.CreateSubscriptionPlanResponse;
+import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanDetailResponse;
+import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanResponse;
 import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SubscriptionPlanController {
 
     private final SubscriptionPlanService subscriptionPlanService;
 
-    @GetMapping("/admin/subscription-plans")
-    public ApiResponse<List<SubscriptionPlanResponseDTO>> getSubscriptionPlans(
+    @GetMapping("/api/admin/subscription-plans")
+    public ApiResponse<List<SubscriptionPlanResponse>> getSubscriptionPlans(
             @RequestParam(defaultValue = "ALL") String status) {
 
-        List<SubscriptionPlanResponseDTO> response =
+        List<SubscriptionPlanResponse> response =
                 subscriptionPlanService.getSubscriptionPlans(status);
 
         return ApiResponse.success(
@@ -32,4 +33,38 @@ public class SubscriptionPlanController {
         );
     }
 
+
+    @PostMapping("/api/admin/subscription-plans")
+    public ApiResponse<CreateSubscriptionPlanResponse> createSubscriptionPlan(
+            @Valid @RequestBody CreateSubscriptionPlanRequest request) {
+
+        return ApiResponse.<CreateSubscriptionPlanResponse>builder()
+                .success(true)
+                .message("Subscription plan created successfully.")
+                .data(subscriptionPlanService.createSubscriptionPlan(request))
+                .build();
+    }
+
+    @GetMapping("/api/admin/subscription-plans/{id}")
+    public ApiResponse<SubscriptionPlanDetailResponse>
+    getSubscriptionPlanDetail(@PathVariable Integer id) {
+
+        return ApiResponse.success(
+                "Subscription plan retrieved successfully.",
+                subscriptionPlanService.getSubscriptionPlanDetail(id)
+        );
+    }
+
+    @PutMapping("/api/admin/subscription-plans/{id}")
+    public ApiResponse<Object> updateSubscriptionPlan(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateSubscriptionPlanRequest request) {
+
+        subscriptionPlanService.updateSubscriptionPlan(id, request);
+
+        return ApiResponse.success(
+                "Subscription plan updated successfully.",
+                null
+        );
+    }
 }

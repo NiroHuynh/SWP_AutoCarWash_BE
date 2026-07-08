@@ -1,19 +1,19 @@
 package com.swp.autocarwash.subscription.dto.response;
 
-
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionPlanStatus;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionPlanResponse {
+public class SubscriptionPlanDetailResponse {
+
+    private Integer id;
 
     private String planName;
 
@@ -21,13 +21,13 @@ public class SubscriptionPlanResponse {
 
     private Integer durationDays;
 
-    private PlanType planType;
-
     private String description;
+
+    private Integer servicePackageId;
+
+    private PlanType planType;
 
     private Integer maxVehicleCount;
 
-    private String servicePackageName;
-
-    private String status;
+    private SubscriptionPlanStatus status;
 }
