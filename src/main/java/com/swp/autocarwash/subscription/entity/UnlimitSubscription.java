@@ -58,7 +58,7 @@ public class UnlimitSubscription {
     private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
     @Column(name = "canceled_at")
-    private Instant canceledAt;
+    private LocalDateTime canceledAt;
 
 
 }

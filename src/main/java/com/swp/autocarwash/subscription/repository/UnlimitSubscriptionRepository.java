@@ -109,4 +109,6 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             Long vehicleId,
             SubscriptionStatus status
             );
+
+    Optional<UnlimitSubscription> findById(Long id);
 }

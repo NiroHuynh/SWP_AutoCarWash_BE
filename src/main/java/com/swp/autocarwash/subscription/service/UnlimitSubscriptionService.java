@@ -34,4 +34,6 @@ public interface UnlimitSubscriptionService {
 
     RegisterUnlimitedSubscriptionResponse register(
             RegisterUnlimitedSubscriptionRequest request);
+
+    void cancelSubscription(Long subscriptionId);
 }
