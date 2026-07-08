@@ -76,4 +76,9 @@ public interface AddonServiceRepository
       AND m.servicePackage.isDeleted = false
 """)
     boolean isUsedByActiveServicePackage(@Param("addonId") Integer addonId);
+
+    /**
+     * Tìm tất cả addon theo list id và chưa bị xóa
+     */
+    List<AddonService> findAllByIdInAndIsDeletedFalse(List<Integer> ids);
 }

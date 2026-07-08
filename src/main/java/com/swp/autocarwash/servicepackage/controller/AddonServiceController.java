@@ -23,7 +23,6 @@ public class AddonServiceController {
      * Role ADMIN — sai quyền sẽ bị Spring Security chặn trả 401/403
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<List<AddonServiceResponse>> getAllAddonServices() {
 
         List<AddonServiceResponse> data =

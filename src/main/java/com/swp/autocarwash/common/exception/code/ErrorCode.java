@@ -267,7 +267,11 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_002",
             "Service package not found"
     ),
-
+    SERVICE_PACKAGE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_PACKAGE_003",
+            "Cannot delete service package because it is being used by an active subscription plan"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
