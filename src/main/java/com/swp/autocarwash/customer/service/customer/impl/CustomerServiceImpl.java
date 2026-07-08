@@ -41,7 +41,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 /**
@@ -405,23 +404,22 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public void deleteCustomer(Long customerId) {
+    public List<String> deleteCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
 
-        List<Booking> activeBookings = bookingRepository.findActiveBookingsByCustomerId(customerId);
-        if (!activeBookings.isEmpty()) {
-            String plates = activeBookings.stream()
-                    .map(b -> b.getVehicle().getLicensePlate())
-                    .distinct()
-                    .collect(Collectors.joining(", "));
-            throw new BusinessException(ErrorCode.CUSTOMER_HAS_ACTIVE_BOOKING,
-                    "Không thể xóa: xe " + plates + " đang có đặt lịch hoạt động");
+        List<String> plates = bookingRepository.findActiveBookingsByCustomerId(customerId).stream()
+                .map(b -> b.getVehicle().getLicensePlate())
+                .distinct()
+                .toList();
+        if (!plates.isEmpty()) {
+            return plates;
         }
 
         User user = customer.getUser();
         user.setIsDeleted(true);
         userRepository.save(user);
+        return List.of();
     }
 
     private String resolveActiveSubscriptionType(Long vehicleId) {

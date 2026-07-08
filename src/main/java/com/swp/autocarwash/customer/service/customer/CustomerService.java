@@ -9,6 +9,8 @@ import com.swp.autocarwash.customer.dto.response.CustomerUpdateProfileResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 /**
  *
  * Chức năng: CustomerService định nghĩa các phương thức xử lý nghiệp vụ
@@ -85,7 +87,9 @@ public interface CustomerService {
 
     /**
      * Chức năng: Admin xóa (soft-delete) khách hàng — chặn nếu khách đang có
-     * booking PENDING/WASHING (FE-US-09-03 AC3/AC4).
+     * booking khác CANCELED/CHECK_OUT (FE-US-09-03 AC3/AC4).
+     *
+     * @return danh sách biển số xe đang chặn xóa; rỗng nghĩa là đã xóa thành công
      */
-    void deleteCustomer(Long customerId);
+    List<String> deleteCustomer(Long customerId);
 }

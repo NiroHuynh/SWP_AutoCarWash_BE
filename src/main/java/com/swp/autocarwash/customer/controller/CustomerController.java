@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.controller;
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerDetailResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerListPageResponse;
@@ -17,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -84,12 +86,17 @@ public class CustomerController {
 
     /**
      * Chức năng: Admin xóa (soft-delete) khách hàng — chặn nếu đang có booking
-     * PENDING/WASHING (FE-US-09-03 AC3/AC4).
+     * khác CANCELED/CHECK_OUT (FE-US-09-03 AC3/AC4).
      */
     @DeleteMapping("/{customerId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long customerId) {
-        customerService.deleteCustomer(customerId);
+        List<String> blockingPlates = customerService.deleteCustomer(customerId);
+        if (!blockingPlates.isEmpty()) {
+            String message = "Không thể xóa: xe " + String.join(", ", blockingPlates) + " đang có đặt lịch hoạt động";
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(message, ErrorCode.CUSTOMER_HAS_ACTIVE_BOOKING.getCode(), null));
+        }
         return ResponseEntity.ok(ApiResponse.success("Xóa khách hàng thành công", null));
     }
 }

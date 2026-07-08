@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
         //Đóng gói JSON lỗi -> trả về cho Front end
         Map<String, Object> errorBody = Map.of(
                 "success", "false",
-                "message", ex.getMessage(),
+                "message", errorCode.getMessage(),
                 "errorCode", errorCode.getCode()
         );
         return new ResponseEntity<>(errorBody, errorCode.getStatus());
