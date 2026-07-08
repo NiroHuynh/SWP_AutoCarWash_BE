@@ -10,6 +10,7 @@ import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.request.ManualDepositConfirmRequest;
 import com.swp.autocarwash.payment.dto.request.ManualSubscriptionConfirmRequest;
 import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentTransactionHistoryResponse;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
 import com.swp.autocarwash.payment.dto.response.DepositConfirmResponse;
@@ -131,6 +132,49 @@ public class PaymentController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Danh sách webhook log", result)
+        );
+    }
+
+    /**
+     * Chức năng: Admin/staff theo dõi & đối soát toàn bộ giao dịch thanh toán
+     * thành công (FE-61C-US-02) — trả kèm KPI summary (tổng doanh thu + tổng
+     * số giao dịch) tính trên đúng tập kết quả đang filter.
+     *
+     * <p><b>Ví dụ:</b> {@code GET /api/payments/transactions?method=CASH&bookingId=11}</p>
+     * <p>Lọc theo chi nhánh: {@code GET /api/payments/transactions?type=DEPOSIT&stationId=1} —
+     * giao dịch subscription không thuộc station nào nên khi truyền {@code stationId}
+     * sẽ không xuất hiện; FE nên tách 2 tab (Subscription dùng {@code type=SUBSCRIPTION},
+     * Booking dùng {@code type} khác kèm {@code stationId} tuỳ chọn).</p>
+     *
+     * @param method        lọc theo phương thức thanh toán, bỏ trống để lấy tất cả
+     * @param status        lọc theo trạng thái giao dịch, bỏ trống để lấy tất cả
+     * @param type          lọc theo loại giao dịch (DEPOSIT/FULL_PAYMENT/SUBSCRIPTION), bỏ trống để lấy tất cả
+     * @param fromDate      lọc paidAt từ ngày này trở đi, bỏ trống = không giới hạn
+     * @param toDate        lọc paidAt đến ngày này, bỏ trống = không giới hạn
+     * @param bookingId     tra nhanh theo 1 Booking ID cụ thể, bỏ trống = không lọc
+     * @param transactionId tra nhanh theo 1 Transaction ID cụ thể, bỏ trống = không lọc
+     * @param stationId     lọc theo chi nhánh, chỉ áp dụng cho giao dịch booking
+     * @param phone         tìm gần đúng theo SĐT khách hàng (cả booking lẫn subscription), bỏ trống = không lọc
+     * @return {@code 200 OK} với {@link PaymentTransactionHistoryResponse}
+     */
+    @GetMapping("/transactions")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<PaymentTransactionHistoryResponse>> getTransactionHistory(
+            @RequestParam(required = false) String method,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) Long bookingId,
+            @RequestParam(required = false) Long transactionId,
+            @RequestParam(required = false) Integer stationId,
+            @RequestParam(required = false) String phone) {
+
+        PaymentTransactionHistoryResponse result = paymentService.getTransactionHistory(
+                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, phone);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Lịch sử giao dịch thanh toán", result)
         );
     }
 

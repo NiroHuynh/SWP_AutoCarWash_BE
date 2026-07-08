@@ -18,6 +18,9 @@ import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentTransactionHistoryResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentTransactionResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentTransactionSummaryResponse;
 import com.swp.autocarwash.payment.dto.response.RedeemResult;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
 import com.swp.autocarwash.payment.entity.Payment;
@@ -286,6 +289,63 @@ public class PaymentServiceImpl implements PaymentService {
                 .stream()
                 .map(this::toPaymentHistoryResponse)
                 .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentTransactionHistoryResponse getTransactionHistory(
+            String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
+            Long bookingId, Long transactionId, Integer stationId, String phone) {
+
+        List<Payment> payments = paymentRepository.findAllTransactions(
+                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, phone);
+
+        List<PaymentTransactionResponse> transactions = payments.stream()
+                .map(this::toPaymentTransactionResponse)
+                .toList();
+
+        BigDecimal totalRevenue = payments.stream()
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        PaymentTransactionSummaryResponse summary = PaymentTransactionSummaryResponse.builder()
+                .totalRevenue(totalRevenue)
+                .totalCount(payments.size())
+                .build();
+
+        return PaymentTransactionHistoryResponse.builder()
+                .summary(summary)
+                .transactions(transactions)
+                .build();
+    }
+
+    private PaymentTransactionResponse toPaymentTransactionResponse(Payment payment) {
+        Long bookingId = payment.getBookingInvoice() != null && payment.getBookingInvoice().getBooking() != null
+                ? payment.getBookingInvoice().getBooking().getId()
+                : null;
+
+        return PaymentTransactionResponse.builder()
+                .id(payment.getId())
+                .bookingId(bookingId)
+                .customerPhone(resolveCustomerPhone(payment))
+                .paymentMethod(payment.getPaymentMethod())
+                .amount(payment.getAmount())
+                .paymentStatus(payment.getPaymentStatus())
+                .paidAt(payment.getPaidAt())
+                .build();
+    }
+
+    private String resolveCustomerPhone(Payment payment) {
+        if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
+            return payment.getBookingInvoice().getCustomer().getUser().getPhone();
+        }
+        if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
+            return payment.getSubscriptionInvoice().getCustomer().getUser().getPhone();
+        }
+        return null;
     }
 
     private PaymentHistoryResponse toPaymentHistoryResponse(Payment payment) {
