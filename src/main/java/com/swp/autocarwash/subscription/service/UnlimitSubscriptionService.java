@@ -2,6 +2,7 @@ package com.swp.autocarwash.subscription.service;
 
 import com.swp.autocarwash.customer.dto.response.CustomerVehicleResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
 
 import java.util.List;
@@ -36,4 +37,10 @@ public interface UnlimitSubscriptionService {
             RegisterUnlimitedSubscriptionRequest request);
 
     void cancelSubscription(Long subscriptionId);
+
+    List<CustomerVehicleResponse> getAvailableVehicles(Long subscriptionId);
+
+    void transferVehicle(
+            Long subscriptionId,
+            TransferVehicleRequest request);
 }

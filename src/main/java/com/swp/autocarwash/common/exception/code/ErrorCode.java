@@ -576,6 +576,17 @@ public enum ErrorCode {
             HttpStatus.FORBIDDEN,
             "AUTH_001",
             "You are not authorized to cancel this subscription."
+    ),
+    INVALID_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_021",
+            "Invalid vehicle."
+    ),
+
+    VEHICLE_TRANSFER_NOT_ALLOWED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_022",
+            "You can only change your vehicle once every 30 days."
     ),;
 
 
