@@ -3,6 +3,7 @@ package com.swp.autocarwash.payment.service;
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
+import com.swp.autocarwash.payment.dto.response.PaymentTransactionHistoryResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,4 +40,26 @@ public interface PaymentService {
      */
     List<PaymentHistoryResponse> getPaymentHistory(
             Long customerId, String type, LocalDateTime fromDate, LocalDateTime toDate);
+
+    /**
+     * Chức năng: Toàn bộ giao dịch thanh toán thành công cho admin đối soát
+     * (FE-61C-US-02) — không giới hạn theo customer, kèm KPI summary (tổng
+     * doanh thu + tổng số giao dịch) tính trên đúng tập kết quả đang filter.
+     *
+     * @param method        lọc theo phương thức thanh toán, null = lấy hết
+     * @param status        lọc theo trạng thái giao dịch, null = lấy hết
+     * @param type          lọc theo loại giao dịch (DEPOSIT/FULL_PAYMENT/SUBSCRIPTION), null = lấy hết
+     * @param fromDate      lọc paidAt từ ngày này trở đi, null = không giới hạn
+     * @param toDate        lọc paidAt đến ngày này, null = không giới hạn
+     * @param bookingId     lọc đúng 1 booking, null = không lọc
+     * @param transactionId lọc đúng 1 giao dịch, null = không lọc
+     * @param stationId     lọc theo chi nhánh — chỉ áp dụng cho giao dịch booking,
+     *                      giao dịch subscription không thuộc station nào nên sẽ
+     *                      bị loại khỏi kết quả nếu truyền param này
+     * @param phone         tìm gần đúng theo SĐT khách hàng (booking lẫn subscription), null = không lọc
+     * @return summary + danh sách giao dịch, mới nhất trước
+     */
+    PaymentTransactionHistoryResponse getTransactionHistory(
+            String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
+            Long bookingId, Long transactionId, Integer stationId, String phone);
 }
