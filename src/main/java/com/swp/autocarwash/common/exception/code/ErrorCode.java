@@ -398,7 +398,7 @@ public enum ErrorCode {
     SUBSCRIPTION_NOT_FOUND(
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_001",
-            "This vehicle does not have an active subscription."
+            "Subscription not found."
     ),
     TRANSFER_LIMIT_REACHED(
             HttpStatus.BAD_REQUEST,
@@ -564,7 +564,19 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_017",
             "Invalid subscription plan."
-    );
+    ),
+
+    INVALID_SUBSCRIPTION_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_020",
+            "Only active subscriptions can be canceled."
+    ),
+
+    ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_001",
+            "You are not authorized to cancel this subscription."
+    ),;
 
 
 

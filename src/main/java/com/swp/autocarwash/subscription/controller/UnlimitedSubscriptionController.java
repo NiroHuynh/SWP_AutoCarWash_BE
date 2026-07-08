@@ -39,4 +39,16 @@ public class UnlimitedSubscriptionController {
                         unlimitedSubscriptionService.register(request)
                 );
     }
+
+    @PatchMapping("/unlimited-subscriptions/{id}/cancel")
+    public ApiResponse<Object> cancelSubscription(
+            @PathVariable Long id) {
+
+        unlimitedSubscriptionService.cancelSubscription(id);
+
+        return ApiResponse.success(
+                        "Subscription canceled successfully.",
+                        null
+                );
+    }
 }

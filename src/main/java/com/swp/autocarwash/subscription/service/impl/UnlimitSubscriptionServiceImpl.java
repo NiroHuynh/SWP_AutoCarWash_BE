@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -137,5 +138,38 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void cancelSubscription(Long subscriptionId) {
 
+        Customer customer = securityUtils.getCustomer();
+
+        UnlimitSubscription subscription =
+                unlimitSubscriptionRepository
+                        .findById(subscriptionId)
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        // Kiểm tra quyền sở hữu
+        if (!subscription.getVehicle()
+                .getCustomer()
+                .getId()
+                .equals(customer.getId())) {
+
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        // Chỉ ACTIVE mới được hủy
+        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) {
+
+            throw new BusinessException(
+                    ErrorCode.INVALID_SUBSCRIPTION_STATUS);
+        }
+
+        subscription.setStatus(SubscriptionStatus.CANCELED);
+        subscription.setCanceledAt(LocalDateTime.now());
+
+        unlimitSubscriptionRepository.save(subscription);
+    }
 }
