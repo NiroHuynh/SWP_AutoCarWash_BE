@@ -67,4 +67,18 @@ public class SubscriptionPlanController {
                 null
         );
     }
+
+    @DeleteMapping("/api/admin/subscription-plans/{id}")
+    public ResponseEntity<ApiResponse<Object>> deleteSubscriptionPlan(
+            @PathVariable Integer id) {
+
+        subscriptionPlanService.deleteSubscriptionPlan(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Subscription plan deleted successfully.",
+                        null
+                )
+        );
+    }
 }

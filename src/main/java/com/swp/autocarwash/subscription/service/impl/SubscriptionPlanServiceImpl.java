@@ -239,4 +239,23 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
             }
         }
     }
+
+    @Transactional
+    public void deleteSubscriptionPlan(Integer id) {
+
+        SubscriptionPlan subscriptionPlan = subscriptionPlanRepository
+                .findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+
+        if (subscriptionPlan.getStatus() == SubscriptionPlanStatus.INACTIVE) {
+            throw new BusinessException(
+                    ErrorCode.SUBSCRIPTION_PLAN_ALREADY_INACTIVE);
+        }
+
+        subscriptionPlan.setStatus(SubscriptionPlanStatus.INACTIVE);
+        subscriptionPlan.setIsDeleted(true);
+
+        subscriptionPlanRepository.save(subscriptionPlan);
+    }
 }
