@@ -2,15 +2,23 @@ package com.swp.autocarwash.customer.service.customer.impl;
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
 import com.swp.autocarwash.auth.entity.User;
+import com.swp.autocarwash.auth.repository.UserRepository;
+import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.dto.response.CustomerDetailResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerListItemResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerListPageResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerSummaryResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerUpdateProfileResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.FamilyMember;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.mapper.CustomerMapper;
+import com.swp.autocarwash.customer.repository.CustomerListProjection;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
@@ -23,13 +31,17 @@ import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -59,6 +71,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
     private final FamilySubscriptionRepository familySubscriptionRepository;
     private final FamilyMemberRepository familyMemberRepository;
+    private final BookingRepository bookingRepository;
+    private final UserRepository userRepository;
 
 
     /**
@@ -310,5 +324,112 @@ public class CustomerServiceImpl implements CustomerService {
                 .firstName(savedCustomer.getFirstName()).build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerListPageResponse getCustomerList(
+            String keyword, Integer year, Integer month, String tier, Boolean active, Pageable pageable) {
+        LocalDateTime monthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime monthEnd = monthStart.plusMonths(1);
+
+        CustomerSummaryResponse summary = CustomerSummaryResponse.builder()
+                .totalCustomers(customerRepository.countQualifiedCustomers())
+                .newThisMonth(customerRepository.countNewThisMonth(monthStart, monthEnd))
+                .goldMembers(customerRepository.countGoldMembers())
+                .build();
+
+        Page<CustomerListProjection> page =
+                customerRepository.findCustomerList(keyword, year, month, tier, active, pageable);
+
+        List<CustomerListItemResponse> content = page.getContent().stream()
+                .map(p -> CustomerListItemResponse.builder()
+                        .customerId(p.getCustomerId())
+                        .fullName(p.getFullName())
+                        .email(p.getEmail())
+                        .phone(p.getPhone())
+                        .active(p.getActive())
+                        .tier(p.getTier())
+                        .lastVisit(p.getLastVisit())
+                        .build())
+                .toList();
+
+        return CustomerListPageResponse.builder()
+                .summary(summary)
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerDetailResponse getCustomerDetail(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
+        User user = customer.getUser();
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+
+        long noShowCount = bookingRepository.countNoShowByCustomerId(customerId);
+        boolean inactive = !Boolean.TRUE.equals(user.getIsActive()) || noShowCount >= 3;
+
+        Integer totalPoints = customer.getLoyaltyBalance() != null
+                ? customer.getLoyaltyBalance().getTotalPoints()
+                : 0;
+
+        List<CustomerDetailResponse.VehicleInfo> vehicles =
+                vehicleRepository.findByCustomerIdAndIsDeletedFalse(customerId).stream()
+                        .map(v -> CustomerDetailResponse.VehicleInfo.builder()
+                                .brandName(v.getBrandName())
+                                .color(v.getColor())
+                                .licensePlate(v.getLicensePlate())
+                                .activeSubscriptionType(resolveActiveSubscriptionType(v.getId()))
+                                .build())
+                        .toList();
+
+        return CustomerDetailResponse.builder()
+                .customerId(customer.getId())
+                .customerCode("CUST-" + String.format("%05d", customer.getId()))
+                .fullName(customer.getFullName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .tier(customer.getCustomerTier() != null ? customer.getCustomerTier().getTierName() : null)
+                .totalPoints(totalPoints)
+                .lastVisit(bookingRepository.findLastCheckOutByCustomerId(customerId))
+                .accountStatus(inactive ? "INACTIVE" : "ACTIVE")
+                .vehicles(vehicles)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteCustomer(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        List<Booking> activeBookings = bookingRepository.findActiveBookingsByCustomerId(customerId);
+        if (!activeBookings.isEmpty()) {
+            String plates = activeBookings.stream()
+                    .map(b -> b.getVehicle().getLicensePlate())
+                    .distinct()
+                    .collect(Collectors.joining(", "));
+            throw new BusinessException(ErrorCode.CUSTOMER_HAS_ACTIVE_BOOKING,
+                    "Không thể xóa: xe " + plates + " đang có đặt lịch hoạt động");
+        }
+
+        User user = customer.getUser();
+        user.setIsDeleted(true);
+        userRepository.save(user);
+    }
+
+    private String resolveActiveSubscriptionType(Long vehicleId) {
+        return unlimitSubscriptionRepository.findActiveUnlimitedSubByVehicleId(vehicleId)
+                .map(sub -> sub.getSubscriptionPlan().getPlanType())
+                .or(() -> familySubscriptionRepository.findActiveFamilySubByVehicleId(vehicleId)
+                        .map(sub -> sub.getSubscriptionPlan().getPlanType()))
+                .orElse(null);
+    }
 
 }
