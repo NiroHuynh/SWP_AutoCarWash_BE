@@ -510,21 +510,21 @@ VALUES
 INSERT IGNORE INTO voucher_usage
 (id, voucher_id, customer_id, booking_id, used_at, status)
 VALUES
-    (1,  1,  1,  NULL, DATE_SUB(NOW(), INTERVAL 25 DAY), 'USED'),
-    (2,  1,  2,  NULL, DATE_SUB(NOW(), INTERVAL 20 DAY), 'USED'),
-    (3,  2,  3,  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  'USED'),
-    (4,  3,  4,  NULL, DATE_SUB(NOW(), INTERVAL 4 DAY),  'USED'),
-    (5,  4,  5,  NULL, DATE_SUB(NOW(), INTERVAL 190 DAY),'USED'),
-    (6,  5,  6,  NULL, DATE_SUB(NOW(), INTERVAL 95 DAY), 'USED'),
-    (7,  6,  7,  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'USED'),
-    (8,  7,  8,  NULL, DATE_SUB(NOW(), INTERVAL 219 DAY),'USED'),
-    (9,  8,  9,  NULL, DATE_SUB(NOW(), INTERVAL 10 DAY), 'USED'),
-    (10, 9,  10, NULL, DATE_SUB(NOW(), INTERVAL 45 DAY), 'USED'),
-    (11, 10, 11, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'USED'),
-    (12, 11, 12, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY),  'USED'),
-    (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  'USED'),
-    (14, 3,  2,  NULL, DATE_SUB(NOW(), INTERVAL 3 DAY),  'CANCELLED'),
-    (15, 12, 3,  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY),  'CANCELLED');
+    (1,  1,  1,  NULL, DATE_SUB(NOW(), INTERVAL 25 DAY), 'APPLIED'),
+    (2,  1,  2,  NULL, DATE_SUB(NOW(), INTERVAL 20 DAY), 'APPLIED'),
+    (3,  2,  3,  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  'APPLIED'),
+    (4,  3,  4,  NULL, DATE_SUB(NOW(), INTERVAL 4 DAY),  'APPLIED'),
+    (5,  4,  5,  NULL, DATE_SUB(NOW(), INTERVAL 190 DAY),'APPLIED'),
+    (6,  5,  6,  NULL, DATE_SUB(NOW(), INTERVAL 95 DAY), 'APPLIED'),
+    (7,  6,  7,  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'APPLIED'),
+    (8,  7,  8,  NULL, DATE_SUB(NOW(), INTERVAL 219 DAY),'APPLIED'),
+    (9,  8,  9,  NULL, DATE_SUB(NOW(), INTERVAL 10 DAY), 'APPLIED'),
+    (10, 9,  10, NULL, DATE_SUB(NOW(), INTERVAL 45 DAY), 'APPLIED'),
+    (11, 10, 11, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'APPLIED'),
+    (12, 11, 12, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY),  'APPLIED'),
+    (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  'APPLIED'),
+    (14, 3,  2,  NULL, DATE_SUB(NOW(), INTERVAL 3 DAY),  'REVERTED'),
+    (15, 12, 3,  NULL, DATE_SUB(NOW(), INTERVAL 5 DAY),  'REVERTED');
 
 -- =====================================================================
 -- BOOKING (25)
