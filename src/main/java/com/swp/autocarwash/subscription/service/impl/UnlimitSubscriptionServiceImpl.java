@@ -13,6 +13,7 @@ import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.UnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
@@ -60,6 +61,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
 
         Customer customer = securityUtils.getCustomer();
 
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
         return vehicleRepository
                 .findByCustomerIdAndIsDeletedFalse(customer.getId())
                 .stream()
@@ -78,6 +81,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
             RegisterUnlimitedSubscriptionRequest request) {
 
         Customer customer = securityUtils.getCustomer();
+
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
 
         SubscriptionPlan subscriptionPlan =
                 subscriptionPlanRepository
@@ -145,6 +150,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
 
         Customer customer = securityUtils.getCustomer();
 
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
         UnlimitSubscription subscription =
                 unlimitSubscriptionRepository
                         .findById(subscriptionId)
@@ -180,6 +187,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
 
         Customer customer = securityUtils.getCustomer();
 
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
         UnlimitSubscription subscription = unlimitSubscriptionRepository
                 .findById(subscriptionId)
                 .orElseThrow(() ->
@@ -213,6 +222,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
                                 TransferVehicleRequest request) {
 
         Customer customer = securityUtils.getCustomer();
+
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
 
         UnlimitSubscription subscription = unlimitSubscriptionRepository
                 .findById(subscriptionId)
@@ -255,5 +266,39 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
         subscription.setLastVehicleChangeAt(LocalDateTime.now());
 
         unlimitSubscriptionRepository.save(subscription);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnlimitedSubscriptionResponse> getMySubscriptions() {
+
+        Customer customer = securityUtils.getCustomer();
+
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
+        return unlimitSubscriptionRepository
+                .findByVehicleCustomerId(customer.getId())
+                .stream()
+                .map(subscription -> UnlimitedSubscriptionResponse.builder()
+                        .id(subscription.getId())
+                        .planName(subscription.getSubscriptionPlan().getPlanName())
+                        .servicePackageName(subscription.getSubscriptionPlan()
+                                .getServicePackage()
+                                .getName())
+                        .status(subscription.getStatus())
+                        .startDate(subscription.getStartDate())
+                        .endDate(subscription.getEndDate())
+                        .durationDays(subscription.getSubscriptionPlan().getDurationDays())
+                        .price(subscription.getSubscriptionPlan().getPrice())
+                        .description(subscription.getSubscriptionPlan().getDescription())
+                        .vehicle(
+                                UnlimitedSubscriptionResponse.SubscriptionVehicleResponse.builder()
+                                        .id(subscription.getVehicle().getId())
+                                        .licensePlate(subscription.getVehicle().getLicensePlate())
+                                        .vehicleName(subscription.getVehicle().getBrandName())
+                                        .build()
+                        )
+                        .build())
+                .toList();
     }
 }

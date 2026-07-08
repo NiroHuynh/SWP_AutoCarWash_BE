@@ -5,6 +5,7 @@ import com.swp.autocarwash.customer.dto.response.CustomerVehicleResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.UnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.service.UnlimitSubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,22 @@ public class UnlimitedSubscriptionController {
         return ApiResponse.success(
                         "Vehicle transferred successfully.",
                         null
+                );
+    }
+
+    @GetMapping("/unlimited-subscriptions")
+    public ApiResponse<List<UnlimitedSubscriptionResponse>> getMySubscriptions() {
+
+        List<UnlimitedSubscriptionResponse> response =
+                unlimitedSubscriptionService.getMySubscriptions();
+
+        String message = response.isEmpty()
+                ? "No unlimited subscriptions found."
+                : "Unlimited subscriptions retrieved successfully.";
+
+        return ApiResponse.success(
+                        message,
+                        response
                 );
     }
 }
