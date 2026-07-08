@@ -18,4 +18,11 @@ public interface VoucherUsagePort {
             Long voucherId,
             Booking booking
     );
+
+    /**
+     * Trả lại voucher đã consume cho một booking (khi booking bị hủy vì quá hạn
+     * thanh toán cọc): xóa voucher_usage và giảm usedCount của voucher.
+     * Không làm gì nếu booking không dùng voucher.
+     */
+    void releaseVoucher(Long bookingId);
 }

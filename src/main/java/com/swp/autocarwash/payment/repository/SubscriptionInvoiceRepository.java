@@ -21,4 +21,10 @@ public interface SubscriptionInvoiceRepository extends JpaRepository<Subscriptio
     BigDecimal sumPlanPricePaidBetween(@Param("cid") Long cid,
                                        @Param("from") Instant from,
                                        @Param("to") Instant to);
+
+    /**
+     * Tim cac hoa don mua goi o mot trang thai va tao truoc moc thoi gian —
+     * dung cho job tu huy hoa don PENDING qua han chuyen khoan.
+     */
+    java.util.List<SubscriptionInvoice> findByStatusAndCreatedAtBefore(String status, Instant cutoff);
 }

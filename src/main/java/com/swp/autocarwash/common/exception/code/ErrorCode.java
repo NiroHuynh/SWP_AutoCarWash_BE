@@ -445,6 +445,21 @@ public enum ErrorCode {
             "LOYALTY_003",
             "Invalid year/month filter"
     ),
+    DEPOSIT_ALREADY_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_003",
+            "Booking is not awaiting deposit (already confirmed, canceled, or deposit already paid)"
+    ),
+    SUBSCRIPTION_INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PAYMENT_004",
+            "Subscription invoice not found"
+    ),
+    INVOICE_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_005",
+            "Subscription invoice is not awaiting payment (already paid or canceled)"
+    ),
     INVALID_DATE_RANGE(
             HttpStatus.BAD_REQUEST,
             "VOUCHER_001",
