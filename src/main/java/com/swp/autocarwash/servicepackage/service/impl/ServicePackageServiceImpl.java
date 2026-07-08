@@ -3,7 +3,9 @@ package com.swp.autocarwash.servicepackage.service.impl;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
+import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import com.swp.autocarwash.servicepackage.mapper.ServicePackageMapper;
 import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.servicepackage.service.ServicePackageService;
@@ -137,5 +139,18 @@ public class ServicePackageServiceImpl
 
     }
 
+    @Override
+    public List<ServicePackageResponse> getActiveServicePackages() {
 
+        return repository
+                .findAllByStatusAndIsDeletedFalse(ServicePackageStatus.ACTIVE)
+                .stream()
+                .map(servicePackage -> ServicePackageResponse.builder()
+                        .id(servicePackage.getId())
+                        .name(servicePackage.getName())
+                        .basePrice(servicePackage.getBasePrice())
+                        .description(servicePackage.getDescription())
+                        .build())
+                .toList();
+    }
 }

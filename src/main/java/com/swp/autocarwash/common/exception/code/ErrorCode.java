@@ -459,7 +459,84 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
         "SUBSCRIPTION_003",
                 "Failed to retrieve subscription plans"
-    ),;
+    ),
+    PLAN_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_004",
+            "Plan name is required."
+    ),
+
+    SERVICE_PACKAGE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_005",
+            "Service package is required."
+    ),
+
+    INVALID_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_006",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_DURATION_DAYS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_007",
+            "Duration days must be greater than 0."
+    ),
+
+    INVALID_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_008",
+            "Max vehicle count must be greater than 0."
+    ),
+
+    INVALID_FAMILY_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_009",
+            "Family plan must allow more than one vehicle."
+    ),
+
+    INVALID_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Invalid plan type."
+    ),
+
+    INVALID_SERVICE_PACKAGE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Selected service package is inactive or does not exist."
+    ),
+
+    FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SUBSCRIPTION_012",
+            "Failed to create subscription plan."
+    ),
+
+    PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_008",
+            "Subscription plan name already exists."
+    ),
+
+    INVALID_UNLIMITED_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Unlimited plan must allow exactly one vehicle."
+    ),
+
+    INVALID_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Invalid status."
+    ),
+
+    SUBSCRIPTION_PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_012",
+            "Subscription plan name already exists."
+    );
 
 
 
