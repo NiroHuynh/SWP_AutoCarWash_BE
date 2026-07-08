@@ -582,5 +582,51 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
         voucherRepository.save(voucher);
     }
-    
+
+    //CODE SERVICE PHỤC VỤ SOFT-DELETE PROMOTION/VOUCHER
+    /**
+     * AC01: Xóa mềm Chiến dịch kéo theo toàn bộ Voucher con liên kết (Chế độ 1 & 2)
+     */
+    @Transactional
+    public void softDeletePromotion(Integer promotionId) {
+        // 1. Kiểm tra chiến dịch có tồn tại hay không (Cờ is_deleted = true sẽ bị lọc bỏ, nên nếu đã xóa sẽ trả về Empty)
+        Promotion promotion = promotionRepository.findByIdAndIsDeletedFalse(promotionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        // 2. Kích hoạt xóa mềm cho Chiến dịch cha bằng SETTER thuần JPA
+        promotion.setIsDeleted(true);
+        promotion.setStatus(PromotionVoucherStatus.EXPIRED.name());
+        promotionRepository.save(promotion); // Lưu trạng thái mới xuống DB
+
+        //3. ĐỒNG BỘ CON (Crucial BE Rule): Tìm các voucher con CHƯA BỊ XÓA của chiến dịch này
+        List<Voucher> linkedVouchers = voucherRepository.findByPromotionIdAndIsDeletedFalse(promotionId);
+
+        if (!linkedVouchers.isEmpty()) {
+            for (Voucher voucher : linkedVouchers) {
+                // Kích hoạt lệnh xóa mềm cho từng voucher con bằng SETTER
+                voucher.setIsDeleted(true);
+                voucher.setStatus(VoucherStatus.EXPIRED.name());
+                voucher.setExpiryDate(LocalDateTime.now()); // Chốt thời gian hết hạn ngay lập tức
+                voucherRepository.save(voucher); // Lưu từng voucher con xuống DB
+            }
+        }
+    }
+
+    /**
+     * AC02: Xóa mềm Voucher lẻ độc lập bằng Setter thuần JPA (Chế độ 3)
+     */
+    @Transactional
+    public void softDeleteStandaloneVoucher(Long voucherId) {
+        // 1. Kiểm tra tồn tại bản ghi Voucher lẻ và đảm bảo nó chưa bị xóa mềm trước đó
+        Voucher voucher = voucherRepository.findByIdAndIsDeletedFalse(voucherId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_NOT_FOUND));
+
+        // 2. Tiến hành xóa mềm và vô hiệu hóa thời gian thực bằng SETTER
+        voucher.setIsDeleted(true);
+        voucher.setStatus(VoucherStatus.EXPIRED.name()); // Ép trạng thái về hết hạn ngay lập tức
+        voucher.setExpiryDate(LocalDateTime.now()); // Chốt mốc thời gian hết hạn là thời điểm bấm nút Xóa
+
+        // 3. Lưu lại trạng thái mới xuống Database
+        voucherRepository.save(voucher);
+    }
 }
