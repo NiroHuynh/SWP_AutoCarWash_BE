@@ -18,4 +18,6 @@ public interface PromotionVoucherService {
     List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer stationId, String status);
     void updatePromotion(Integer promotionId, UpdatePromotionRequest request);
     void updateVoucherFinancialRules(Integer voucherId, UpdateVoucherRequest request);
+    void softDeletePromotion(Integer promotionId);
+    void softDeleteStandaloneVoucher(Long voucherId);
 }

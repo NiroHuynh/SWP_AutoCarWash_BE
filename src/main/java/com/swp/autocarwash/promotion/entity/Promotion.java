@@ -49,5 +49,8 @@ public class Promotion {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
 
 }
