@@ -2,9 +2,12 @@ package com.swp.autocarwash.customer.service.customer;
 
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
+import com.swp.autocarwash.customer.dto.response.CustomerDetailResponse;
+import com.swp.autocarwash.customer.dto.response.CustomerListPageResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerUpdateProfileResponse;
 import com.swp.autocarwash.customer.entity.Customer;
+import org.springframework.data.domain.Pageable;
 
 /**
  *
@@ -66,4 +69,23 @@ public interface CustomerService {
     CustomerProfileResponse getCustomerProfile(Long customerId);
 
     CustomerUpdateProfileResponse updateCustomerProfile(Long customerId, UpdateProfileRequest request);
+
+    /**
+     * Chức năng: Danh sách khách hàng cho Admin (FE-US-09) — 3 thẻ KPI +
+     * bảng phân trang toàn bộ khách hàng, lọc theo keyword/năm-tháng đăng ký/
+     * rank/trạng thái tài khoản.
+     */
+    CustomerListPageResponse getCustomerList(
+            String keyword, Integer year, Integer month, String tier, Boolean active, Pageable pageable);
+
+    /**
+     * Chức năng: Overlay chi tiết khách hàng cho Admin (FE-US-09-03 AC1/AC2).
+     */
+    CustomerDetailResponse getCustomerDetail(Long customerId);
+
+    /**
+     * Chức năng: Admin xóa (soft-delete) khách hàng — chặn nếu khách đang có
+     * booking PENDING/WASHING (FE-US-09-03 AC3/AC4).
+     */
+    void deleteCustomer(Long customerId);
 }

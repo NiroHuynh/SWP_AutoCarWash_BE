@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -202,5 +203,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id = :vehicleId " +
             "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECK_IN', 'WASHING')")
     boolean hasActiveBooking(@Param("vehicleId") Long vehicleId);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.customer.id = :customerId AND b.status = 'NO_SHOW'")
+    long countNoShowByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND b.status NOT IN ('CANCELED','CHECK_OUT') ORDER BY b.appointmentDate DESC")
+    List<Booking> findActiveBookingsByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT MAX(b.checkOutAt) FROM Booking b WHERE b.customer.id = :customerId AND b.status = 'CHECK_OUT'")
+    LocalDateTime findLastCheckOutByCustomerId(@Param("customerId") Long customerId);
 
 }
