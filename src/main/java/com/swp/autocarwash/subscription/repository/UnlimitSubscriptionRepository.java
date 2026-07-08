@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -112,4 +113,5 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
 
     Optional<UnlimitSubscription> findById(Long id);
 
+    List<UnlimitSubscription> findByVehicleCustomerId(Long customerId);
 }
