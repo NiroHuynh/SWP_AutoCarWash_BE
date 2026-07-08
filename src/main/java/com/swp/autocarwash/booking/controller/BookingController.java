@@ -11,6 +11,7 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -181,6 +182,7 @@ public class BookingController {
      *         {@code 404 Not Found} nếu không tìm thấy booking
      */
     @PatchMapping("/{bookingId}/cancel")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<ApiResponse<BookingDetailResponse>> cancelBooking(
             @PathVariable Long bookingId) {
 

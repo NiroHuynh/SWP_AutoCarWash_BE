@@ -405,9 +405,9 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
         // FE-47-US-02 AC01/AC03: chỉ hoàn voucher khi hủy hợp lệ — booking đang CONFIRMED
-        // (chưa check-in) VÀ do chính customer bấm hủy (không phải staff hủy giúp).
-        boolean isValidCancellation = BookingStatus.CONFIRMED.name().equals(booking.getStatus())
-                && securityUtils.isCurrentUserCustomer();
+        // (chưa check-in). Endpoint này đã giới hạn @PreAuthorize("hasAuthority('CUSTOMER')")
+        // nên không cần check thêm actor ở đây.
+        boolean isValidCancellation = BookingStatus.CONFIRMED.name().equals(booking.getStatus());
 
         booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now());
