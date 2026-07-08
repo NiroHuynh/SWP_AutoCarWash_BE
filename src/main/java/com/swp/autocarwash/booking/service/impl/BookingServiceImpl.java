@@ -404,9 +404,18 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
+        // FE-47-US-02 AC01/AC03: chỉ hoàn voucher khi hủy hợp lệ — booking đang CONFIRMED
+        // (chưa check-in) VÀ do chính customer bấm hủy (không phải staff hủy giúp).
+        boolean isValidCancellation = BookingStatus.CONFIRMED.name().equals(booking.getStatus())
+                && securityUtils.isCurrentUserCustomer();
+
         booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        if (isValidCancellation) {
+            voucherUsagePort.releaseVoucher(bookingId);
+        }
 
         List<BookingSlotAllocation> allocations =
                 bookingSlotAllocationRepository.findByBookingId(bookingId);
@@ -617,7 +626,7 @@ public class BookingServiceImpl implements BookingService {
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
                 //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
-                .status(BookingStatus.PENDING.toString())
+                .status(BookingStatus.CONFIRMED.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
