@@ -20,4 +20,6 @@ public interface SubscriptionPlanService {
 
     void updateSubscriptionPlan(Integer id,
                                 UpdateSubscriptionPlanRequest request);
+
+    void deleteSubscriptionPlan(Integer id);
 }

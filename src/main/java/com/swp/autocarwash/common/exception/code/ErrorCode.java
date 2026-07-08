@@ -536,7 +536,12 @@ public enum ErrorCode {
             HttpStatus.CONFLICT,
             "SUBSCRIPTION_012",
             "Subscription plan name already exists."
-    );
+    ),
+    SUBSCRIPTION_PLAN_ALREADY_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_013",
+            "Subscription plan is already inactive."
+    ),;
 
 
 
