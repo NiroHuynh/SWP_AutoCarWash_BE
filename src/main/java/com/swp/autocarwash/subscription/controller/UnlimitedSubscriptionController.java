@@ -3,6 +3,7 @@ package com.swp.autocarwash.subscription.controller;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerVehicleResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.service.UnlimitSubscriptionService;
 import jakarta.validation.Valid;
@@ -48,6 +49,29 @@ public class UnlimitedSubscriptionController {
 
         return ApiResponse.success(
                         "Subscription canceled successfully.",
+                        null
+                );
+    }
+
+    @GetMapping("unlimited-subscriptions/{id}/available-vehicles")
+    public ApiResponse<List<CustomerVehicleResponse>>
+    getAvailableVehicles(@PathVariable Long id) {
+
+        return ApiResponse.success(
+                        "Available vehicles retrieved successfully.",
+                        unlimitedSubscriptionService.getAvailableVehicles(id)
+                );
+    }
+
+    @PatchMapping("/unlimited-subscriptions/{id}/transfer-vehicle")
+    public ApiResponse<Object> transferVehicle(
+            @PathVariable Long id,
+            @Valid @RequestBody TransferVehicleRequest request) {
+
+        unlimitedSubscriptionService.transferVehicle(id, request);
+
+        return ApiResponse.success(
+                        "Vehicle transferred successfully.",
                         null
                 );
     }

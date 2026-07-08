@@ -101,4 +101,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             Long customerId
     );
 
+   
 }

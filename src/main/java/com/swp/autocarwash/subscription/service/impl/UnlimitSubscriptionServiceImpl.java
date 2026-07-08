@@ -11,6 +11,7 @@ import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceStatus;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
@@ -169,6 +170,89 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
 
         subscription.setStatus(SubscriptionStatus.CANCELED);
         subscription.setCanceledAt(LocalDateTime.now());
+
+        unlimitSubscriptionRepository.save(subscription);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CustomerVehicleResponse> getAvailableVehicles(Long subscriptionId) {
+
+        Customer customer = securityUtils.getCustomer();
+
+        UnlimitSubscription subscription = unlimitSubscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        if (!subscription.getVehicle().getCustomer().getId().equals(customer.getId())) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        List<Vehicle> vehicles = vehicleRepository
+                .findByCustomerIdAndIsDeletedFalse(customer.getId());
+
+        return vehicles.stream()
+                // bỏ xe hiện tại
+                .filter(v -> !v.getId().equals(subscription.getVehicle().getId()))
+                // bỏ xe đã có subscription ACTIVE
+                .filter(v -> !unlimitSubscriptionRepository
+                        .existsByVehicleIdAndStatus(
+                                v.getId(),
+                                SubscriptionStatus.ACTIVE))
+                .map(v -> CustomerVehicleResponse.builder()
+                        .id(v.getId())
+                        .licensePlate(v.getLicensePlate())
+                        .vehicleName(v.getBrandName())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public void transferVehicle(Long subscriptionId,
+                                TransferVehicleRequest request) {
+
+        Customer customer = securityUtils.getCustomer();
+
+        UnlimitSubscription subscription = unlimitSubscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        if (!subscription.getVehicle().getCustomer().getId().equals(customer.getId())) {
+            throw new BusinessException(ErrorCode.VEHICLE_NOT_OWNED);
+        }
+
+        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_STATUS);
+        }
+
+        if (subscription.getLastVehicleChangeAt() != null &&
+                subscription.getLastVehicleChangeAt()
+                        .plusDays(30)
+                        .isAfter(LocalDateTime.now())) {
+
+            throw new BusinessException(
+                    ErrorCode.VEHICLE_TRANSFER_NOT_ALLOWED);
+        }
+
+        Vehicle vehicle = vehicleRepository
+                .findByIdAndCustomerIdAndIsDeletedFalse(
+                        request.getVehicleId(),
+                        customer.getId())
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.INVALID_VEHICLE));
+
+        if (unlimitSubscriptionRepository.existsByVehicleIdAndStatus(
+                vehicle.getId(),
+                SubscriptionStatus.ACTIVE)) {
+
+            throw new BusinessException(
+                    ErrorCode.VEHICLE_ALREADY_SUBSCRIBED);
+        }
+
+        subscription.setVehicle(vehicle);
+        subscription.setLastVehicleChangeAt(LocalDateTime.now());
 
         unlimitSubscriptionRepository.save(subscription);
     }
