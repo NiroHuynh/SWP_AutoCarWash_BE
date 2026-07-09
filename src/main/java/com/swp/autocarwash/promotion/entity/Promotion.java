@@ -49,6 +49,7 @@ public class Promotion {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 

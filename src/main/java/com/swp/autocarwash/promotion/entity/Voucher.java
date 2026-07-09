@@ -71,6 +71,7 @@ public class Voucher {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 }
