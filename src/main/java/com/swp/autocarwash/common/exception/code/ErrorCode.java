@@ -587,7 +587,6 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_022",
             "You can only change your vehicle once every 30 days."
-    ),;
     ),
     DEPOSIT_ALREADY_CONFIRMED(
             HttpStatus.BAD_REQUEST,
