@@ -23,4 +23,14 @@ public interface SubscriptionPaymentService {
      * @return invoiceId + transferContent + amount
      */
     SubscriptionPaymentInitResponse initiatePayment(SubscriptionPaymentInitRequest request);
+
+    /**
+     * Chức năng: Đọc trạng thái + thông tin thanh toán của một hóa đơn mua gói
+     * (AC02/AC03 — FE poll để chuyển UI khi PENDING/PAID/FAILED). Kiểm tra hóa đơn
+     * thuộc đúng customer đang đăng nhập; {@code qrImageUrl} chỉ trả khi còn PENDING.
+     *
+     * @param invoiceId  id hóa đơn cần tra
+     * @param customerId id khách đang đăng nhập (verify quyền sở hữu)
+     */
+    SubscriptionPaymentInitResponse getInvoiceStatus(Long invoiceId, Long customerId);
 }
