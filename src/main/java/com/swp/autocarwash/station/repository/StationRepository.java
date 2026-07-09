@@ -43,10 +43,19 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
 
     Optional<Station> findByIdAndIsDeletedFalse(@NotNull(message = "Station Id can not be null") Integer stationId);
 
-    @Query(value = "SELECT s.id, s.station_name, COUNT(psm.promotion_id) AS totalActivePromotions " +
+//    @Query(value = "SELECT s.id, s.station_name, COUNT(psm.promotion_id) AS totalActivePromotions " +
+//            "FROM station s " +
+//            "LEFT JOIN promotion_station_mapping psm ON s.id = psm.station_id " +
+//            "LEFT JOIN promotion p ON psm.promotion_id = p.id AND (:status = 'ALL' OR p.status = :status) " +
+//            "WHERE s.is_deleted = false AND s.is_operating = true " +
+//            "GROUP BY s.id, s.station_name", nativeQuery = true)
+//    List<Object[]> countPromotionsPerBranch(@Param("status") String status);
+
+    @Query(value = "SELECT s.id, s.station_name, " +
+            "COUNT(CASE WHEN p.id IS NOT NULL AND p.is_deleted = false AND (:status = 'ALL' OR p.status = :status) THEN 1 END) AS totalActivePromotions " +
             "FROM station s " +
             "LEFT JOIN promotion_station_mapping psm ON s.id = psm.station_id " +
-            "LEFT JOIN promotion p ON psm.promotion_id = p.id AND (:status = 'ALL' OR p.status = :status) " +
+            "LEFT JOIN promotion p ON psm.promotion_id = p.id " +
             "WHERE s.is_deleted = false AND s.is_operating = true " +
             "GROUP BY s.id, s.station_name", nativeQuery = true)
     List<Object[]> countPromotionsPerBranch(@Param("status") String status);
