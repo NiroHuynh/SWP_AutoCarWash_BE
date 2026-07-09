@@ -17,4 +17,8 @@ public class PromotionDashboardListViewResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
+
+    private Integer configMode;
+    private Long voucherId;
+    private String voucherCode;
 }
