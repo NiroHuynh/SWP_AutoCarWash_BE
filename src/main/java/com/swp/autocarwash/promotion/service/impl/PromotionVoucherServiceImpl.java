@@ -69,6 +69,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .startDate(request.getCampaignStartDate())
                 .endDate(request.getCampaignEndDate())
                 .status(calculateStatus(request.getCampaignStartDate()))
+                .isDeleted(false)
                 .build();
         promotion = promotionRepository.save(promotion); // Sinh ra ID thực tế
 
@@ -97,6 +98,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getCampaignStartDate()))
                 .reusable(true)
                 .discountPercentage(percent)
+                .isDeleted(false)
                 .build();
 
         voucherRepository.save(autoVoucher);
@@ -121,6 +123,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .startDate(request.getCampaignStartDate())
                 .endDate(request.getCampaignEndDate())
                 .status(calculateStatus(request.getCampaignStartDate()))
+                .isDeleted(false)
                 .build();
         promotion = promotionRepository.save(promotion);
 
@@ -149,6 +152,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getCampaignStartDate()))
                 .reusable(request.getReusable() != null && request.getReusable())
                 .discountPercentage(percent)
+                .isDeleted(false)
                 .build();
 
         voucherRepository.save(voucher);
@@ -187,6 +191,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getVoucherStartDate()))
                 .reusable(request.getReusable() != null && request.getReusable())
                 .discountPercentage(percent)
+                .isDeleted(false)
                 .build();
 
         voucherRepository.save(standaloneVoucher);
