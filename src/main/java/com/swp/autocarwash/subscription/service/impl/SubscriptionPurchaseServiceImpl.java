@@ -117,10 +117,19 @@ public class SubscriptionPurchaseServiceImpl implements SubscriptionPurchaseServ
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        // Chỉ gói đã kích hoạt (ACTIVE) hoặc đã hết hạn (EXPIRED) mới gia hạn được.
-        if (subscription.getStatus() != SubscriptionStatus.ACTIVE
-                && subscription.getStatus() != SubscriptionStatus.EXPIRED) {
+        // Chỉ ACTIVE mới được gia hạn (RENEW.docx AC03).
+        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) {
             throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_STATUS);
+        }
+
+        // Phòng hờ trạng thái stale: endDate đã qua nhưng status chưa kịp chuyển EXPIRED.
+        if (subscription.getEndDate().isBefore(LocalDate.now())) {
+            throw new BusinessException(ErrorCode.SUBSCRIPTION_EXPIRED);
+        }
+
+        // Chỉ cho renew khi còn <=3 ngày trước hạn (RENEW.docx AC01).
+        if (subscription.getEndDate().isAfter(LocalDate.now().plusDays(3))) {
+            throw new BusinessException(ErrorCode.RENEWAL_NOT_AVAILABLE);
         }
 
         // Idempotent: đã có hóa đơn gia hạn PENDING -> trả lại QR cũ.

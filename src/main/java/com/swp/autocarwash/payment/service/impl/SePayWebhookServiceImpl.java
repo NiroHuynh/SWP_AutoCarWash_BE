@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -290,7 +289,7 @@ public class SePayWebhookServiceImpl implements SePayWebhookService {
     private void confirmSubscriptionPayment(SubscriptionInvoice invoice,
                                             PaymentMethod paymentMethod, String transactionCode) {
         invoice.setStatus(SubscriptionPaymentServiceImpl.INVOICE_PAID);
-        invoice.setPaidAt(Instant.now());
+        invoice.setPaidAt(LocalDateTime.now());
         subscriptionInvoiceRepository.save(invoice);
 
         Payment payment = new Payment();
