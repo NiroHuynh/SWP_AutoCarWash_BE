@@ -6,7 +6,7 @@ public enum SubscriptionInvoiceStatus {
 
     PAID,         // Đã thanh toán thành công
 
-    CANCELLED,    // Hóa đơn đã bị hủy
+    CANCELED,    // Hóa đơn đã bị hủy
 
     EXPIRED,      // Hóa đơn hết hạn thanh toán
 

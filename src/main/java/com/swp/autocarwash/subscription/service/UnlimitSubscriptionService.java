@@ -4,6 +4,8 @@ import com.swp.autocarwash.customer.dto.response.CustomerVehicleResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalInfoResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalResponse;
 import com.swp.autocarwash.subscription.dto.response.UnlimitedSubscriptionResponse;
 
 import java.util.List;
@@ -46,4 +48,8 @@ public interface UnlimitSubscriptionService {
             TransferVehicleRequest request);
 
     List<UnlimitedSubscriptionResponse> getMySubscriptions();
+
+    RenewalInfoResponse getRenewalInfo(Long subscriptionId);
+
+    RenewalResponse renewSubscription(Long subscriptionId);
 }

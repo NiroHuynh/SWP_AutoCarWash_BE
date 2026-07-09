@@ -1,6 +1,7 @@
 package com.swp.autocarwash.payment.entity;
 
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import jakarta.persistence.*;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -50,10 +52,11 @@ public class SubscriptionInvoice {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "paid_at")
-    private Instant paidAt;
+    private LocalDateTime paidAt;
 
-
+    @Column(name = "type")
+    private SubscriptionInvoiceType type;
 }

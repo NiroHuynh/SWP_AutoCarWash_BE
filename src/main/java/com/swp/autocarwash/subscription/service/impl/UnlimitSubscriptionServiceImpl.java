@@ -9,10 +9,13 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceStatus;
+import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalInfoResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalResponse;
 import com.swp.autocarwash.subscription.dto.response.UnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
@@ -302,5 +305,94 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
                         .maxVehicleCount(subscription.getSubscriptionPlan().getMaxVehicleCount())
                         .build())
                 .toList();
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public RenewalInfoResponse getRenewalInfo(Long subscriptionId) {
+
+        Customer customer = securityUtils.getCustomer();
+
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
+        UnlimitSubscription subscription = unlimitSubscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        if (!subscription.getVehicle().getCustomer().getId().equals(customer.getId())) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        validateRenew(subscription);
+
+        SubscriptionPlan plan = subscription.getSubscriptionPlan();
+
+        return RenewalInfoResponse.builder()
+                .subscriptionId(subscription.getId())
+                .planName(plan.getPlanName())
+                .durationDays(plan.getDurationDays())
+                .price(plan.getPrice())
+                .build();
+    }
+
+    @Override
+    public RenewalResponse renewSubscription(Long subscriptionId) {
+
+        Customer customer = securityUtils.getCustomer();
+
+        if(customer==null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+
+        UnlimitSubscription subscription = unlimitSubscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        if (!subscription.getVehicle().getCustomer().getId().equals(customer.getId())) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        validateRenew(subscription);
+
+        if (subscriptionInvoiceRepository.existsByUnlimitSubscription_IdAndStatus(
+                subscription.getId(),
+                SubscriptionInvoiceStatus.PENDING.name())) {
+
+            throw new BusinessException(ErrorCode.RENEWAL_ALREADY_PENDING);
+        }
+
+        SubscriptionPlan plan = subscription.getSubscriptionPlan();
+
+        SubscriptionInvoice invoice = SubscriptionInvoice.builder()
+                .unlimitSubscription(subscription)
+                .planPrice(plan.getPrice())
+                .status(SubscriptionInvoiceStatus.PENDING.name())
+                .customer(customer)
+                .createdAt(LocalDateTime.now())
+                .type(SubscriptionInvoiceType.RENEW)
+                .build();
+
+        subscriptionInvoiceRepository.save(invoice);
+
+        return RenewalResponse.builder()
+                .invoiceId(invoice.getId())
+                .status(SubscriptionInvoiceStatus.valueOf(invoice.getStatus()))
+                .build();
+    }
+
+    private void validateRenew(UnlimitSubscription subscription) {
+
+        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_STATUS);
+        }
+
+        if (subscription.getEndDate().isBefore(LocalDate.now())) {
+            throw new BusinessException(ErrorCode.SUBSCRIPTION_EXPIRED);
+        }
+
+        if (subscription.getEndDate().isAfter(LocalDate.now().plusDays(3))) {
+            throw new BusinessException(ErrorCode.RENEWAL_NOT_AVAILABLE);
+        }
     }
 }
