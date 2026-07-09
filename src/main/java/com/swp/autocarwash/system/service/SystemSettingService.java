@@ -20,4 +20,10 @@ public interface SystemSettingService {
     BigDecimal getLoyaltyRedeemRate();
 
     Integer getMaxViolationLimit(String settingKey);
+
+    /**
+     * So phut toi da mot booking PENDING duoc phep cho chuyen khoan coc
+     * truoc khi bi job tu dong huy (key PENDING_PAYMENT_TIMEOUT_MINUTES).
+     */
+    Integer getPendingPaymentTimeoutMinutes();
 }
