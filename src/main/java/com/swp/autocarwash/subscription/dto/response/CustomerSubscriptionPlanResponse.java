@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CustomerSubscriptionPlanResponse {
 
+    private Integer id;
+
     private String planName;
 
     private BigDecimal price;
