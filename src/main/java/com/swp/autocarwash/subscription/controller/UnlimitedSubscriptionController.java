@@ -5,6 +5,8 @@ import com.swp.autocarwash.customer.dto.response.CustomerVehicleResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterUnlimitedSubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.TransferVehicleRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterUnlimitedSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalInfoResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewalResponse;
 import com.swp.autocarwash.subscription.dto.response.UnlimitedSubscriptionResponse;
 import com.swp.autocarwash.subscription.service.UnlimitSubscriptionService;
 import jakarta.validation.Valid;
@@ -90,6 +92,26 @@ public class UnlimitedSubscriptionController {
         return ApiResponse.success(
                         message,
                         response
+                );
+    }
+
+    @GetMapping("/unlimited-subscriptions/{id}/renewal")
+    public ApiResponse<RenewalInfoResponse> getRenewalInfo(
+            @PathVariable Long id) {
+
+        return ApiResponse.success(
+                        "Renewal information retrieved successfully.",
+                        unlimitedSubscriptionService.getRenewalInfo(id)
+                );
+    }
+
+    @PostMapping("/unlimited-subscriptions/{id}/renew")
+    public ApiResponse<RenewalResponse> renewSubscription(
+            @PathVariable Long id) {
+
+        return ApiResponse.success(
+                        "Subscription renewal created successfully.",
+                        unlimitedSubscriptionService.renewSubscription(id)
                 );
     }
 }
