@@ -61,6 +61,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                // SePay xác thực bằng API key riêng trong header (không phải JWT) - xem SePayWebhookController
+                .requestMatchers("/api/webhooks/sepay").permitAll()
                 //mở toang cửa cho cụm API login
                 //tất cả các API khác đều phải có token
                 .anyRequest().authenticated()
