@@ -90,8 +90,7 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
         int currentTierMinPoints = currentTier == null ? 0 : currentTier.getMinPoints();
         customerTierRepository.findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(currentTierMinPoints)
                 .ifPresent(next -> {
-                    int pointsNeeded = next.getMinPoints() - currentTierMinPoints;
-                    int pointsMissing = Math.max(pointsNeeded - accumulated, 0);
+                    int pointsMissing = Math.max(next.getMinPoints() - accumulated, 0);
                     builder.nextTierName(next.getTierName());
                     builder.pointsToNextTier(pointsMissing);
                     builder.amountToNextTier(BigDecimal.valueOf(pointsMissing)
