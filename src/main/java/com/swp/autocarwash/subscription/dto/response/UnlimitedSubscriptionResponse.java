@@ -1,5 +1,6 @@
 package com.swp.autocarwash.subscription.dto.response;
 
+import com.swp.autocarwash.subscription.entity.enums.PlanType;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import lombok.*;
 
@@ -33,6 +34,9 @@ public class UnlimitedSubscriptionResponse {
 
     private String description;
 
+    private PlanType planType;
+
+    private Integer maxVehicleCount;
 
     @Getter
     @Setter
