@@ -70,11 +70,12 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
 
         int accumulated = balance.getAccumulatedPoints() == null ? 0 : balance.getAccumulatedPoints();
 
-        // Hang hien tai duoc suy ra tu diem tich luy thuc te (khong dung FK customer.customer_tier_id,
-        // vi FK nay chi duoc set 1 lan luc dang ky va khong duoc dong bo lai khi khach tich diem).
-        CustomerTier currentTier = customerTierRepository
-                .findTop1ByMinPointsLessThanEqualOrderByMinPointsDesc(accumulated)
-                .orElse(null);
+        // Hang hien tai doc tu FK customer.customer_tier_id: FK nay duoc dong bo moi khi
+        // accumulatedPoints thay doi (checkout earn - LoyaltyServiceImpl.processTierUpgrade;
+        // va danh gia thuong nien - AnnualTierEvaluationService), nen la nguon dang tin cay hon
+        // accumulatedPoints "tuc thoi" - dac biet sau khi job thuong nien reset accumulatedPoints
+        // ve 0 nhung hang van phai giu nguyen gia tri vua danh gia.
+        CustomerTier currentTier = customer.getCustomerTier();
         String currentTierName = currentTier == null ? DEFAULT_TIER_NAME : currentTier.getTierName();
 
         LoyaltyProfileResponse.LoyaltyProfileResponseBuilder builder = LoyaltyProfileResponse.builder()
@@ -82,10 +83,15 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
                 .accumulatedPoints(accumulated)
                 .tierName(currentTierName);
 
-        // Tien do len hang ke tiep - dung accumulatedPoints (diem lifetime), khong dung totalPoints
-        customerTierRepository.findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(accumulated)
+        // Tien do len hang ke tiep - tinh tuong doi tu nguong cua hang HIEN TAI (FK) cong voi
+        // accumulatedPoints tich luy trong chu ky nay, thay vi tra tuyet doi tu accumulatedPoints:
+        // sau reset thuong nien accumulatedPoints ve 0, tra tuyet doi se bao sai next-tier cho
+        // khach dang o Gold/Platinum (vd hien "next tier: Silver" ngay sau khi vua reset).
+        int currentTierMinPoints = currentTier == null ? 0 : currentTier.getMinPoints();
+        customerTierRepository.findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(currentTierMinPoints)
                 .ifPresent(next -> {
-                    int pointsMissing = next.getMinPoints() - accumulated;
+                    int pointsNeeded = next.getMinPoints() - currentTierMinPoints;
+                    int pointsMissing = Math.max(pointsNeeded - accumulated, 0);
                     builder.nextTierName(next.getTierName());
                     builder.pointsToNextTier(pointsMissing);
                     builder.amountToNextTier(BigDecimal.valueOf(pointsMissing)
@@ -245,6 +251,13 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
         CustomerTier newTier = customerTierRepository
                 .findTop1ByMinPointsLessThanEqualOrderByMinPointsDesc(newAccumulatedPoints)
                 .orElse(null);
+        recordTierChangeIfDifferent(customerId, oldTier, newTier, newAccumulatedPoints, bookingId);
+    }
+
+    @Override
+    @Transactional
+    public void recordTierChangeIfDifferent(Long customerId, CustomerTier oldTier, CustomerTier newTier,
+                                             int valueAtTransition, Long bookingId) {
         if (newTier == null || oldTier == null) {
             return; // Chua co hang cu (lan dau) -> khong phai nang/ha hang, khong ghi lich su
         }
@@ -264,7 +277,7 @@ public class LoyaltyProfileServiceImpl implements LoyaltyProfileService {
         history.setCustomer(customer);
         history.setOldTier(oldTier);
         history.setNewTier(newTier);
-        history.setPointsAtTransition(newAccumulatedPoints);
+        history.setValueAtTransition(valueAtTransition);
         history.setChangeType(changeType);
         history.setBooking(booking);
         tierHistoryRepository.save(history);
