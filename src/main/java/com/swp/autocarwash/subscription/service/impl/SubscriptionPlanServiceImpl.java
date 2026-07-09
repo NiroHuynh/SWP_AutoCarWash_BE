@@ -279,6 +279,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     ) {
 
         return CustomerSubscriptionPlanResponse.builder()
+                .id(subscriptionPlan.getId())
                 .planName(subscriptionPlan.getPlanName())
                 .price(subscriptionPlan.getPrice())
                 .durationDays(subscriptionPlan.getDurationDays())
