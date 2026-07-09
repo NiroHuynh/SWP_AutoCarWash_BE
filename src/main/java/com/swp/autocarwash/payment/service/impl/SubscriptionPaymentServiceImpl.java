@@ -1,18 +1,24 @@
 package com.swp.autocarwash.payment.service.impl;
 
+import com.swp.autocarwash.common.exception.ResourceNotFoundException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.payment.dto.request.SubscriptionPaymentInitRequest;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
+import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceStatus;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.payment.util.SePayQrBuilder;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
+import com.swp.autocarwash.system.service.SystemSettingService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.temporal.ChronoUnit;
 
 /**
  * Triển khai khởi tạo thanh toán mua gói định nghĩa trong
@@ -25,12 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentService {
 
-    /** Trạng thái hóa đơn subscription: chờ chuyển khoản. */
-    public static final String INVOICE_PENDING = "PENDING";
+    /** Trạng thái hóa đơn subscription — nguồn hoá từ enum {@link SubscriptionInvoiceStatus}. */
+    public static final String INVOICE_PENDING = SubscriptionInvoiceStatus.PENDING.name();
     /** Trạng thái hóa đơn subscription: đã thanh toán. */
-    public static final String INVOICE_PAID = "PAID";
-    /** Trạng thái hóa đơn subscription: hủy (quá hạn thanh toán). */
-    public static final String INVOICE_CANCEL = "CANCEL";
+    public static final String INVOICE_PAID = SubscriptionInvoiceStatus.PAID.name();
+    /** Trạng thái hóa đơn subscription: thất bại (quá hạn thanh toán) — AC03. */
+    public static final String INVOICE_FAILED = SubscriptionInvoiceStatus.FAILED.name();
 
     /** Prefix nội dung chuyển khoản mua gói. */
     public static final String TRANSFER_PREFIX = "SUB";
@@ -38,6 +44,7 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
     private final EntityManager entityManager;
     private final SePayQrBuilder sePayQrBuilder;
+    private final SystemSettingService systemSettingService;
 
     /** {@inheritDoc} */
     @Override
@@ -58,13 +65,50 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
 
         invoice = subscriptionInvoiceRepository.save(invoice);
 
+        return buildResponse(invoice, request.getPlanName());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public SubscriptionPaymentInitResponse getInvoiceStatus(Long invoiceId, Long customerId) {
+        SubscriptionInvoice invoice = subscriptionInvoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SUBSCRIPTION_INVOICE_NOT_FOUND));
+
+        if (invoice.getCustomer() == null || !invoice.getCustomer().getId().equals(customerId)) {
+            throw new ResourceNotFoundException(ErrorCode.SUBSCRIPTION_INVOICE_NOT_FOUND);
+        }
+
+        String planName = null;
+        if (invoice.getUnlimitSubscription() != null
+                && invoice.getUnlimitSubscription().getSubscriptionPlan() != null) {
+            planName = invoice.getUnlimitSubscription().getSubscriptionPlan().getPlanName();
+        }
+        return buildResponse(invoice, planName);
+    }
+
+    /**
+     * Dựng response thanh toán từ 1 hóa đơn: transferContent "SUB{id}", expiresAt =
+     * createdAt + timeout, và qrImageUrl chỉ set khi hóa đơn còn PENDING (hết hạn/đã trả
+     * thì không hiển thị QR nữa).
+     */
+    private SubscriptionPaymentInitResponse buildResponse(SubscriptionInvoice invoice, String planName) {
         String transferContent = TRANSFER_PREFIX + invoice.getId();
+        int timeoutMinutes = systemSettingService.getPendingPaymentTimeoutMinutes();
+        boolean pending = INVOICE_PENDING.equals(invoice.getStatus());
+
         return SubscriptionPaymentInitResponse.builder()
                 .invoiceId(invoice.getId())
+                .planName(planName)
                 .transferContent(transferContent)
                 .amount(invoice.getPlanPrice())
                 .invoiceStatus(invoice.getStatus())
-                .qrImageUrl(sePayQrBuilder.buildQrImageUrl(invoice.getPlanPrice(), transferContent))
+                .expiresAt(invoice.getCreatedAt() != null
+                        ? invoice.getCreatedAt().plus(timeoutMinutes, ChronoUnit.MINUTES)
+                        : null)
+                .qrImageUrl(pending
+                        ? sePayQrBuilder.buildQrImageUrl(invoice.getPlanPrice(), transferContent)
+                        : null)
                 .build();
     }
 }

@@ -6,6 +6,8 @@ import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
+import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.subscription.dto.response.ActiveSubscriptionResponse;
 import com.swp.autocarwash.subscription.service.SubscriptionQueryService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +35,7 @@ public class SubscriptionController {
 
     private final SubscriptionQueryService subscriptionQueryService;
     private final CustomerRepository customerRepository;
+    private final SubscriptionPaymentService subscriptionPaymentService;
 
     /**
      * Chức năng: Lấy gói subscription đang hoạt động (ACTIVE, còn hạn) của
@@ -57,6 +61,27 @@ public class SubscriptionController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Gói subscription đang hoạt động", result)
+        );
+    }
+
+    /**
+     * Chức năng: Tra trạng thái + thông tin thanh toán của một hóa đơn mua gói —
+     * FE poll để chuyển UI khi PENDING/PAID/FAILED (FE-US-56-04 AC02/AC03).
+     *
+     * <p><b>Ví dụ:</b> {@code GET /api/subscriptions/invoices/12}</p>
+     */
+    @GetMapping("/invoices/{invoiceId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    public ResponseEntity<ApiResponse<SubscriptionPaymentInitResponse>> getInvoiceStatus(
+            @PathVariable Long invoiceId,
+            @AuthenticationPrincipal UserCustomerDetails principal) {
+
+        Long customerId = resolveCustomerId(principal);
+        SubscriptionPaymentInitResponse result =
+                subscriptionPaymentService.getInvoiceStatus(invoiceId, customerId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Trạng thái hóa đơn mua gói", result)
         );
     }
 

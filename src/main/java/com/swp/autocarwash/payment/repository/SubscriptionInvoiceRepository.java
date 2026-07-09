@@ -27,4 +27,18 @@ public interface SubscriptionInvoiceRepository extends JpaRepository<Subscriptio
      * dung cho job tu huy hoa don PENDING qua han chuyen khoan.
      */
     java.util.List<SubscriptionInvoice> findByStatusAndCreatedAtBefore(String status, Instant cutoff);
+
+    /**
+     * Hoa don moi nhat cua mot goi unlimited theo trang thai — dung cho idempotent
+     * gia han (tra lai invoice PENDING dang cho thay vi tao trung khi khach quay lai man QR).
+     */
+    java.util.Optional<SubscriptionInvoice> findFirstByUnlimitSubscription_IdAndStatusOrderByCreatedAtDesc(
+            Long unlimitSubscriptionId, String status);
+
+    /**
+     * Hoa don moi nhat theo XE (qua goi unlimited) va trang thai — dung cho idempotent
+     * dang ky moi: xe da co invoice PENDING dang cho thi tra lai QR do.
+     */
+    java.util.Optional<SubscriptionInvoice> findFirstByUnlimitSubscription_Vehicle_IdAndStatusOrderByCreatedAtDesc(
+            Long vehicleId, String status);
 }

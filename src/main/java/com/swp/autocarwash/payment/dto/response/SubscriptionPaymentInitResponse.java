@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 /**
  * Chức năng: Thông tin thanh toán trả lại cho module subscription/FE sau khi
@@ -22,6 +23,9 @@ public class SubscriptionPaymentInitResponse {
 
     private Long invoiceId;
 
+    /** Tên gói — hiển thị trên màn thanh toán (AC01). */
+    private String planName;
+
     /** Nội dung chuyển khoản để webhook map invoice, dạng "SUB{invoiceId}". */
     private String transferContent;
 
@@ -29,6 +33,9 @@ public class SubscriptionPaymentInitResponse {
     private BigDecimal amount;
 
     private String invoiceStatus;
+
+    /** Thời điểm QR hết hạn = createdAt + PENDING_PAYMENT_TIMEOUT_MINUTES (AC01/AC03). */
+    private Instant expiresAt;
 
     /** URL ảnh QR VietQR đã điền sẵn số tài khoản/số tiền/nội dung, FE chỉ cần {@code <img src>}. */
     private String qrImageUrl;

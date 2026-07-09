@@ -28,6 +28,9 @@ public class SubscriptionPaymentInitRequest {
     @NotNull
     private BigDecimal planPrice;
 
+    /** Tên gói — để FE hiển thị trên màn thanh toán (AC01). */
+    private String planName;
+
     /** Id bản ghi UnlimitSubscription đang chờ thanh toán (nullable nếu gói FAMILY). */
     private Long unlimitSubscriptionId;
 
