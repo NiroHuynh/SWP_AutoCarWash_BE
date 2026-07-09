@@ -404,20 +404,20 @@ VALUES
 -- SUBSCRIPTION INVOICE (12)
 -- =====================================================================
 INSERT IGNORE INTO subscription_invoice
-(id, customer_id, unlimit_subscription_id, family_subscription_id, plan_price, status, created_at, paid_at)
+(id, customer_id, unlimit_subscription_id, family_subscription_id, plan_price, status, created_at, paid_at,type)
 VALUES
-    (1,  1,  1,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (2,  2,  2,    NULL, 900000,   'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (3,  3,  3,    NULL, 1350000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
-    (4,  4,  4,    NULL, 2400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
-    (5,  5,  5,    NULL, 8500000,  'PAID',    DATE_SUB(NOW(), INTERVAL 100 DAY), DATE_SUB(NOW(), INTERVAL 100 DAY)),
-    (6,  6,  6,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 60 DAY),  DATE_SUB(NOW(), INTERVAL 60 DAY)),
-    (7,  8,  8,    NULL, 1350000,  'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL),
-    (8,  1,  NULL, 1,    1200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (10, 3,  NULL, 3,    3200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
-    (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
-    (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL);
+    (1,  1,  1,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY),1),
+    (2,  2,  2,    NULL, 900000,   'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY),1),
+    (3,  3,  3,    NULL, 1350000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY),1),
+    (4,  4,  4,    NULL, 2400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY),1),
+    (5,  5,  5,    NULL, 8500000,  'PAID',    DATE_SUB(NOW(), INTERVAL 100 DAY), DATE_SUB(NOW(), INTERVAL 100 DAY),1),
+    (6,  6,  6,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 60 DAY),  DATE_SUB(NOW(), INTERVAL 60 DAY),1),
+    (7,  8,  8,    NULL, 1350000,  'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL,1),
+    (8,  1,  NULL, 1,    1200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY),1),
+    (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY),1),
+    (10, 3,  NULL, 3,    3200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY),1),
+    (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY),1),
+    (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL,1);
 
 -- =====================================================================
 -- PROMOTION (10)
