@@ -588,6 +588,18 @@ public enum ErrorCode {
             "SUBSCRIPTION_022",
             "You can only change your vehicle once every 30 days."
     ),
+
+    DEPOSIT_ALREADY_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_003",
+            "Booking is not awaiting deposit (already confirmed, canceled, or deposit already paid)"
+    ),
+    INVOICE_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_005",
+            "Subscription invoice is not awaiting payment (already paid or canceled)"
+    ),
+
     RENEWAL_NOT_AVAILABLE(
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_023",
