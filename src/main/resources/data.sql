@@ -2280,7 +2280,7 @@ VALUES
     ('DEPOSIT_PERCENT',             '30',      'Deposit percent',                                'NUMBER',  true),
     ('MAX_BOOKING_DAY',             '30',      'Maximum booking day',                            'NUMBER',  true),
     ('DEFAULT_DEPOSIT_AMOUNT',      '20000',   'Default deposit amount',                         'NUMBER',  true),
-    ('PENDING_PAYMENT_TIMEOUT_MINUTES', '15',  'Minutes a PENDING booking may await deposit transfer before auto-cancel', 'NUMBER', true),
+    ('PENDING_PAYMENT_TIMEOUT_MINUTES', '5',  'Minutes a PENDING booking may await deposit transfer before auto-cancel', 'NUMBER', true),
     ('CANCEL_THRESHOLD_MINUTES',    '120',     'Minutes before appointment a booking can be cancelled', 'NUMBER', true),
     ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
     ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
