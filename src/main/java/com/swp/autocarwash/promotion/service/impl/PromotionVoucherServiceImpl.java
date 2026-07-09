@@ -368,6 +368,26 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 }
             }
 
+            //LOGIC PHÂN LOẠI CHẾ ĐỘ 1 VÀ CHẾ ĐỘ 2 DỰA TRÊN VOUCHER CON LIÊN KẾT
+            Integer currentConfigMode = 1; // Mặc định giả định ban đầu là Chế độ 1
+            Long linkedVoucherId = null;
+            String linkedVoucherCode = null;
+
+            // Tìm kiếm Voucher con đính kèm với Promotion cha này dưới DB
+            Voucher linkedVoucher = voucherRepository.findByPromotionId(p.getId()).stream().findFirst().orElse(null);
+            if (linkedVoucher != null) {
+                linkedVoucherId = linkedVoucher.getId();
+                linkedVoucherCode = linkedVoucher.getVoucherCode();
+
+                // Nếu mã code KHÔNG bắt đầu bằng AUTO_PROMO_ -> Chắc chắn Admin tự nhập mã -> Chế độ 2
+                if (!linkedVoucher.getVoucherCode().startsWith("AUTO_PROMO_")) {
+                    currentConfigMode = 2;
+                }
+            }
+
+
+
+
             // Bước D: Đóng gói toàn bộ thông tin chiến dịch vào DTO
             PromotionDashboardListViewResponse dto = PromotionDashboardListViewResponse.builder()
                     .id(p.getId())
@@ -378,6 +398,9 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
                     .status(p.getStatus())
+                    .configMode(currentConfigMode)
+                    .voucherId(linkedVoucherId)
+                    .voucherCode(linkedVoucherCode)
                     .build();
 
             allItems.add(dto);
@@ -407,6 +430,9 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                         .startDate(v.getStartDate().toLocalDate()) // Ép LocalDateTime về LocalDate
                         .endDate(v.getExpiryDate().toLocalDate())
                         .status(v.getStatus())
+                        .configMode(3)
+                        .voucherId(v.getId())
+                        .voucherCode(v.getVoucherCode())
                         .build();
 
                 allItems.add(dto);
