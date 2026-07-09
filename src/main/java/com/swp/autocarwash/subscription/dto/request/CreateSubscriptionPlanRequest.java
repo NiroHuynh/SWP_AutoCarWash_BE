@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -42,4 +43,9 @@ public class CreateSubscriptionPlanRequest {
     @NotNull(message = "INVALID_MAX_VEHICLE_COUNT")
     @Positive(message = "INVALID_MAX_VEHICLE_COUNT")
     private Integer maxVehicleCount;
+
+    // Add-on đi kèm gói (marketing/quyền lợi hiển thị cho khách) - KHÔNG liên quan servicePackageId
+    // ở trên (servicePackageId vẫn quyết định hạng dịch vụ rửa xe cho booking/walk-in).
+    // Tuỳ chọn - có thể để trống/null nếu gói không kèm add-on nào.
+    private List<Integer> addonServiceIds;
 }
