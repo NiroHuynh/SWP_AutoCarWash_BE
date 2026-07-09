@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Chức năng: Thông tin thanh toán trả lại cho module subscription/FE sau khi
@@ -26,6 +27,9 @@ public class SubscriptionPaymentInitResponse {
     /** Tên gói — hiển thị trên màn thanh toán (AC01). */
     private String planName;
 
+    /** Số ngày hiệu lực của gói — hiển thị khi xem lại thông tin gia hạn (RENEW AC02). */
+    private Integer durationDays;
+
     /** Nội dung chuyển khoản để webhook map invoice, dạng "SUB{invoiceId}". */
     private String transferContent;
 
@@ -39,4 +43,25 @@ public class SubscriptionPaymentInitResponse {
 
     /** URL ảnh QR VietQR đã điền sẵn số tài khoản/số tiền/nội dung, FE chỉ cần {@code <img src>}. */
     private String qrImageUrl;
+
+    /** Số tài khoản ngân hàng nhận tiền — hiển thị dạng text dự phòng bên cạnh QR. */
+    private String bankAccountNumber;
+
+    /** Mã ngân hàng theo chuẩn SePay, ví dụ "MBBank", "Vietcombank". */
+    private String bankCode;
+
+    /** Tên chủ tài khoản ngân hàng nhận tiền. */
+    private String bankAccountName;
+
+    /** Tên đầy đủ khách hàng đăng ký gói. */
+    private String customerName;
+
+    /** Biển số xe được chọn để đăng ký gói. */
+    private String vehicleLicensePlate;
+
+    /** Ngày gói bắt đầu có hiệu lực. */
+    private LocalDate startDate;
+
+    /** Ngày gói hết hạn. */
+    private LocalDate endDate;
 }
