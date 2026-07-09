@@ -3,7 +3,10 @@ package com.swp.autocarwash.customer.service.customer.impl;
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
 import com.swp.autocarwash.auth.entity.User;
 import com.swp.autocarwash.auth.repository.UserRepository;
+import com.swp.autocarwash.booking.dto.response.CustomerBookingHistoryItemResponse;
+import com.swp.autocarwash.booking.dto.response.CustomerBookingHistoryPageResponse;
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
@@ -420,6 +423,53 @@ public class CustomerServiceImpl implements CustomerService {
         user.setIsDeleted(true);
         userRepository.save(user);
         return List.of();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerBookingHistoryPageResponse getCustomerBookingHistory(
+            Long customerId, String vehicleKeyword, Integer serviceCategoryId,
+            String status, Integer stationId, Integer year, Integer month, Pageable pageable) {
+        customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        // AC2: từ khóa phương tiện chỉ áp dụng khi >= 2 ký tự, ngắn hơn thì bỏ qua filter
+        String keyword = vehicleKeyword != null && vehicleKeyword.trim().length() >= 2
+                ? vehicleKeyword.trim()
+                : null;
+
+        // AC4: status phải là 1 giá trị hợp lệ của BookingStatus, tránh FE gửi sai mà không biết
+        if (status != null) {
+            try {
+                BookingStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            }
+        }
+
+        Page<Booking> page = bookingRepository.findCustomerBookingHistory(
+                customerId, keyword, serviceCategoryId, status, stationId, year, month, pageable);
+
+        List<CustomerBookingHistoryItemResponse> content = page.getContent().stream()
+                .map(b -> CustomerBookingHistoryItemResponse.builder()
+                        .bookingId(b.getId())
+                        .appointmentDate(b.getAppointmentDate())
+                        .serviceCategoryName(b.getServicePackage().getServiceCategory().getCategoryName())
+                        .licensePlate(b.getVehicle().getLicensePlate())
+                        .brandName(b.getVehicle().getBrandName())
+                        .status(b.getStatus())
+                        .totalAmount(b.getTotalAmount())
+                        .staffName(b.getCheckInEmployee() != null ? b.getCheckInEmployee().getFullName() : null)
+                        .build())
+                .toList();
+
+        return CustomerBookingHistoryPageResponse.builder()
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .build();
     }
 
     private String resolveActiveSubscriptionType(Long vehicleId) {

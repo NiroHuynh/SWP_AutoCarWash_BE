@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.service.customer;
 
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
+import com.swp.autocarwash.booking.dto.response.CustomerBookingHistoryPageResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerDetailResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerListPageResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerProfileResponse;
@@ -92,4 +93,12 @@ public interface CustomerService {
      * @return danh sách biển số xe đang chặn xóa; rỗng nghĩa là đã xóa thành công
      */
     List<String> deleteCustomer(Long customerId);
+
+    /**
+     * Chức năng: Lịch sử đặt lịch của khách hàng trên mọi chi nhánh cho Admin
+     * (FE-US-09-04), có filter theo phương tiện/loại dịch vụ/trạng thái/chi nhánh.
+     */
+    CustomerBookingHistoryPageResponse getCustomerBookingHistory(
+            Long customerId, String vehicleKeyword, Integer serviceCategoryId,
+            String status, Integer stationId, Integer year, Integer month, Pageable pageable);
 }

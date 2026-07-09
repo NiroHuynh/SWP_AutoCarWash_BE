@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.controller;
 
 import com.swp.autocarwash.auth.dto.request.UpdateProfileRequest;
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
+import com.swp.autocarwash.booking.dto.response.CustomerBookingHistoryPageResponse;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.dto.response.CustomerDetailResponse;
@@ -82,6 +83,36 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerDetailResponse>> getCustomerDetail(@PathVariable Long customerId) {
         CustomerDetailResponse data = customerService.getCustomerDetail(customerId);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết khách hàng", data));
+    }
+
+    /**
+     * Chức năng: Admin xem toàn bộ lịch sử đặt lịch của khách hàng trên mọi
+     * chi nhánh, lọc theo phương tiện/loại dịch vụ/trạng thái/chi nhánh (FE-US-09-04).
+     *
+     * @param vehicleKeyword    từ khóa tìm theo biển số/hãng xe (>=2 ký tự mới áp dụng lọc, AC2)
+     * @param serviceCategoryId lọc theo loại dịch vụ, bỏ trống = không lọc (AC3)
+     * @param status            giá trị thô của BookingStatus (PENDING/CONFIRMED/CANCELED/CHECK_IN/
+     *                          NO_SHOW/WASHING/COMPLETED/CHECK_OUT), bỏ trống = không lọc (AC4)
+     * @param stationId         lọc theo chi nhánh, bỏ trống = tất cả chi nhánh (AC5/AC6)
+     * @param year              lọc theo năm đặt lịch (appointmentDate), bỏ trống = không lọc
+     * @param month             lọc theo tháng đặt lịch (1-12), bỏ trống = không lọc
+     */
+    @GetMapping("/{customerId}/bookings")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<CustomerBookingHistoryPageResponse>> getCustomerBookingHistory(
+            @PathVariable Long customerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String vehicleKeyword,
+            @RequestParam(required = false) Integer serviceCategoryId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer stationId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        Pageable pageable = PageRequest.of(page, size);
+        CustomerBookingHistoryPageResponse data = customerService.getCustomerBookingHistory(
+                customerId, vehicleKeyword, serviceCategoryId, status, stationId, year, month, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Lịch sử đặt lịch", data));
     }
 
     /**
