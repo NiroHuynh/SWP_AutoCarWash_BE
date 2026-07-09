@@ -587,7 +587,53 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_022",
             "You can only change your vehicle once every 30 days."
-    ),;
+    ),
+    RENEWAL_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_023",
+            "Subscription can only be renewed within 3 days before expiration."
+    ),
+
+    SUBSCRIPTION_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_024",
+            "Subscription has expired and cannot be renewed."
+    ),
+
+    RENEWAL_ALREADY_PENDING(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_025",
+            "A renewal request is already pending payment."
+    ),
+    SUBSCRIPTION_INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUBSCRIPTION_026",
+            "Subscription invoice not found."
+    ),
+
+    INVALID_RENEWAL_INVOICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_027",
+            "Invalid renewal invoice."
+    ),
+
+    INVOICE_ALREADY_PROCESSED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_028",
+            "Invoice has already been processed."
+    ),
+
+    PAYMENT_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_029",
+            "Payment status is required."
+    ),
+
+    INVALID_PAYMENT_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_030",
+            "Invalid payment status."
+    );;
 
 
 
