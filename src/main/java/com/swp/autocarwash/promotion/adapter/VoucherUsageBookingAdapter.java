@@ -50,4 +50,12 @@ public class VoucherUsageBookingAdapter implements VoucherUsagePort {
 
         voucherUsageRepository.save(voucherUsage);
     }
+
+    @Override
+    public void releaseVoucher(Long bookingId) {
+        voucherUsageRepository.findByBooking_Id(bookingId).ifPresent(usage -> {
+            voucherRepository.decreaseUsedCount(usage.getVoucher().getId());
+            voucherUsageRepository.delete(usage);
+        });
+    }
 }
