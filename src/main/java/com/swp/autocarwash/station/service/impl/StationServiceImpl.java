@@ -48,4 +48,11 @@ public class StationServiceImpl implements StationService {
         return stationRepository.findById(stationId)
                 .orElseThrow(()-> new BusinessException(ErrorCode.STATION_NOT_FOUND));
     }
+
+    @Override
+    public List<StationResponse> getAllStations() {
+        return stationRepository.findByIsDeletedFalse().stream()
+                .map(station -> modelMapper.map(station, StationResponse.class))
+                .toList();
+    }
 }
