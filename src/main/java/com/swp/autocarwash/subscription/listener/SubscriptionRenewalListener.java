@@ -4,9 +4,12 @@ import com.swp.autocarwash.payment.event.SubscriptionInvoicePaidEvent;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
+import com.swp.autocarwash.subscription.util.SubscriptionRenewalCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -37,6 +40,7 @@ public class SubscriptionRenewalListener {
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onSubscriptionInvoicePaid(SubscriptionInvoicePaidEvent event) {
         // Gói FAMILY xử lý riêng, ngoài phạm vi US này
         if (event.getUnlimitSubscriptionId() == null) {
@@ -52,19 +56,12 @@ public class SubscriptionRenewalListener {
             return;
         }
 
-        int durationDays = sub.getSubscriptionPlan().getDurationDays();
         LocalDate today = LocalDate.now();
+        boolean cumulative = SubscriptionRenewalCalculator.isCumulative(sub, today);
 
-        boolean cumulative = sub.getStatus() == SubscriptionStatus.ACTIVE
-                && !sub.getEndDate().isBefore(today);
-
-        if (cumulative) {
-            // Gia hạn khi còn hạn: nối tiếp thời hạn hiện có
-            sub.setEndDate(sub.getEndDate().plusDays(durationDays));
-        } else {
-            // Đăng ký mới (PENDING) hoặc gia hạn khi đã hết hạn (EXPIRED): tính từ ngày thanh toán
-            sub.setStartDate(today);
-            sub.setEndDate(today.plusDays(durationDays));
+        sub.setStartDate(SubscriptionRenewalCalculator.calculateEntityStartDate(sub, today));
+        sub.setEndDate(SubscriptionRenewalCalculator.calculateEndDate(sub, today));
+        if (!cumulative) {
             sub.setStatus(SubscriptionStatus.ACTIVE);
         }
 
