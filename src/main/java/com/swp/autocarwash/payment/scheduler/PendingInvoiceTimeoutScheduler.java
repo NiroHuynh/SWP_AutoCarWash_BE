@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class PendingInvoiceTimeoutScheduler {
     public void cancelExpiredPendingInvoices() {
         try {
             int timeoutMinutes = systemSettingService.getPendingPaymentTimeoutMinutes();
-            Instant cutoff = Instant.now().minus(timeoutMinutes, ChronoUnit.MINUTES);
+            LocalDateTime cutoff = LocalDateTime.now().minus(timeoutMinutes, ChronoUnit.MINUTES);
 
             List<SubscriptionInvoice> expiredInvoices = subscriptionInvoiceRepository
                     .findByStatusAndCreatedAtBefore(SubscriptionPaymentServiceImpl.INVOICE_PENDING, cutoff);

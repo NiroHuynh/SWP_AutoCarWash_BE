@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Chức năng: Thông tin thanh toán trả lại cho module subscription/FE sau khi
@@ -39,7 +39,7 @@ public class SubscriptionPaymentInitResponse {
     private String invoiceStatus;
 
     /** Thời điểm QR hết hạn = createdAt + PENDING_PAYMENT_TIMEOUT_MINUTES (AC01/AC03). */
-    private Instant expiresAt;
+    private LocalDateTime expiresAt;
 
     /** URL ảnh QR VietQR đã điền sẵn số tài khoản/số tiền/nội dung, FE chỉ cần {@code <img src>}. */
     private String qrImageUrl;
