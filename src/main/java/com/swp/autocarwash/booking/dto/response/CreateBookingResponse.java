@@ -27,4 +27,13 @@ public class CreateBookingResponse {
     private String status;
     private BigDecimal totalAmount;
     private List<Long> slotIds;
+
+    /** Số tiền cọc khách cần chuyển khoản để xác nhận booking. */
+    private BigDecimal depositAmount;
+
+    /** Nội dung chuyển khoản để webhook SePay map booking, dạng "BK{bookingId}". */
+    private String transferContent;
+
+    /** URL ảnh QR VietQR đã điền sẵn số tài khoản/số tiền/nội dung, FE chỉ cần {@code <img src>}. */
+    private String qrImageUrl;
 }
