@@ -3,6 +3,8 @@ package com.swp.autocarwash.payment.scheduler;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.payment.service.impl.SubscriptionPaymentServiceImpl;
+import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +17,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Chức năng: Job tự động hủy hóa đơn mua gói (SubscriptionInvoice) đang PENDING
- * quá hạn chuyển khoản (dùng chung setting PENDING_PAYMENT_TIMEOUT_MINUTES với
- * booking). Không có slot/voucher phải trả — chỉ set status CANCEL; khách chuyển
- * khoản trễ sẽ được webhook log INVALID_INVOICE_STATE cho admin đối soát.
+ * Chức năng: Job tự động cho hóa đơn mua gói (SubscriptionInvoice) đang PENDING
+ * quá hạn chuyển khoản chuyển sang FAILED (AC03), đồng thời hủy gói đăng ký lần
+ * đầu còn đang PENDING gắn với hóa đơn đó (gói chưa thanh toán -> CANCELED).
+ * Dùng chung setting PENDING_PAYMENT_TIMEOUT_MINUTES với booking.
  *
  * @author Ngân
  * @version 1.0
@@ -42,9 +44,17 @@ public class PendingInvoiceTimeoutScheduler {
                     .findByStatusAndCreatedAtBefore(SubscriptionPaymentServiceImpl.INVOICE_PENDING, cutoff);
 
             for (SubscriptionInvoice invoice : expiredInvoices) {
-                invoice.setStatus(SubscriptionPaymentServiceImpl.INVOICE_CANCEL);
+                invoice.setStatus(SubscriptionPaymentServiceImpl.INVOICE_FAILED);
                 subscriptionInvoiceRepository.save(invoice);
-                log.info("Hủy hóa đơn mua gói {} vì quá {} phút chưa chuyển khoản",
+
+                // Gói đăng ký lần đầu còn PENDING (chưa kích hoạt) -> hủy theo hóa đơn quá hạn.
+                // Gói gia hạn (ACTIVE) không bị đụng vì chỉ nhắm status PENDING.
+                UnlimitSubscription sub = invoice.getUnlimitSubscription();
+                if (sub != null && sub.getStatus() == SubscriptionStatus.PENDING) {
+                    sub.setStatus(SubscriptionStatus.CANCELED);
+                }
+
+                log.info("Hóa đơn mua gói {} quá {} phút chưa chuyển khoản -> FAILED",
                         invoice.getId(), timeoutMinutes);
             }
         } catch (Exception e) {
