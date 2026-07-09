@@ -298,6 +298,8 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
                                         .vehicleName(subscription.getVehicle().getBrandName())
                                         .build()
                         )
+                        .planType(PlanType.valueOf(subscription.getSubscriptionPlan().getPlanType()))
+                        .maxVehicleCount(subscription.getSubscriptionPlan().getMaxVehicleCount())
                         .build())
                 .toList();
     }
