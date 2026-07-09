@@ -36,10 +36,14 @@ public class CustomerTierHistory {
     @JoinColumn(name = "new_tier_id", nullable = false)
     private CustomerTier newTier;
 
-    /** Diem tich luy (accumulatedPoints) tai thoi diem chuyen hang - snapshot. */
+    /**
+     * Snapshot tai thoi diem chuyen hang - y nghia tuy nguon ghi: diem tich luy
+     * (accumulatedPoints) neu tu flow checkout, hoac tong tien chi tieu (VND) neu
+     * tu annual tier evaluation job (BR-FE-44).
+     */
     @NotNull
-    @Column(name = "points_at_transition", nullable = false)
-    private Integer pointsAtTransition;
+    @Column(name = "value_at_transition", nullable = false)
+    private Integer valueAtTransition;
 
     @NotNull
     @Enumerated(EnumType.STRING)
