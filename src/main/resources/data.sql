@@ -367,6 +367,28 @@ VALUES
     (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false);
 
 -- =====================================================================
+-- SUBSCRIPTION PLAN ADDON MAPPING — add-on rieng di kem tung goi (khac
+-- service_package_id o tren, chi la marketing/quyen loi hien thi). Seed mac
+-- dinh theo dung bo addon cua service_package tuong ung de nhat quan (Basic
+-- goi id 1 -> addon 1,2,3; Premium goi id 3 -> addon 1-7).
+-- =====================================================================
+INSERT IGNORE INTO subscription_plan_addon_mapping
+(subscription_plan_id, addon_service_id)
+VALUES
+    (1, 1), (1, 2), (1, 3),
+    (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7),
+    (3, 1), (3, 2), (3, 3),
+    (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7),
+    (5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7),
+    (6, 1), (6, 2), (6, 3),
+    (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), (7, 7),
+    (8, 1), (8, 2), (8, 3),
+    (9, 1), (9, 2), (9, 3), (9, 4), (9, 5), (9, 6), (9, 7),
+    (10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6), (10, 7),
+    (11, 1), (11, 2), (11, 3),
+    (12, 1), (12, 2), (12, 3);
+
+-- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
 -- =====================================================================
 INSERT IGNORE INTO unlimit_subscription

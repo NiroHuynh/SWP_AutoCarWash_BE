@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
@@ -28,6 +29,9 @@ public class SubscriptionPlanResponse {
     private Integer maxVehicleCount;
 
     private String servicePackageName;
+
+    // Tên các add-on đi kèm gói (marketing/quyền lợi) - riêng biệt với servicePackageName ở trên.
+    private List<String> addonNames;
 
     private String status;
 }
