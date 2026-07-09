@@ -73,4 +73,11 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             @Param("today") LocalDate today
     );
 
+    /** Gói family đang ACTIVE của khách hàng, không giới hạn theo xe cụ thể — dùng cho màn "gói đang hoạt động". */
+    @Query("SELECT fs FROM FamilySubscription fs JOIN FETCH fs.subscriptionPlan " +
+            "WHERE fs.familyGroup IN (" +
+            "  SELECT fm.familyGroup FROM FamilyMember fm WHERE fm.customer.id = :customerId" +
+            ") AND fs.status = 'ACTIVE' " +
+            "AND CURRENT_DATE BETWEEN fs.startDate AND fs.endDate")
+    Optional<FamilySubscription> findActiveByCustomerId(@Param("customerId") Long customerId);
 }
