@@ -18,11 +18,11 @@ public class PromotionStationMapping {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("promotionId") //Khớp chính xác với tên thuộc tính "promotionId" trong class PromotionStationMappingId
-    @JoinColumn(name = "promotion_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "promotion_id", referencedColumnName = "id")
     private Promotion promotion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("stationId") //Khớp chính xác với tên thuộc tính "stationId" trong class PromotionStationMappingId
-    @JoinColumn(name = "station_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "station_id", referencedColumnName = "id")
     private Station station;
 }
