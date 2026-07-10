@@ -76,4 +76,15 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     List<Voucher> findByPromotionIdAndIsDeletedFalse(Integer promotionId);
 
     Optional<Voucher> findByIdAndIsDeletedFalse(Long voucherId);
+
+    // Lấy danh sách Voucher hợp lệ hiển thị lên màn hình Context (Chế độ 2 đúng Station + Chế độ 3 Public toàn sàn)
+    @Query(value = "SELECT v.* FROM voucher v " +
+            "LEFT JOIN promotion_station_mapping psm ON v.promotion_id = psm.promotion_id " +
+            "WHERE v.is_deleted = false " +
+            "AND v.status = 'ACTIVE' " +
+            "AND :appDate BETWEEN v.start_date AND v.expiry_date " +
+            "AND (psm.station_id = :stationId OR v.promotion_id IS NULL)", nativeQuery = true)
+    List<Voucher> findAvailableVouchersForBooking(@Param("stationId") Integer stationId, @Param("appDate") LocalDateTime appDate);
+
+    Optional<Voucher> findByVoucherCodeAndIsDeletedFalse(String voucherCode);
 }

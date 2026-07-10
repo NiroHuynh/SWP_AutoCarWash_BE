@@ -12,12 +12,26 @@ import com.swp.autocarwash.common.contract.loyalty.CustomerTierContract;
 import com.swp.autocarwash.common.contract.station.StationContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.entity.Vehicle;
+import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.customer.repository.VehicleRepository;
+import com.swp.autocarwash.promotion.entity.Promotion;
+import com.swp.autocarwash.promotion.entity.Voucher;
+import com.swp.autocarwash.promotion.repository.PromotionRepository;
+import com.swp.autocarwash.promotion.repository.VoucherRepository;
+import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
+import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
+import com.swp.autocarwash.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -45,6 +59,28 @@ public class BookingContextServiceImpl implements BookingContextService {
     private final BookingRepository bookingRepository;
 
     private final SecurityUtils securityUtils;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
+    @Autowired
+    private StationRepository stationRepository;
+
+    @Autowired
+    private ServicePackageRepository servicePackageRepository;
+
+    @Autowired
+    private AddonServiceRepository addonServiceRepository;
+
+    @Autowired
+    private VoucherRepository voucherRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
+
 
     /**
      *
@@ -85,11 +121,59 @@ public class BookingContextServiceImpl implements BookingContextService {
      * @author Phong
      * @version 1.0
      */
+//    @Override
+//    public BookingContextResponse getBookingContext(Integer stationId) {
+//
+//        Long userId = getCurrentUserId();
+//        CustomerContract customer = customerPort.getCustomerByUserId(userId);
+//
+//        List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customer.getId());
+//
+//        if (vehicles == null || vehicles.isEmpty()) {
+//            throw new BusinessException(ErrorCode.NO_VEHICLE_REGISTERED);
+//        }
+//
+//        // AC: compute booking window theo tier
+//        LocalDate now = LocalDate.now();
+//        int limitDays = resolveTierLimitDays(customer.getId());
+//
+//        BookingContextResponse.BookingWindowDTO window =
+//                BookingContextResponse.BookingWindowDTO.builder()
+//                        .minDate(now)
+//                        .maxDate(now.plusDays(limitDays))
+//                        .build();
+//
+//        List<BookingContextResponse.VehicleDTO> vehicleDTOS = getSubscriptionOfVehicles(vehicles,window);
+//
+//        StationContract station = stationPort.getStationById(stationId);
+//
+//        return BookingContextResponse.builder()
+//                .station(bookingMapper.toStationDTO(station))
+//                .bookingWindow(window)
+//                .vehicles(vehicleDTOS)
+//                .servicePackages(servicePackagePort.getAllPackages())
+//                .addonServices(addonServicePort.getAllAddons()
+//                        .stream().map(bookingMapper::toAddon).toList())
+//                .vouchers(voucherPort.getValidVouchers(customer.getId())
+//                        .stream().map(bookingMapper::toVoucher).toList())
+//                .build();
+//    }
+
+
+    //Hàm này sẽ tự động check xem Chi nhánh có đang chạy giảm giá sàn (Chế độ 1) không. Nếu có -> Ẩn danh sách Voucher khác để tránh giảm giá chồng. Nếu không -> Trả về danh sách Voucher hợp lệ (Chế độ 2 và Chế độ 3 Public).
+
     @Override
     public BookingContextResponse getBookingContext(Integer stationId) {
 
         Long userId = getCurrentUserId();
-        CustomerContract customer = customerPort.getCustomerByUserId(userId);
+
+        Customer customer = customerRepository.findByUserId(userId);
+        if(customer == null){
+            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+
+        //Customer có chứa thông tin hạng thành viên (ví dụ: customer.getTierId() hoặc customer.getPromotionTarget().getId())
+        Integer customerTierId = customer.getCustomerTier().getId();
 
         List<VehicleContract> vehicles = vehiclePort.getVehiclesByCustomer(customer.getId());
 
@@ -111,15 +195,42 @@ public class BookingContextServiceImpl implements BookingContextService {
 
         StationContract station = stationPort.getStationById(stationId);
 
+
+        //XỬ LÝ VOUCHER
+
+        LocalDateTime currentDateTime = now.atStartOfDay();
+        // Quét danh sách mã có thể dùng (Chế độ 2 đúng Station + Chế độ 3 Public toàn sàn)
+        List<Voucher> availableVouchers = voucherRepository.findAvailableVouchersForBooking(stationId, currentDateTime);
+
+
+        // Kiểm tra chốt chặn Chế độ 1: Nếu chi nhánh này đang chạy chiến dịch giảm giá sàn trực tiếp, hiển thị theo chi nhánh, theo rank của customer
+        List<Promotion> directPromos = promotionRepository.findActiveDirectPromotionsForUser(stationId, now, customerTierId);
+
+        if (directPromos != null && !directPromos.isEmpty()) {
+            // Chỉ cần tồn tại ít nhất 1 chiến dịch giảm giá sàn (Chế độ 1) thực sự áp dụng cho hạng của khách,
+            // hệ thống sẽ lập tức khóa luồng chọn mã lẻ bằng cách trả về mảng rỗng để chặn "giảm giá chồng giảm giá".
+            availableVouchers = new ArrayList<>();
+        }
+
+        List<BookingContextResponse.VoucherDTO> voucherDTOs = availableVouchers.stream()
+                .map(v -> BookingContextResponse.VoucherDTO.builder()
+                        .id(v.getId() != null ? v.getId().intValue() : null) // Ép kiểu Long từ DB sang Integer của DTO
+                        .voucherCode(v.getVoucherCode())
+                        .discountPercentage(v.getDiscountPercentage())
+                        .minOrderValue(v.getMinOrderValue())
+                        .build()
+                ).toList();
+
+        // ĐÓNG GÓI DỮ LIỆU ĐỒNG BỘ TRẢ VỀ CHO FRONTEND
+
         return BookingContextResponse.builder()
-                .station(bookingMapper.toStationDTO(station))
+                .station(bookingMapper.toStationDTO(station)) // Map thẳng từ Entity Station gốc
                 .bookingWindow(window)
                 .vehicles(vehicleDTOS)
                 .servicePackages(servicePackagePort.getAllPackages())
                 .addonServices(addonServicePort.getAllAddons()
                         .stream().map(bookingMapper::toAddon).toList())
-                .vouchers(voucherPort.getValidVouchers(customer.getId())
-                        .stream().map(bookingMapper::toVoucher).toList())
+                .vouchers(voucherDTOs) // Trả ra mảng Voucher đã được gác cổng bảo mật
                 .build();
     }
 

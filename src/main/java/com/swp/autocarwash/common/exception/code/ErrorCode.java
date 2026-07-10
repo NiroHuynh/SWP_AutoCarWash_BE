@@ -132,14 +132,14 @@ public enum ErrorCode {
     ),
     CUSTOMER_NOT_ELIGIBLE_FOR_BOOKING(
             HttpStatus.BAD_REQUEST,
-        "CUSTOMER_004",
-                "Customer is not eligible for booking"
+            "CUSTOMER_004",
+            "Customer is not eligible for booking"
     ),
     CUSTOMER_RESTRICTED(
             HttpStatus.BAD_REQUEST,
-        "CUSTOMER_005",
-                "Customer account is restricted because violation exceeded the limit. " +
-                        "Please come back to book after 14 days or check in at the store"
+            "CUSTOMER_005",
+            "Customer account is restricted because violation exceeded the limit. " +
+                    "Please come back to book after 14 days or check in at the store"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -164,22 +164,22 @@ public enum ErrorCode {
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "COMMON_003",
-                    "Validation failed"
+            "Validation failed"
     ),
     EMAIL_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_001",
-                    "Email already exists"
+            "Email already exists"
     ),
     PHONE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_002",
-                    "Phone already exists"
+            "Phone already exists"
     ),
     INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
-                    "Password is invalid"
+            "Password is invalid"
     ),
     ROLE_NOT_FOUND(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -193,8 +193,8 @@ public enum ErrorCode {
     ),
     VEHICLE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "VEHICLE_002",
-                "Vehicle not found"
+            "VEHICLE_002",
+            "Vehicle not found"
     ),
     TIER_NOT_FOUND(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -213,44 +213,44 @@ public enum ErrorCode {
     ),
     VEHICLE_NOT_OWNED(
             HttpStatus.FORBIDDEN,
-        "VEHICLE_002",
-                "Vehicle does not belong to customer"
+            "VEHICLE_002",
+            "Vehicle does not belong to customer"
     ),
 
     VEHICLE_INACTIVE(
             HttpStatus.BAD_REQUEST,
-        "VEHICLE_003",
-                "Vehicle is inactive or deleted"
+            "VEHICLE_003",
+            "Vehicle is inactive or deleted"
     ),
     VOUCHER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "VOUCHER_002",
-                "Voucher not found"
+            "VOUCHER_002",
+            "Voucher not found"
     ),
     VOUCHER_EXPIRED(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_003",
-                "Voucher has expired"
+            "VOUCHER_003",
+            "Voucher has expired"
     ),
     VOUCHER_USAGE_LIMIT_REACHED(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_004",
-                "Voucher usage limit reached"
+            "VOUCHER_004",
+            "Voucher usage limit reached"
     ),
     VOUCHER_NOT_APPLICABLE(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_005",
-                "Voucher not applicable for this order"
+            "VOUCHER_005",
+            "Voucher not applicable for this order"
     ),
     ADDON_SERVICE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "SERVICE_001",
-                "Addon service not found"
+            "SERVICE_001",
+            "Addon service not found"
     ),
     ADDON_SERVICE_INVALID(
             HttpStatus.BAD_REQUEST,
-        "SERVICE_002",
-                "Invalid addon service request"
+            "SERVICE_002",
+            "Invalid addon service request"
     ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
@@ -489,9 +489,22 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_002",
             "The limit for new uses must be greater than the actual number of uses already made."
+    ),
+    VOUCHER_USED_UP(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "Voucher has been fully redeemed and is no longer available."
+    ),
+    ORDER_VALUE_TOO_LOW(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "The order value does not meet the minimum requirement for this voucher."
+    ),
+    VOUCHER_NOT_APPLICABLE_AT_STATION(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_004",
+            "This voucher is not applicable at the selected station."
     );
-
-
 
 
     private final HttpStatus status;
