@@ -40,4 +40,6 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
     List<Station> findByCommuneId(Integer communeId);
 
     Optional<Station> findByIdAndIsDeletedFalse(@NotNull(message = "Station Id can not be null") Integer stationId);
+
+    List<Station> findByIsDeletedFalse();
 }
