@@ -1,5 +1,6 @@
 package com.swp.autocarwash.payment.dto.request;
 
+import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,4 +37,12 @@ public class SubscriptionPaymentInitRequest {
 
     /** Id bản ghi FamilySubscription đang chờ thanh toán (nullable nếu gói UNLIMITED). */
     private Long familySubscriptionId;
+
+    /**
+     * REGISTER (đăng ký mới) hoặc RENEW (gia hạn) — set bởi caller
+     * (SubscriptionPurchaseServiceImpl) để invoice tạo ra khớp với type check
+     * của endpoint xác nhận gia hạn thủ công đã có sẵn trên nhánh này.
+     */
+    @NotNull
+    private SubscriptionInvoiceType type;
 }

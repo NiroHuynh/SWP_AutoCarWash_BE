@@ -90,6 +90,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking already has an invoice"
     ),
+    INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "INVOICE_001",
+            "Invoice not found"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",
@@ -140,6 +145,11 @@ public enum ErrorCode {
         "CUSTOMER_005",
                 "Customer account is restricted because violation exceeded the limit. " +
                         "Please come back to book after 14 days or check in at the store"
+    ),
+    CUSTOMER_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "CUSTOMER_006",
+            "Không thể xóa: khách hàng đang có đặt lịch hoạt động"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -506,6 +516,42 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_011",
             "Selected service package is inactive or does not exist."
+    ),
+
+    INVALID_ADDON_SERVICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_031",
+            "One or more selected add-on services are invalid or do not exist."
+    ),
+
+    ADDON_SERVICES_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_032",
+            "Select at least one add-on service."
+    ),
+
+    ADDON_SERVICE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_033",
+            "Add-on name is required."
+    ),
+
+    INVALID_ADDON_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_034",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_ADDON_DURATION(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_035",
+            "Duration must be greater than 0."
+    ),
+
+    INVALID_SERVICE_CATEGORY(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_036",
+            "Selected service category does not exist."
     ),
 
     FAILED_TO_CREATE_SUBSCRIPTION_PLAN(

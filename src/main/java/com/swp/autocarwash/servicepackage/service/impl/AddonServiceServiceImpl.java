@@ -1,8 +1,14 @@
 package com.swp.autocarwash.servicepackage.service.impl;
 
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
+import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.dto.request.CreateAddonServiceRequest;
+import com.swp.autocarwash.servicepackage.entity.AddonService;
+import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.mapper.AddonServiceMapper;
 import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
+import com.swp.autocarwash.servicepackage.repository.ServiceCategoryRepository;
 import com.swp.autocarwash.servicepackage.service.AddonServiceService;
 import com.swp.autocarwash.servicepackage.validator.AddonServiceValidator;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +36,8 @@ public class AddonServiceServiceImpl implements AddonServiceService {
 
 
     private final AddonServiceRepository repository;
+
+    private final ServiceCategoryRepository serviceCategoryRepository;
 
     private final AddonServiceMapper mapper;
 
@@ -186,6 +194,25 @@ public class AddonServiceServiceImpl implements AddonServiceService {
                         BigDecimal::add
                 );
 
+    }
+
+    @Override
+    @Transactional
+    public AddonServiceContract create(CreateAddonServiceRequest request) {
+
+        ServiceCategory serviceCategory = serviceCategoryRepository
+                .findById(request.getServiceCategoryId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_SERVICE_CATEGORY));
+
+        AddonService addonService = new AddonService();
+        addonService.setId(repository.findMaxId() + 1);
+        addonService.setName(request.getName());
+        addonService.setPrice(request.getPrice());
+        addonService.setDurationMinutes(request.getDurationMinutes());
+        addonService.setServiceCategory(serviceCategory);
+        addonService.setIsDeleted(false);
+
+        return mapper.toContract(repository.save(addonService));
     }
 
 }

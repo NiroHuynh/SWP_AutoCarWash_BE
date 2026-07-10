@@ -9,6 +9,7 @@ import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.payment.dto.request.SubscriptionPaymentInitRequest;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
+import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.payment.service.impl.SubscriptionPaymentServiceImpl;
@@ -148,6 +149,7 @@ public class SubscriptionPurchaseServiceImpl implements SubscriptionPurchaseServ
                         .planPrice(plan.getPrice())
                         .planName(plan.getPlanName())
                         .unlimitSubscriptionId(subscription.getId())
+                        .type(SubscriptionInvoiceType.RENEW)
                         .build());
     }
 }

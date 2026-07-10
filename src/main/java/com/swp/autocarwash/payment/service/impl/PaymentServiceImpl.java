@@ -17,6 +17,7 @@ import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
+import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentTransactionHistoryResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentTransactionResponse;
@@ -42,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.min;
@@ -365,6 +367,57 @@ public class PaymentServiceImpl implements PaymentService {
                 .paidAt(payment.getPaidAt())
                 .bookingId(bookingId)
                 .subscriptionInvoiceId(subscriptionInvoiceId)
+                .build();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId) {
+        BookingInvoice invoice = bookingInvoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.INVOICE_NOT_FOUND));
+
+        Booking booking = invoice.getBooking();
+
+        List<InvoiceDetailResponse.ServiceLine> services = new ArrayList<>();
+        if (booking != null && booking.getServicePackage() != null) {
+            services.add(InvoiceDetailResponse.ServiceLine.builder()
+                    .name(booking.getServicePackage().getName())
+                    .price(booking.getServicePackage().getBasePrice())
+                    .build());
+        }
+        if (booking != null) {
+            booking.getAddons().forEach(addon -> services.add(InvoiceDetailResponse.ServiceLine.builder()
+                    .name(addon.getAddonService().getName())
+                    .price(addon.getPrice())
+                    .build()));
+        }
+
+        List<Payment> payments = paymentRepository.findByBookingInvoiceIdOrderByPaidAtDesc(invoiceId);
+        String paymentMethod = payments.isEmpty() ? null : payments.get(0).getPaymentMethod();
+
+        return InvoiceDetailResponse.builder()
+                .invoiceId(invoice.getId())
+                .invoiceStatus(invoice.getStatus())
+                .paidAt(invoice.getPaidAt())
+                .bookingId(booking != null ? booking.getId() : null)
+                .vehicleBrand(booking != null ? booking.getVehicle().getBrandName() : null)
+                .vehicleLicensePlate(booking != null ? booking.getVehicle().getLicensePlate() : null)
+                .servicePackageName(booking != null ? booking.getServicePackage().getName() : null)
+                .appointmentDate(booking != null ? booking.getAppointmentDate() : null)
+                .checkInAt(booking != null ? booking.getCheckInAt() : null)
+                .checkOutAt(booking != null ? booking.getCheckOutAt() : null)
+                .services(services)
+                .rawAmount(invoice.getRawAmount())
+                .serviceAmount(invoice.getServiceAmount())
+                .addonAmount(invoice.getAddonAmount())
+                .voucherDiscount(invoice.getVoucherDiscount())
+                .pointDiscount(invoice.getPointDiscount())
+                .discountAmount(invoice.getDiscountAmount())
+                .finalAmount(invoice.getFinalAmount())
+                .paymentMethod(paymentMethod)
                 .build();
     }
 }

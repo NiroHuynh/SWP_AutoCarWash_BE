@@ -66,6 +66,10 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
         }
         invoice.setPlanPrice(request.getPlanPrice());
         invoice.setStatus(INVOICE_PENDING);
+        // Gap-fix vs source: source không set type, khiến invoice tạo ra không khớp
+        // check "invoice.getType() != RENEW" của endpoint xác nhận gia hạn thủ công
+        // đã có sẵn trên nhánh này (PATCH .../subscription-invoices/{id}/renewal/payment).
+        invoice.setType(request.getType());
 
         invoice = subscriptionInvoiceRepository.save(invoice);
 
