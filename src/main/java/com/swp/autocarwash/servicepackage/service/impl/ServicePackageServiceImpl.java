@@ -53,7 +53,6 @@ public class ServicePackageServiceImpl
 
     private final ServicePackageValidator validator;
 
-    private final ServicePackageRepository servicePackageRepository;
 
     private final AddonServiceRepository addonServiceRepository;
 
@@ -213,11 +212,17 @@ public class ServicePackageServiceImpl
     @Transactional
     public ServicePackageResponse createServicePackage(CreateServicePackageRequest request) {
 
+        validator.validateCreate(
+                request.getName(),
+                request.getBasePrice(),
+                request.getAddonIds()
+        );
+
         List<Integer> addonIds = request.getAddonIds();
 
         // 1. Validate addon tồn tại và chưa xóa
         List<AddonService> addons =
-                addonServiceRepository.findAllByIdInAndIsDeletedFalse(addonIds);
+                addonServiceRepository.findByIdInAndIsDeletedFalse(addonIds);
 
         if (addons.size() != addonIds.size()) {
             throw new BusinessException(ErrorCode.ADDON_SERVICE_NOT_FOUND);
@@ -245,7 +250,7 @@ public class ServicePackageServiceImpl
                 .isDeleted(false)
                 .build();
 
-        ServicePackage saved = servicePackageRepository.save(servicePackage);
+        ServicePackage saved = repository.save(servicePackage);
 
         // 4. Tạo package_addon_mapping cho từng addon
         List<PackageAddonMapping> mappings = addonIds.stream()
@@ -290,6 +295,12 @@ public class ServicePackageServiceImpl
             Integer servicePackageId,
             UpdateServicePackageRequest request) {
 
+        validator.validateUpdate(
+                servicePackageId,
+                request.getName(),
+                request.getBasePrice(),
+                request.getAddonIds()
+        );
         // 1. Kiểm tra package tồn tại
         ServicePackage servicePackage = repository
                 .findByIdAndIsDeletedFalse(servicePackageId)

@@ -63,8 +63,6 @@ public interface AddonServiceRepository
             List<Integer> ids
     );
 
-    List<AddonService> findAllByIsDeletedFalse();
-
     /**
      * Kiểm tra addon có đang được service_package (chưa xóa) nào sử dụng không
      * Qua bảng package_addon_mapping JOIN service_package (is_deleted = false)
@@ -76,11 +74,6 @@ public interface AddonServiceRepository
       AND m.servicePackage.isDeleted = false
 """)
     boolean isUsedByActiveServicePackage(@Param("addonId") Integer addonId);
-
-    /**
-     * Tìm tất cả addon theo list id và chưa bị xóa
-     */
-    List<AddonService> findAllByIdInAndIsDeletedFalse(List<Integer> ids);
 
     /**
      * Kiểm tra addon name đã tồn tại (chưa xóa)

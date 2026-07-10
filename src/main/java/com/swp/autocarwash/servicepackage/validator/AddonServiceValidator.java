@@ -6,6 +6,7 @@ import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -149,6 +150,29 @@ public class AddonServiceValidator {
             throw new BusinessException(
                     ErrorCode.ADDON_NAME_ALREADY_EXISTS
             );
+        }
+    }
+
+    /**
+     * Validate các field input khi create / update addon
+     * Khớp AC-15.1.2/3/4 và AC-15.2.2
+     */
+    public void validateFields(String name, BigDecimal price, Integer durationMinutes) {
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_REQUIRED);
+        }
+
+        if (Character.isDigit(name.trim().charAt(0))) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_INVALID);
+        }
+
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(ErrorCode.ADDON_PRICE_INVALID);
+        }
+
+        if (durationMinutes == null || durationMinutes < 0 || durationMinutes % 15 != 0) {
+            throw new BusinessException(ErrorCode.ADDON_DURATION_INVALID);
         }
     }
 }

@@ -297,6 +297,31 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_003",
             "Cannot delete service package because it is being used by an active subscription plan"
     ),
+    SERVICE_PACKAGE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_004",
+            "Package name is required"
+    ),
+    SERVICE_PACKAGE_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_005",
+            "Package name cannot start with a number"
+    ),
+    SERVICE_PACKAGE_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_006",
+            "Package price must be greater than 0"
+    ),
+    SERVICE_PACKAGE_ADDON_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_007",
+            "Please select at least one included service"
+    ),
+    SERVICE_PACKAGE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_008",
+            "Service package name already exists"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
