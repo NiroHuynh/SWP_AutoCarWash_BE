@@ -257,6 +257,31 @@ public enum ErrorCode {
             "SERVICE_003",
             "Cannot delete addon service because it is being used by an active service package"
     ),
+    ADDON_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_004",
+            "Addon service name is required"
+    ),
+    ADDON_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_005",
+            "Service name cannot start with a number"
+    ),
+    ADDON_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_006",
+            "Addon service price must be greater than 0"
+    ),
+    ADDON_DURATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_007",
+            "Duration must be a multiple of 15 minutes"
+    ),
+    ADDON_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_008",
+            "Addon service name already exists"
+    ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
             "SERVICE_PACKAGE_001",

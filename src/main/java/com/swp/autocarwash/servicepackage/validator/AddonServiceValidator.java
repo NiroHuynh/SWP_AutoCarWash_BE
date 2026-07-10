@@ -2,6 +2,7 @@ package com.swp.autocarwash.servicepackage.validator;
 
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AddonServiceValidator {
 
+    private final AddonServiceRepository addonServiceRepository;
 
     /**
      *
@@ -121,5 +123,32 @@ public class AddonServiceValidator {
 
         }
 
+    }
+
+
+    /**
+     * Validate khi CREATE — check trùng name với tất cả addon active
+     */
+    public void validateNameDuplicateForCreate(String name) {
+
+        if (addonServiceRepository.existsByNameAndIsDeletedFalse(name.trim())) {
+            throw new BusinessException(
+                    ErrorCode.ADDON_NAME_ALREADY_EXISTS
+            );
+        }
+    }
+
+
+    /**
+     * Validate khi UPDATE — check trùng name nhưng loại trừ chính addon đang sửa
+     */
+    public void validateNameDuplicateForUpdate(String name, Integer addonServiceId) {
+
+        if (addonServiceRepository.existsByNameAndIsDeletedFalseAndIdNot(
+                name.trim(), addonServiceId)) {
+            throw new BusinessException(
+                    ErrorCode.ADDON_NAME_ALREADY_EXISTS
+            );
+        }
     }
 }
