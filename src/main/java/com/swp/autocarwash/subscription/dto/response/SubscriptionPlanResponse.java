@@ -16,6 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 public class SubscriptionPlanResponse {
 
+    private Integer id;
+
     private String planName;
 
     private BigDecimal price;

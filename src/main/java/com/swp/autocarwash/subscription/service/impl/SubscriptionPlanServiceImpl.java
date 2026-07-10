@@ -138,6 +138,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .servicePackageName(plan.getServicePackage().getName())
                 .addonNames(plan.getServicePackage().getAddonServices().stream().map(AddonService::getName).toList())
                 .status(plan.getStatus().name())
+                .id(plan.getId())
                 .build();
     }
 
@@ -266,7 +267,8 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         subscriptionPlan.setDurationDays(request.getDurationDays());
         subscriptionPlan.setDescription(request.getDescription());
         subscriptionPlan.setServicePackage(servicePackage);
-        subscriptionPlan.setPlanType(request.getPlanType());
+//        không thay đổi planType
+//        subscriptionPlan.setPlanType(request.getPlanType());
         subscriptionPlan.setMaxVehicleCount(request.getMaxVehicleCount());
         subscriptionPlan.setStatus(SubscriptionPlanStatus.valueOf(request.getStatus()));
 
