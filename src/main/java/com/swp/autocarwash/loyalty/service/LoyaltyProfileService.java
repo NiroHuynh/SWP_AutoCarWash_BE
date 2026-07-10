@@ -4,6 +4,7 @@ import com.swp.autocarwash.loyalty.dto.response.LoyaltyHistoryResponse;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyProfileResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierHistoryResponse;
 import com.swp.autocarwash.loyalty.dto.response.TierResponse;
+import com.swp.autocarwash.loyalty.entity.CustomerTier;
 
 import java.util.List;
 
@@ -48,4 +49,18 @@ public interface LoyaltyProfileService {
      */
     void recordTierTransitionIfChanged(Long customerId, int previousAccumulatedPoints,
                                         int newAccumulatedPoints, Long bookingId);
+
+    /**
+     * Ghi nhan 1 lan chuyen hang neu oldTier/newTier khac nhau, nhan thang 2 tier thay vi
+     * tu suy tu diem - dung khi hang cu can lay tu FK thuc te (vd danh gia thuong nien,
+     * noi accumulatedPoints co the da bi reset ve 0 va khong con phan anh dung hang truoc do).
+     *
+     * @param oldTier          hang truoc khi danh gia (null = khach chua tung co hang, khong ghi)
+     * @param newTier          hang sau khi danh gia (null = khong xac dinh duoc, khong ghi)
+     * @param valueAtTransition snapshot tai thoi diem chuyen hang, luu vao lich su de tham khao -
+     *                          diem tich luy (flow checkout) hoac tong tien chi tieu VND (annual job)
+     * @param bookingId        booking gay ra lan chuyen hang nay, null neu khong xac dinh duoc
+     */
+    void recordTierChangeIfDifferent(Long customerId, CustomerTier oldTier, CustomerTier newTier,
+                                      int valueAtTransition, Long bookingId);
 }
