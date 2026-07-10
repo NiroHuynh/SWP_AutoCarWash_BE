@@ -516,7 +516,12 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                     .promotionId(promotionId)
                     .stationId(stationId)
                     .build();
-            PromotionStationMapping mapping = PromotionStationMapping.builder().id(mappingId).build();
+            PromotionStationMapping mapping = PromotionStationMapping
+                    .builder()
+                    .id(mappingId)
+                    .promotion(promotion)
+                    .station(station)
+                    .build();
             promotionStationMappingRepository.save(mapping);
         }
 
@@ -525,11 +530,18 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         if (request.getTargetCustomerTierIds() != null) {
             for (Integer targetId : request.getTargetCustomerTierIds()) {
                 // Logic kiểm tra targetId hợp lệ dưới DB...
+                PromotionTarget promotionTarget = promotionTargetRepository.findById(targetId).orElse(null);
+
                 PromotionTargetMappingId targetMappingId = PromotionTargetMappingId.builder()
                         .promotionId(promotionId)
                         .promotionTargetId(targetId)
                         .build();
-                PromotionTargetMapping targetMapping = PromotionTargetMapping.builder().id(targetMappingId).build();
+                PromotionTargetMapping targetMapping = PromotionTargetMapping
+                        .builder()
+                        .id(targetMappingId)
+                        .promotion(promotion)
+                        .promotionTarget(promotionTarget)
+                        .build();
                 promotionTargetMappingRepository.save(targetMapping);
             }
         }
