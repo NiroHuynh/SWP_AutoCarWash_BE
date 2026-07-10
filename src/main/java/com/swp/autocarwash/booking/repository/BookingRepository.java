@@ -2,6 +2,8 @@ package com.swp.autocarwash.booking.repository;
 
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -211,5 +214,64 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id = :vehicleId " +
             "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECK_IN', 'WASHING')")
     boolean hasActiveBooking(@Param("vehicleId") Long vehicleId);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.customer.id = :customerId AND b.status = 'NO_SHOW'")
+    long countNoShowByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND b.status NOT IN ('CANCELED','CHECK_OUT') ORDER BY b.appointmentDate DESC")
+    List<Booking> findActiveBookingsByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT MAX(b.checkOutAt) FROM Booking b WHERE b.customer.id = :customerId AND b.status = 'CHECK_OUT'")
+    LocalDateTime findLastCheckOutByCustomerId(@Param("customerId") Long customerId);
+
+    /**
+     * Lịch sử đặt lịch của một khách hàng trên mọi chi nhánh, có filter theo
+     * từ khóa phương tiện (biển số/hãng xe), loại dịch vụ, trạng thái booking
+     * (giá trị thô của {@link BookingStatus}), chi nhánh, năm/tháng đặt lịch,
+     * mặc định sort mới nhất trước (FE-US-09-04 AC1-AC6).
+     */
+    @Query(value = """
+            SELECT DISTINCT b FROM Booking b
+            JOIN FETCH b.vehicle v
+            JOIN FETCH b.servicePackage sp
+            JOIN FETCH sp.serviceCategory sc
+            LEFT JOIN FETCH b.checkInEmployee ce
+            LEFT JOIN b.slotAllocations bsa
+            LEFT JOIN bsa.bookingSlot bs
+            LEFT JOIN bs.station st
+            WHERE b.customer.id = :customerId
+              AND (:vehicleKeyword IS NULL
+                   OR v.licensePlate LIKE CONCAT('%', :vehicleKeyword, '%')
+                   OR v.brandName LIKE CONCAT('%', :vehicleKeyword, '%'))
+              AND (:serviceCategoryId IS NULL OR sc.id = :serviceCategoryId)
+              AND (:status IS NULL OR b.status = :status)
+              AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:year IS NULL OR YEAR(b.appointmentDate) = :year)
+              AND (:month IS NULL OR MONTH(b.appointmentDate) = :month)
+            ORDER BY b.appointmentDate DESC, b.id DESC
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT b) FROM Booking b
+            JOIN b.vehicle v JOIN b.servicePackage sp JOIN sp.serviceCategory sc
+            LEFT JOIN b.slotAllocations bsa LEFT JOIN bsa.bookingSlot bs LEFT JOIN bs.station st
+            WHERE b.customer.id = :customerId
+              AND (:vehicleKeyword IS NULL
+                   OR v.licensePlate LIKE CONCAT('%', :vehicleKeyword, '%')
+                   OR v.brandName LIKE CONCAT('%', :vehicleKeyword, '%'))
+              AND (:serviceCategoryId IS NULL OR sc.id = :serviceCategoryId)
+              AND (:status IS NULL OR b.status = :status)
+              AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:year IS NULL OR YEAR(b.appointmentDate) = :year)
+              AND (:month IS NULL OR MONTH(b.appointmentDate) = :month)
+            """)
+    Page<Booking> findCustomerBookingHistory(
+            @Param("customerId") Long customerId,
+            @Param("vehicleKeyword") String vehicleKeyword,
+            @Param("serviceCategoryId") Integer serviceCategoryId,
+            @Param("status") String status,
+            @Param("stationId") Integer stationId,
+            @Param("year") Integer year,
+            @Param("month") Integer month,
+            Pageable pageable);
 
 }

@@ -15,6 +15,8 @@ import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
 import com.swp.autocarwash.payment.dto.response.DepositConfirmResponse;
 import com.swp.autocarwash.payment.dto.response.WebhookLogResponse;
+import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
+import com.swp.autocarwash.payment.dto.response.WebhookLogResponse;
 import com.swp.autocarwash.payment.service.PaymentService;
 import com.swp.autocarwash.payment.service.SePayWebhookService;
 
@@ -236,5 +238,20 @@ public class PaymentController {
             throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
         }
         return customer.getId();
+    }
+
+    /**
+     * Chức năng: Staff/Admin xem chi tiết hóa đơn sau checkout (FE-63-US-01 AC02).
+     *
+     * <p><b>Ví dụ:</b> {@code GET /api/payments/invoices/16}</p>
+     *
+     * @param invoiceId id hóa đơn ({@code BookingInvoice.id})
+     * @return {@code 200 OK} với {@link InvoiceDetailResponse}
+     */
+    @GetMapping("/invoices/{invoiceId}")
+    @PreAuthorize("hasAnyAuthority('STAFF','ADMIN')")
+    public ResponseEntity<ApiResponse<InvoiceDetailResponse>> getInvoiceDetail(@PathVariable Long invoiceId) {
+        InvoiceDetailResponse data = paymentService.getInvoiceDetail(invoiceId);
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết hóa đơn", data));
     }
 }

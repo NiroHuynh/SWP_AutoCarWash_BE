@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,13 +34,16 @@ public class CreateSubscriptionPlanRequest {
 
     private String description;
 
-    @NotNull(message = "SERVICE_PACKAGE_REQUIRED")
-    private Integer servicePackageId;
-
     @NotNull(message = "INVALID_PLAN_TYPE")
     private String planType;
 
     @NotNull(message = "INVALID_MAX_VEHICLE_COUNT")
     @Positive(message = "INVALID_MAX_VEHICLE_COUNT")
     private Integer maxVehicleCount;
+
+    // Các add-on tạo nên nội dung gói (thay cho việc chọn 1 Service Package có sẵn) - hệ thống
+    // sẽ tự tạo 1 Service Package mới riêng cho gói này từ danh sách add-on được chọn, để gói vẫn
+    // có servicePackageId hợp lệ cho booking/walk-in tính quyền lợi. Bắt buộc chọn ít nhất 1.
+    @NotNull(message = "ADDON_SERVICES_REQUIRED")
+    private List<Integer> addonServiceIds;
 }
