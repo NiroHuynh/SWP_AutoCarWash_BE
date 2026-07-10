@@ -504,6 +504,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_004",
             "This voucher is not applicable at the selected station."
+    ),
+    VOUCHER_CODE_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_005",
+            "Voucher code cannot be empty."
     );
 
 

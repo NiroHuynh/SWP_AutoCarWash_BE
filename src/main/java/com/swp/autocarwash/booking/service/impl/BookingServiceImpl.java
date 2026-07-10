@@ -652,29 +652,29 @@ public class BookingServiceImpl implements BookingService {
 
             // Vòng lặp duyệt qua các chiến dịch Chế độ 1 trùng khung cấu hình để tìm deal tốt nhất
             for (Promotion p : activePromos) {
-                Voucher tempVoucher = voucherRepository.findByVoucherCodeAndIsDeletedFalse("AUTO_PROMO_" + p.getId()).orElse(null);
-                if (tempVoucher == null || !"ACTIVE".equalsIgnoreCase(tempVoucher.getStatus())) {
-                    continue;
-                }
+                List<Voucher> subVouchers = voucherRepository.findByPromotionId(p.getId());
 
-                // Tính toán thử số tiền giảm giá của voucher ngầm này
-                BigDecimal currentDiscount = BigDecimal.ZERO;
-                if (tempVoucher.getDiscountPercentage() != null) {
-                    BigDecimal percentFactor = BigDecimal.valueOf(tempVoucher.getDiscountPercentage())
-                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-                    BigDecimal calculated = subTotal.multiply(percentFactor);
+                for (Voucher tempVoucher : subVouchers) {
+                    if (tempVoucher == null || !VoucherStatus.ACTIVE.name().equalsIgnoreCase(tempVoucher.getStatus()) || Boolean.TRUE.equals(tempVoucher.getIsDeleted())) {
+                        continue;
+                    }
 
-                    // Khống chế theo trần tối đa của từng mã
-                    currentDiscount = (tempVoucher.getMaxDiscountAmount() != null && calculated.compareTo(tempVoucher.getMaxDiscountAmount()) > 0)
-                            ? tempVoucher.getMaxDiscountAmount() : calculated;
-                } else {
-                    currentDiscount = tempVoucher.getMaxDiscountAmount();
-                }
+                    // (Giữ nguyên logic tính toán thử số tiền giảm giá currentDiscount của tempVoucher...)
+                    BigDecimal currentDiscount = BigDecimal.ZERO;
+                    if (tempVoucher.getDiscountPercentage() != null) {
+                        BigDecimal percentFactor = BigDecimal.valueOf(tempVoucher.getDiscountPercentage()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                        BigDecimal calculated = subTotal.multiply(percentFactor);
+                        currentDiscount = (tempVoucher.getMaxDiscountAmount() != null && calculated.compareTo(tempVoucher.getMaxDiscountAmount()) > 0)
+                                ? tempVoucher.getMaxDiscountAmount() : calculated;
+                    } else {
+                        currentDiscount = tempVoucher.getMaxDiscountAmount();
+                    }
 
-                // Thuật toán tìm Max: Chiến dịch nào giảm nhiều tiền nhất thì chọn
-                if (currentDiscount.compareTo(maxDiscountCalculated) > 0 || bestVoucher == null) {
-                    maxDiscountCalculated = currentDiscount;
-                    bestVoucher = tempVoucher;
+                    // Thuật toán tìm Max deal hời nhất cho khách
+                    if (currentDiscount.compareTo(maxDiscountCalculated) > 0 || bestVoucher == null) {
+                        maxDiscountCalculated = currentDiscount;
+                        bestVoucher = tempVoucher;
+                    }
                 }
             }
             // Gán mã giảm sàn tốt nhất tìm được vào đơn hàng

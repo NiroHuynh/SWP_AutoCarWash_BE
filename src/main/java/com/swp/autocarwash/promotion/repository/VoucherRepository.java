@@ -71,7 +71,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
 
     boolean existsByVoucherCode(String voucherCode);
 
-    Optional <Voucher> findByPromotionId(Integer promotionId);
+    List <Voucher> findByPromotionId(Integer promotionId);
 
     List<Voucher> findByPromotionIdAndIsDeletedFalse(Integer promotionId);
 
@@ -87,4 +87,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     List<Voucher> findAvailableVouchersForBooking(@Param("stationId") Integer stationId, @Param("appDate") LocalDateTime appDate);
 
     Optional<Voucher> findByVoucherCodeAndIsDeletedFalse(String voucherCode);
+
+
 }

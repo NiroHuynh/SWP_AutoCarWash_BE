@@ -535,21 +535,30 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         }
 
         //6. CRUCIAL BE RULE: Tự động đồng bộ ăn theo thời gian cho Voucher con liên kết (Nếu có)
-        Voucher linkedVoucher = voucherRepository.findByPromotionId(promotionId).orElse(null);
-        if (linkedVoucher != null) {
-            // Ép kiểu LocalDate sang LocalDateTime đầu ngày và cuối ngày
+        List<Voucher> linkedVoucher = voucherRepository.findByPromotionId(promotionId);
+        if (linkedVoucher != null && !linkedVoucher.isEmpty()) {
+            // Ép kiểu LocalDate sang LocalDateTime đầu ngày và cuối ngày theo cấu hình mới của cha
             LocalDateTime voucherStart = request.getStartDate().atStartOfDay();
             LocalDateTime voucherExpiry = request.getEndDate().atTime(LocalTime.MAX);
 
-            linkedVoucher.setStartDate(voucherStart);
-            linkedVoucher.setExpiryDate(voucherExpiry);
+            // Vòng lặp quét qua từng mã con để đồng bộ thời gian và trạng thái hàng loạt
+            for (Voucher voucher : linkedVoucher) {
+                // Đồng bộ thời gian hiệu lực theo Chiến dịch cha vừa cập nhật
+                voucher.setStartDate(voucherStart);
+                voucher.setExpiryDate(voucherExpiry);
 
-            // Tính toán lại trạng thái Voucher con
-            String newVoucherStatus = determineVoucherStatus(
-                    voucherStart, voucherExpiry, linkedVoucher.getUsedCount(), linkedVoucher.getUsageLimit()
-            );
-            linkedVoucher.setStatus(newVoucherStatus);
-            voucherRepository.save(linkedVoucher);
+                // Tính toán lại trạng thái độc lập của từng Voucher con dựa theo ngày mới và hạn mức dùng của riêng nó
+                String newVoucherStatus = determineVoucherStatus(
+                        voucherStart,
+                        voucherExpiry,
+                        voucher.getUsedCount(),
+                        voucher.getUsageLimit()
+                );
+                voucher.setStatus(newVoucherStatus);
+
+                // Đẩy cập nhật của từng mã con xuống Database
+                voucherRepository.save(voucher);
+            }
         }
     }
 
@@ -668,5 +677,69 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
         // 3. Lưu lại trạng thái mới xuống Database
         voucherRepository.save(voucher);
+    }
+
+
+     //Thêm một mã Voucher con mới đính kèm vào Chiến dịch cha ĐÃ TỒN TẠI
+    @Transactional
+    public CreatePromotionVoucherResponse addVoucherToExistingPromotion(Integer promotionId, CreatePromotionVoucherRequest request) {
+
+        // 1. Kiểm tra xem chiến dịch cha có tồn tại và chưa bị xóa mềm không
+        Promotion promotion = promotionRepository.findByIdAndIsDeletedFalse(promotionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        String finalVoucherCode;
+
+        // 2. Phân luồng xử lý mã Code theo Chế độ của chiến dịch cha
+        if (request.getConfigMode() == 1) {
+            // Nếu cha là Chế độ 1 (Giảm sàn tự động): Tự đúc mã ngầm tiếp theo dạng AUTO_PROMO_[ID]_[STT]
+            List<Voucher> existingVouchers = voucherRepository.findByPromotionId(promotionId);
+            finalVoucherCode = "AUTO_PROMO_" + promotionId + "_" + (existingVouchers.size() + 1);
+        } else if (request.getConfigMode() == 2) {
+            // Nếu cha là Chế độ 2 (Chiến dịch nhập mã): Lấy mã Admin tự gõ trên giao diện và check trùng
+            if (request.getVoucherCode() == null || request.getVoucherCode().trim().isEmpty()) {
+                    throw new BusinessException(ErrorCode.VOUCHER_CODE_CANNOT_BE_EMPTY);
+            }
+            finalVoucherCode = request.getVoucherCode().trim().toUpperCase();
+            if (voucherRepository.existsByVoucherCode(finalVoucherCode)) {
+                throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS);
+            }
+        } else {
+            // Chế độ 3 độc lập thì không có chiến dịch cha nên không được phép dùng API này
+            throw new BusinessException(ErrorCode.INVALID_CONFIG_MODE);
+        }
+
+        // 3. Tính toán số tiền giảm tối đa (Khống chế theo loại FIXED hoặc PERCENTAGE)
+        BigDecimal maxDiscount = "FIXED".equalsIgnoreCase(request.getDiscountType())
+                ? request.getDiscountValue() : request.getMaxDiscountAmount();
+
+        Integer percent = "PERCENTAGE".equalsIgnoreCase(request.getDiscountType())
+                ? request.getDiscountValue().intValue() : null;
+
+        // 4. Đúc thực thể Voucher con mới: Kế thừa toàn bộ Không gian, Thời gian và Trạng thái của Cha
+        Voucher voucher = Voucher.builder()
+                .promotion(promotion) // Khóa ngoại đính thẳng vào ID của cha cũ
+                .voucherCode(finalVoucherCode)
+                .minOrderValue(request.getMinOrderValue() != null ? request.getMinOrderValue() : BigDecimal.ZERO)
+                .maxDiscountAmount(maxDiscount)
+                // Chế độ 1 cho chạy thoải mái (999999), Chế độ 2 giới hạn theo số lượng Admin nhập
+                .usageLimit(request.getConfigMode() == 1 ? 999999 : request.getUsageLimit())
+                .usedCount(0)
+                .startDate(promotion.getStartDate().atStartOfDay()) // Auto kế thừa ngày bắt đầu của cha
+                .expiryDate(promotion.getEndDate().atTime(LocalTime.MAX)) // Auto kế thừa ngày kết thúc của cha
+                .status(promotion.getStatus()) // Đồng bộ trạng thái (ACTIVE/INACTIVE) của cha
+                .reusable(request.getConfigMode() == 1 || (request.getReusable() != null && request.getReusable()))
+                .discountPercentage(percent)
+                .isDeleted(false)
+                .build();
+
+        Voucher savedVoucher = voucherRepository.save(voucher);
+
+        // Trả kết quả về cho Frontend
+        return CreatePromotionVoucherResponse.builder()
+                .promotionId(promotion.getId())
+                .voucherId(savedVoucher.getId())
+                .voucherCode(savedVoucher.getVoucherCode())
+                .build();
     }
 }
