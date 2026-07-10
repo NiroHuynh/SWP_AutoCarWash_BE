@@ -408,7 +408,7 @@ public enum ErrorCode {
     SUBSCRIPTION_NOT_FOUND(
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_001",
-            "This vehicle does not have an active subscription."
+            "Subscription not found."
     ),
     TRANSFER_LIMIT_REACHED(
             HttpStatus.BAD_REQUEST,
@@ -454,7 +454,242 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "LOYALTY_003",
             "Invalid year/month filter"
-    );
+    ),
+    INVALID_SUBSCRIPTION_PLAN_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "SUBSCRIPTION_001",
+                "Invalid status filter"
+    ),
+    SUBSCRIPTION_PLAN_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "SUBSCRIPTION_002",
+                "No subscription plans found"
+    ),
+    FAILED_TO_RETRIEVE_SUBSCRIPTION_PLANS(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+        "SUBSCRIPTION_003",
+                "Failed to retrieve subscription plans"
+    ),
+    PLAN_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_004",
+            "Plan name is required."
+    ),
+
+    SERVICE_PACKAGE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_005",
+            "Service package is required."
+    ),
+
+    INVALID_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_006",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_DURATION_DAYS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_007",
+            "Duration days must be greater than 0."
+    ),
+
+    INVALID_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_008",
+            "Max vehicle count must be greater than 0."
+    ),
+
+    INVALID_FAMILY_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_009",
+            "Family plan must allow more than one vehicle."
+    ),
+
+    INVALID_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Invalid plan type."
+    ),
+
+    INVALID_SERVICE_PACKAGE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Selected service package is inactive or does not exist."
+    ),
+
+    INVALID_ADDON_SERVICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_031",
+            "One or more selected add-on services are invalid or do not exist."
+    ),
+
+    ADDON_SERVICES_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_032",
+            "Select at least one add-on service."
+    ),
+
+    ADDON_SERVICE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_033",
+            "Add-on name is required."
+    ),
+
+    INVALID_ADDON_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_034",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_ADDON_DURATION(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_035",
+            "Duration must be greater than 0."
+    ),
+
+    INVALID_SERVICE_CATEGORY(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_036",
+            "Selected service category does not exist."
+    ),
+
+    FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SUBSCRIPTION_012",
+            "Failed to create subscription plan."
+    ),
+
+    PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_008",
+            "Subscription plan name already exists."
+    ),
+
+    INVALID_UNLIMITED_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Unlimited plan must allow exactly one vehicle."
+    ),
+
+    INVALID_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Invalid status."
+    ),
+
+    SUBSCRIPTION_PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_012",
+            "Subscription plan name already exists."
+    ),
+    SUBSCRIPTION_PLAN_ALREADY_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_013",
+            "Subscription plan is already inactive."
+    ),
+    SUBSCRIPTION_PLAN_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_014",
+            "Subscription plan is required."
+    ),
+
+    VEHICLE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_015",
+            "Vehicle is required."
+    ),
+
+    VEHICLE_ALREADY_SUBSCRIBED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_016",
+            "The vehicle is already registered with another subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_PLAN(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_017",
+            "Invalid subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_020",
+            "Only active subscriptions can be canceled."
+    ),
+
+    ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_001",
+            "You are not authorized to cancel this subscription."
+    ),
+    INVALID_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_021",
+            "Invalid vehicle."
+    ),
+
+    VEHICLE_TRANSFER_NOT_ALLOWED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_022",
+            "You can only change your vehicle once every 30 days."
+    ),
+    DEPOSIT_ALREADY_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_003",
+            "Booking is not awaiting deposit (already confirmed, canceled, or deposit already paid)"
+    ),
+    INVOICE_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_005",
+            "Subscription invoice is not awaiting payment (already paid or canceled)"
+    ),
+    RENEWAL_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_023",
+            "Subscription can only be renewed within 3 days before expiration."
+    ),
+
+    SUBSCRIPTION_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_024",
+            "Subscription has expired and cannot be renewed."
+    ),
+
+    RENEWAL_ALREADY_PENDING(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_025",
+            "A renewal request is already pending payment."
+    ),
+    SUBSCRIPTION_INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUBSCRIPTION_026",
+            "Subscription invoice not found."
+    ),
+
+    INVALID_RENEWAL_INVOICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_027",
+            "Invalid renewal invoice."
+    ),
+
+    INVOICE_ALREADY_PROCESSED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_028",
+            "Invoice has already been processed."
+    ),
+
+    PAYMENT_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_029",
+            "Payment status is required."
+    ),
+
+    INVALID_PAYMENT_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_030",
+            "Invalid payment status."
+    );;
 
 
 

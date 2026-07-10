@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -86,7 +87,7 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
                                   @Param("currentDate") LocalDate currentDate);
 
     @Query("SELECT us FROM UnlimitSubscription us JOIN FETCH us.subscriptionPlan sp " +
-            "WHERE us.vehicle.id = :vehicleId AND us.status = 'ACTIVE' AND sp.planType = 'UNLIMITED'")
+            "WHERE us.vehicle.id = :vehicleId AND us.status = 'ACTIVE' AND sp.planType = 'UNLIMIT'")
     Optional<UnlimitSubscription> findActiveUnlimitedSubByVehicleId(@Param("vehicleId") Long vehicleId);
 
     @Query("SELECT u FROM UnlimitSubscription u WHERE " +
@@ -104,4 +105,20 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             "AND u.status = 'ACTIVE' " +
             "AND :today BETWEEN u.startDate AND u.endDate")
     boolean hasActiveSubscription(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
+
+    boolean existsByVehicleIdAndStatus(
+            Long vehicleId,
+            SubscriptionStatus status
+            );
+
+    Optional<UnlimitSubscription> findById(Long id);
+
+    List<UnlimitSubscription> findByVehicleCustomerId(Long customerId);
+
+    /** Gói unlimit đang ACTIVE của khách hàng, không giới hạn theo xe cụ thể — dùng cho màn "gói đang hoạt động". */
+    @Query("SELECT u FROM UnlimitSubscription u JOIN FETCH u.subscriptionPlan " +
+            "WHERE u.customer.id = :customerId " +
+            "AND u.status = 'ACTIVE' " +
+            "AND CURRENT_DATE BETWEEN u.startDate AND u.endDate")
+    Optional<UnlimitSubscription> findActiveByCustomerId(@Param("customerId") Long customerId);
 }

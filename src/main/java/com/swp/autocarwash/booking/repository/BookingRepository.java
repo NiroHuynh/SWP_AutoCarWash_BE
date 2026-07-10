@@ -31,6 +31,15 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /**
+     * Tìm các booking đang ở một trạng thái và được tạo trước một mốc thời gian —
+     * dùng cho job tự hủy booking PENDING quá hạn chuyển khoản cọc.
+     *
+     * @param status trạng thái cần lọc (ví dụ PENDING)
+     * @param cutoff mốc thời gian; chỉ lấy booking có createdAt trước mốc này
+     */
+    List<Booking> findByStatusAndCreatedAtBefore(String status, java.time.LocalDateTime cutoff);
+
+    /**
      * Lấy danh sách booking của một khách hàng theo nhóm trạng thái, dùng chung
      * cho cả tab Upcoming và Past Services (việc sắp xếp do tầng service đảm nhiệm).
      *
