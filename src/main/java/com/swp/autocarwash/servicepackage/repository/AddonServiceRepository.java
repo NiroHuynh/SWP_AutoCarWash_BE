@@ -81,4 +81,14 @@ public interface AddonServiceRepository
      * Tìm tất cả addon theo list id và chưa bị xóa
      */
     List<AddonService> findAllByIdInAndIsDeletedFalse(List<Integer> ids);
+
+    /**
+     * Kiểm tra addon name đã tồn tại (chưa xóa)
+     */
+    boolean existsByNameAndIsDeletedFalse(String name);
+
+    /**
+     * Kiểm tra addon name đã tồn tại (chưa xóa), loại trừ chính nó (dùng cho update)
+     */
+    boolean existsByNameAndIsDeletedFalseAndIdNot(String name, Integer id);
 }
