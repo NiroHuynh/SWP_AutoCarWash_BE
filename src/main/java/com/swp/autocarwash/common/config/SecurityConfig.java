@@ -61,6 +61,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                    //MỞ THÊM: Cho phép cả Admin lẫn Khách hàng đều có thể gọi API xem danh sách Dashboard
+                    // và lấy context thông tin chi nhánh (vì ai cũng cần nhìn thấy thông tin để thao tác)
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/promotions/dashboard/**").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/bookings/context/**").permitAll()
                 //mở toang cửa cho cụm API login
                 //tất cả các API khác đều phải có token
                 .anyRequest().authenticated()
