@@ -498,6 +498,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         promotion.setDescription(request.getDescription());
         promotion.setStartDate(request.getStartDate());
         promotion.setEndDate(request.getEndDate());
+        promotion.setDescription("Hệ thống tự động giảm giá trực tiếp theo chiến dịch");
 
         // Tự động tính toán lại Trạng thái Chiến dịch
         String newPromoStatus = determinePromotionStatus(request.getStartDate(), request.getEndDate());
