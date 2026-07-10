@@ -93,4 +93,12 @@ public class PromotionVoucherController {
         promotionVoucherService.updateVoucherFinancialRules(voucherId, request);
         return ResponseEntity.ok(ApiResponse.success("Voucher configurations updated successfully!", null));
     }
+
+    @PostMapping("/{promotionId}/vouchers")
+    public ResponseEntity<ApiResponse<CreatePromotionVoucherResponse>> addVoucherToPromotion(
+            @PathVariable Integer promotionId,
+            @RequestBody CreatePromotionVoucherRequest request) {
+        CreatePromotionVoucherResponse response = promotionVoucherService.addVoucherToExistingPromotion(promotionId, request);
+        return ResponseEntity.ok(ApiResponse.success("Voucher code added to campaign successfully.", response));
+    }
 }

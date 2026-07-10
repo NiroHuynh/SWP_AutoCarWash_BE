@@ -20,4 +20,5 @@ public interface PromotionVoucherService {
     void updateVoucherFinancialRules(Integer voucherId, UpdateVoucherRequest request);
     void softDeletePromotion(Integer promotionId);
     void softDeleteStandaloneVoucher(Long voucherId);
+    public CreatePromotionVoucherResponse addVoucherToExistingPromotion(Integer promotionId, CreatePromotionVoucherRequest request);
 }
