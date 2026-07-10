@@ -212,11 +212,7 @@ public class ServicePackageServiceImpl
     @Transactional
     public ServicePackageResponse createServicePackage(CreateServicePackageRequest request) {
 
-        validator.validateCreate(
-                request.getName(),
-                request.getBasePrice(),
-                request.getAddonIds()
-        );
+        validator.validateForCreate(request.getName());
 
         List<Integer> addonIds = request.getAddonIds();
 
@@ -295,12 +291,8 @@ public class ServicePackageServiceImpl
             Integer servicePackageId,
             UpdateServicePackageRequest request) {
 
-        validator.validateUpdate(
-                servicePackageId,
-                request.getName(),
-                request.getBasePrice(),
-                request.getAddonIds()
-        );
+        validator.validateForUpdate(request.getName(), servicePackageId);
+
         // 1. Kiểm tra package tồn tại
         ServicePackage servicePackage = repository
                 .findByIdAndIsDeletedFalse(servicePackageId)

@@ -128,51 +128,70 @@ public class AddonServiceValidator {
 
 
     /**
-     * Validate khi CREATE — check trùng name với tất cả addon active
+     * Validate business rule cho create/update:
+     * - Name không bắt đầu bằng số
+     * - Duration phải là bội 15 (cho phép 0)
+     * - Check trùng name
+     *
+     * (Các check rỗng/null/price đã do DTO annotation xử lý)
      */
-    public void validateNameDuplicateForCreate(String name) {
+    public void validateForCreate(String name, Integer durationMinutes) {
 
-        if (addonServiceRepository.existsByNameAndIsDeletedFalse(name.trim())) {
-            throw new BusinessException(
-                    ErrorCode.ADDON_NAME_ALREADY_EXISTS
-            );
+        validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
+        validateNameDuplicateForCreate(name);
+    }
+
+    public void validateForUpdate(String name, Integer durationMinutes, Integer addonServiceId) {
+
+        validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
+        validateNameDuplicateForUpdate(name, addonServiceId);
+    }
+
+
+    /**
+     * Name không được bắt đầu bằng số — AC-15.1.4
+     */
+    private void validateNameFormat(String name) {
+
+        if (name != null && !name.trim().isEmpty()
+                && Character.isDigit(name.trim().charAt(0))) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_INVALID);
         }
     }
 
 
     /**
-     * Validate khi UPDATE — check trùng name nhưng loại trừ chính addon đang sửa
+     * Duration phải là bội 15 (cho phép 0) — AC-15.1.3
      */
-    public void validateNameDuplicateForUpdate(String name, Integer addonServiceId) {
+    private void validateDurationMultiple(Integer durationMinutes) {
+
+        if (durationMinutes != null && durationMinutes % 15 != 0) {
+            throw new BusinessException(ErrorCode.ADDON_DURATION_INVALID);
+        }
+    }
+
+
+    /**
+     * Check trùng name khi create
+     */
+    private void validateNameDuplicateForCreate(String name) {
+
+        if (addonServiceRepository.existsByNameAndIsDeletedFalse(name.trim())) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_ALREADY_EXISTS);
+        }
+    }
+
+
+    /**
+     * Check trùng name khi update — loại trừ chính nó
+     */
+    private void validateNameDuplicateForUpdate(String name, Integer addonServiceId) {
 
         if (addonServiceRepository.existsByNameAndIsDeletedFalseAndIdNot(
                 name.trim(), addonServiceId)) {
-            throw new BusinessException(
-                    ErrorCode.ADDON_NAME_ALREADY_EXISTS
-            );
-        }
-    }
-
-    /**
-     * Validate các field input khi create / update addon
-     * Khớp AC-15.1.2/3/4 và AC-15.2.2
-     */
-    public void validateFields(String name, BigDecimal price, Integer durationMinutes) {
-
-        if (name == null || name.trim().isEmpty()) {
-            throw new BusinessException(ErrorCode.ADDON_NAME_REQUIRED);
-        }
-
-        if (Character.isDigit(name.trim().charAt(0))) {
-            throw new BusinessException(ErrorCode.ADDON_NAME_INVALID);
-        }
-
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ErrorCode.ADDON_PRICE_INVALID);
-        }
-
-        if (durationMinutes == null || durationMinutes < 0 || durationMinutes % 15 != 0) {
-            throw new BusinessException(ErrorCode.ADDON_DURATION_INVALID);
+            throw new BusinessException(ErrorCode.ADDON_NAME_ALREADY_EXISTS);
         }
     }
 }
