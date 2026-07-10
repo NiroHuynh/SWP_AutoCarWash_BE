@@ -90,6 +90,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking already has an invoice"
     ),
+    INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "INVOICE_001",
+            "Invoice not found"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",

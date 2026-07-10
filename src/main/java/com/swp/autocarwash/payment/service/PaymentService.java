@@ -2,6 +2,7 @@ package com.swp.autocarwash.payment.service;
 
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
+import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
 
 /**
  * Chức năng: Nghiệp vụ xử lý thanh toán tại quầy.
@@ -21,4 +22,12 @@ public interface PaymentService {
      * @return chi tiết giao dịch: tổng tiền cần thu, tiền thừa, status mới
      */
     CashPaymentResponse processCashPayment(CashPaymentRequest request);
+
+    /**
+     * Chức năng: Staff xem chi tiết hóa đơn sau khi checkout (FE-63-US-01 AC02).
+     *
+     * @param invoiceId id hóa đơn ({@code BookingInvoice.id})
+     * @return chi tiết đầy đủ: booking info, danh sách dịch vụ, giảm giá, số tiền thực trả, phương thức thanh toán
+     */
+    InvoiceDetailResponse getInvoiceDetail(Long invoiceId);
 }
