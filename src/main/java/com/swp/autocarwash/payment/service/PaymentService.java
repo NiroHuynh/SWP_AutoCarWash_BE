@@ -2,6 +2,7 @@ package com.swp.autocarwash.payment.service;
 
 import com.swp.autocarwash.payment.dto.request.CashPaymentRequest;
 import com.swp.autocarwash.payment.dto.response.CashPaymentResponse;
+import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentHistoryResponse;
 import com.swp.autocarwash.payment.dto.response.PaymentTransactionHistoryResponse;
 
@@ -62,4 +63,12 @@ public interface PaymentService {
     PaymentTransactionHistoryResponse getTransactionHistory(
             String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
             Long bookingId, Long transactionId, Integer stationId, String phone);
+
+    /**
+     * Chức năng: Staff xem chi tiết hóa đơn sau khi checkout (FE-63-US-01 AC02).
+     *
+     * @param invoiceId id hóa đơn ({@code BookingInvoice.id})
+     * @return chi tiết đầy đủ: booking info, danh sách dịch vụ, giảm giá, số tiền thực trả, phương thức thanh toán
+     */
+    InvoiceDetailResponse getInvoiceDetail(Long invoiceId);
 }

@@ -18,6 +18,9 @@ import java.util.List;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
+    @Query("SELECT p FROM Payment p WHERE p.bookingInvoice.id = :invoiceId ORDER BY p.paidAt DESC, p.id DESC")
+    List<Payment> findByBookingInvoiceIdOrderByPaidAtDesc(@Param("invoiceId") Long invoiceId);
+
     /**
      * Lịch sử giao dịch thanh toán thành công của 1 khách hàng — cover cả cọc
      * booking ({@code bookingInvoice.booking.customer}) lẫn mua gói subscription

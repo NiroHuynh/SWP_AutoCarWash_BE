@@ -39,5 +39,12 @@ public interface CustomerTierRepository
     /** Danh sach tat ca hang thanh vien, sap theo nguong diem tang dan - dung cho bang tra cuu tier. */
     List<CustomerTier> findAllByOrderByMinPointsAsc();
 
+    /**
+     * Hang cao nhat co retention_target_amount <= tong chi tieu - dung de danh gia lai hang
+     * thuong nien (BR-FE-44) truc tiep tu tien chi tieu that, khong quy doi qua diem.
+     */
+    Optional<CustomerTier> findFirstByRetentionTargetAmountLessThanEqualOrderByRetentionTargetAmountDesc(
+            BigDecimal totalSpending
+    );
 
 }
