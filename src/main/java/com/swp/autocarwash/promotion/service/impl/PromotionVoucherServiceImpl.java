@@ -257,8 +257,10 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
     private void saveTargetMappings(Integer promotionId, List<Integer> targetIds) {
         if (targetIds != null && !targetIds.isEmpty()) {
+            Promotion promotion = promotionRepository.getReferenceById(promotionId);
             for (Integer targetId : targetIds) {
-                Promotion promotion = promotionRepository.getReferenceById(promotionId);
+
+                PromotionTarget promotionTarget = promotionTargetRepository.getReferenceById(targetId);
                 // Đúc class Khóa chính phức hợp
                 PromotionTargetMappingId mappingId = PromotionTargetMappingId.builder()
                         .promotionId(promotionId)
@@ -269,7 +271,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 PromotionTargetMapping mappingEntity = PromotionTargetMapping.builder()
                         .id(mappingId)
                         .promotion(promotion)
-                        .promotionTarget(promotionTargetRepository.getReferenceById(targetId))
+                        .promotionTarget(promotionTarget)
                         .build();
 
                 // Cứ mỗi vòng lặp gọi repo để ném 1 cặp (promotionId, targetId) xuống DB
