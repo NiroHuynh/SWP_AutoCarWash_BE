@@ -228,6 +228,9 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
             throw new BusinessException(ErrorCode.STATION_LIST_CANNOT_BE_EMPTY);
         }
 
+        Promotion promotion = promotionRepository.getReferenceById(promotionId);
+
+
         for (Integer stationId : stationIds) {
             // Chốt chặn 2: Chặn lỗi nếu truyền trúng stationId không tồn tại hoặc đã bị xóa/ngừng hoạt động
             Station station = stationRepository.findById(stationId).orElse(null);
@@ -244,7 +247,8 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
             // Đóng gói lưu bảng trung gian liên kết Nhiều - Nhiều
             PromotionStationMapping mappingEntity = PromotionStationMapping.builder()
                     .id(mappingId)
-
+                    .promotion(promotion)
+                    .station(station)
                     .build();
 
             promotionStationMappingRepository.save(mappingEntity);
@@ -254,6 +258,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
     private void saveTargetMappings(Integer promotionId, List<Integer> targetIds) {
         if (targetIds != null && !targetIds.isEmpty()) {
             for (Integer targetId : targetIds) {
+                Promotion promotion = promotionRepository.getReferenceById(promotionId);
                 // Đúc class Khóa chính phức hợp
                 PromotionTargetMappingId mappingId = PromotionTargetMappingId.builder()
                         .promotionId(promotionId)
@@ -263,6 +268,8 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 // Đóng gói vào Entity trung gian
                 PromotionTargetMapping mappingEntity = PromotionTargetMapping.builder()
                         .id(mappingId)
+                        .promotion(promotion)
+                        .promotionTarget(promotionTargetRepository.getReferenceById(targetId))
                         .build();
 
                 // Cứ mỗi vòng lặp gọi repo để ném 1 cặp (promotionId, targetId) xuống DB
