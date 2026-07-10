@@ -1,6 +1,7 @@
 package com.swp.autocarwash.servicepackage.service;
 
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
+import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 
 import java.util.List;
@@ -83,4 +84,6 @@ public interface ServicePackageService {
             Integer id
     );
 
+
+    List<ServicePackageResponse> getActiveServicePackages();
 }

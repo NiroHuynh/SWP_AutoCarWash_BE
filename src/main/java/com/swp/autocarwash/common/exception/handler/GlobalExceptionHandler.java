@@ -1,20 +1,24 @@
 package com.swp.autocarwash.common.exception.handler;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.exception.AccountDisabledException;
 import com.swp.autocarwash.common.exception.BaseException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
+import com.swp.autocarwash.subscription.entity.enums.PlanType;
 import jakarta.servlet.http.HttpServletRequest;
 
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -129,35 +133,57 @@ public class GlobalExceptionHandler {
      *
      * @Valid validation failed
      */
-    @ExceptionHandler(
-            MethodArgumentNotValidException.class
-    )
-    public ResponseEntity<ApiResponse<Object>> handleValidation(
-            MethodArgumentNotValidException ex
-    ) {
-        Map<String, String> errors =
-                new HashMap<>();
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse> handleValidation(
+            MethodArgumentNotValidException ex) {
 
+        String errorKey = ex.getBindingResult()
+                .getFieldError()
+                .getDefaultMessage();
 
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(
-                        error ->
-                                errors.put(
-                                        error.getField(),
-                                        error.getDefaultMessage()
-                                )
-                );
+        ErrorCode errorCode = ErrorCode.valueOf(errorKey);
 
-        return ResponseEntity
-                .badRequest()
+        return ResponseEntity.status(400)
                 .body(
                         ApiResponse.error(
-                                "Validation failed",
-                                ErrorCode.VALIDATION_FAILED.getCode(),
-                                errors
+                                errorCode.getMessage(),
+                                errorCode.getCode(),
+                                null
                         )
-
                 );
     }
+
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadable(
+//            HttpMessageNotReadableException ex
+//    ) {
+//
+//        Throwable cause = ex.getCause();
+//
+//        if (cause instanceof InvalidFormatException invalidFormatException
+//                && invalidFormatException.getTargetType().equals(PlanType.class)) {
+//
+//            ErrorCode errorCode = ErrorCode.INVALID_PLAN_TYPE;
+//
+//            return ResponseEntity
+//                    .status(errorCode.getStatus())
+//                    .body(
+//                            ApiResponse.error(
+//                                    errorCode.getMessage(),
+//                                    errorCode.getCode(),
+//                                    null
+//                            )
+//                    );
+//        }
+//
+//        return ResponseEntity
+//                .badRequest()
+//                .body(
+//                        ApiResponse.error(
+//                                "Invalid request body.",
+//                                "INVALID_REQUEST",
+//                                null
+//                        )
+//                );
+//    }
 }
