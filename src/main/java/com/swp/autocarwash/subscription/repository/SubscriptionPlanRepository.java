@@ -27,4 +27,6 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
             Integer id,
             SubscriptionPlanStatus status
     );
+
+    long countByServicePackage_Id(Integer servicePackageId);
 }

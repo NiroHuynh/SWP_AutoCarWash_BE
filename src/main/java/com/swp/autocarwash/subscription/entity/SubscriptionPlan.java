@@ -1,6 +1,5 @@
 package com.swp.autocarwash.subscription.entity;
 
-import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionPlanStatus;
@@ -11,8 +10,6 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -69,18 +66,5 @@ public class SubscriptionPlan {
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private SubscriptionPlanStatus status = SubscriptionPlanStatus.ACTIVE;
-
-    // Add-on riêng của gói subscription (marketing/hiển thị "quyền lợi kèm theo") - KHÔNG thay
-    // thế servicePackage ở trên: servicePackage vẫn là cơ chế xác định hạng dịch vụ rửa xe
-    // (Basic/Medium/Premium) mà booking/walk-in dùng để tính quyền lợi, tuyệt đối không đụng.
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "subscription_plan_addon_mapping",
-            schema = "swp_auto_car_wash",
-            joinColumns = @JoinColumn(name = "subscription_plan_id"),
-            inverseJoinColumns = @JoinColumn(name = "addon_service_id")
-    )
-    @Builder.Default
-    private List<AddonService> addonServices = new ArrayList<>();
 
 }

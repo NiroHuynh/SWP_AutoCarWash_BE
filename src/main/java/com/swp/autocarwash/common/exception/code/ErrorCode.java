@@ -514,6 +514,36 @@ public enum ErrorCode {
             "One or more selected add-on services are invalid or do not exist."
     ),
 
+    ADDON_SERVICES_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_032",
+            "Select at least one add-on service."
+    ),
+
+    ADDON_SERVICE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_033",
+            "Add-on name is required."
+    ),
+
+    INVALID_ADDON_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_034",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_ADDON_DURATION(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_035",
+            "Duration must be greater than 0."
+    ),
+
+    INVALID_SERVICE_CATEGORY(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_036",
+            "Selected service category does not exist."
+    ),
+
     FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SUBSCRIPTION_012",
