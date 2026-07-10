@@ -88,5 +88,5 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
 
     Optional<Voucher> findByVoucherCodeAndIsDeletedFalse(String voucherCode);
 
-
+    List<Voucher> findByIsDeletedFalse();
 }

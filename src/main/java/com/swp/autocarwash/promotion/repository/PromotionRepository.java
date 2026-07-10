@@ -26,4 +26,5 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
                                                        @Param("customerTierId") Integer customerTierId);
     Optional<Promotion> findByIdAndIsDeletedFalse(Integer id);
 
+    List<Promotion> findByIsDeletedFalse();
 }

@@ -26,8 +26,6 @@ public class PromotionVoucherController {
     @PostMapping("/config")
     public ResponseEntity<ApiResponse<CreatePromotionVoucherResponse>> configurePromotionOrVoucher(@RequestBody CreatePromotionVoucherRequest request) {
 
-        promotionVoucherService.createPromotionOrVoucher(request);
-
         // Gọi service hứng cục data trả về
         CreatePromotionVoucherResponse responseData = promotionVoucherService.createPromotionOrVoucher(request);
 
