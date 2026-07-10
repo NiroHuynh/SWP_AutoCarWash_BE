@@ -32,6 +32,7 @@ import com.swp.autocarwash.promotion.entity.PromotionStationMapping;
 import com.swp.autocarwash.promotion.entity.Voucher;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
 import com.swp.autocarwash.promotion.entity.enums.VoucherStatus;
+import com.swp.autocarwash.promotion.entity.enums.VoucherUsageStatus;
 import com.swp.autocarwash.promotion.repository.PromotionRepository;
 import com.swp.autocarwash.promotion.repository.PromotionStationMappingRepository;
 import com.swp.autocarwash.promotion.repository.VoucherRepository;
@@ -860,6 +861,7 @@ public class BookingServiceImpl implements BookingService {
                 .voucher(voucher)
                 .usedAt(LocalDateTime.now())
                 .customer(booking.getCustomer())
+                .status(VoucherUsageStatus.USED.name())
                 .build();
 
         // Tiêm voucherUsageRepository ở đầu class Service và gọi hàm save này:

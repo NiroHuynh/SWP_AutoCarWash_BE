@@ -199,25 +199,24 @@ public class BookingContextServiceImpl implements BookingContextService {
         //XỬ LÝ VOUCHER
 
         LocalDateTime currentDateTime = now.atStartOfDay();
-        // Quét danh sách mã có thể dùng (Chế độ 2 đúng Station + Chế độ 3 Public toàn sàn)
+        // 1. Quét danh sách mã có thể dùng (Chế độ 2 đúng Station + Chế độ 3 Public toàn sàn)
         List<Voucher> availableVouchers = voucherRepository.findAvailableVouchersForBooking(stationId, currentDateTime);
 
-
-        // Kiểm tra chốt chặn Chế độ 1: Nếu chi nhánh này đang chạy chiến dịch giảm giá sàn trực tiếp, hiển thị theo chi nhánh, theo rank của customer
+        // 2. Kiểm tra chốt chặn Chế độ 1 xem khách có đang được hưởng giảm sàn tự động không
         List<Promotion> directPromos = promotionRepository.findActiveDirectPromotionsForUser(stationId, now, customerTierId);
 
-        if (directPromos != null && !directPromos.isEmpty()) {
-            // Chỉ cần tồn tại ít nhất 1 chiến dịch giảm giá sàn (Chế độ 1) thực sự áp dụng cho hạng của khách,
-            // hệ thống sẽ lập tức khóa luồng chọn mã lẻ bằng cách trả về mảng rỗng để chặn "giảm giá chồng giảm giá".
-            availableVouchers = new ArrayList<>();
-        }
+        // Đặt một biến cờ để kiểm tra trạng thái khóa
+        boolean hasDirectPromo = (directPromos != null && !directPromos.isEmpty());
 
+        // 3. Map dữ liệu sang DTO và gán cờ Trạng thái hiển thị cho Frontend
         List<BookingContextResponse.VoucherDTO> voucherDTOs = availableVouchers.stream()
                 .map(v -> BookingContextResponse.VoucherDTO.builder()
-                        .id(v.getId() != null ? v.getId().intValue() : null) // Ép kiểu Long từ DB sang Integer của DTO
+                        .id(v.getId() != null ? v.getId().intValue() : null)
                         .voucherCode(v.getVoucherCode())
                         .discountPercentage(v.getDiscountPercentage())
                         .minOrderValue(v.getMinOrderValue())
+                        //Khóa hoặc mở khóa dựa vào việc có dính giảm giá sàn tự động hay không
+                        .isSelectable(!hasDirectPromo)
                         .build()
                 ).toList();
 
@@ -329,4 +328,5 @@ public class BookingContextServiceImpl implements BookingContextService {
         return null;
 
     }
+
 }

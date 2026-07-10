@@ -340,7 +340,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
         //PHẦN 1: BỐC DỮ LIỆU TỪ BẢNG PROMOTION (CHIẾN DỊCH VÀ VOUCHER CHẾ ĐỘ 1, 2)
 
-        List<Promotion> promotions = promotionRepository.findAll();
+        List<Promotion> promotions = promotionRepository.findByIsDeletedFalse();
 
         for (Promotion p : promotions) {
             // Điểm chặn 1: Lọc theo trạng thái chiến dịch
@@ -418,7 +418,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
         //PHẦN 2: BỐC DỮ LIỆU VOUCHER LẺ (CHẾ ĐỘ 3 - PROMOTION_ID LÀ NULL)
 
-        List<Voucher> vouchers = voucherRepository.findAll();
+        List<Voucher> vouchers = voucherRepository.findByIsDeletedFalse();
 
         for (Voucher v : vouchers) {
             // Chỉ lấy những Voucher độc lập (Không thuộc chiến dịch nào)
