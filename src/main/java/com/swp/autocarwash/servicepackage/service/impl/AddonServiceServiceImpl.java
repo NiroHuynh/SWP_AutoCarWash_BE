@@ -226,8 +226,8 @@ public class AddonServiceServiceImpl implements AddonServiceService {
         ServiceCategory category = serviceCategoryRepository.findById(1)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_CATEGORY_NOT_FOUND));
 
-        validator.validateFields(request.getName(), request.getPrice(), request.getDurationMinutes());
-        validator.validateNameDuplicateForCreate(request.getName());
+        validator.validateForCreate(request.getName(), request.getDurationMinutes());
+
 
         // Tạo entity trực tiếp từ request
         AddonService addon = AddonService.builder()
@@ -273,8 +273,7 @@ public class AddonServiceServiceImpl implements AddonServiceService {
                         ErrorCode.ADDON_SERVICE_NOT_FOUND
                 ));
 
-        validator.validateFields(request.getName(), request.getPrice(), request.getDurationMinutes());
-        validator.validateNameDuplicateForUpdate(request.getName(), addonServiceId);
+        validator.validateForUpdate(request.getName(), request.getDurationMinutes(), addonServiceId);
 
         // 2. Update trực tiếp
         addon.setName(request.getName());

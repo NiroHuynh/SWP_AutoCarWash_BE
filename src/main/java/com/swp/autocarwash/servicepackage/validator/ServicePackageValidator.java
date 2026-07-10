@@ -60,56 +60,33 @@ public class ServicePackageValidator {
 
     }
     /**
-     * Validate input khi CREATE service package
+     * Validate business rule cho create:
+     * - Name không bắt đầu bằng số
+     * - Check trùng name
+     *
+     * (Các check rỗng/price/addonIds đã do DTO annotation xử lý)
      */
-    public void validateCreate(String name, BigDecimal basePrice, List<Integer> addonIds) {
+    public void validateForCreate(String name) {
 
-        validateCommonFields(name, basePrice);
-        validateAddonIds(addonIds);
+        validateNameFormat(name);
         validateNameDuplicateForCreate(name);
     }
 
+    public void validateForUpdate(String name, Integer servicePackageId) {
 
-    /**
-     * Validate input khi UPDATE service package
-     */
-    public void validateUpdate(Integer servicePackageId, String name, BigDecimal basePrice, List<Integer> addonIds) {
-
-        validateCommonFields(name, basePrice);
-        validateAddonIds(addonIds);
+        validateNameFormat(name);
         validateNameDuplicateForUpdate(name, servicePackageId);
     }
 
 
     /**
-     * Validate các field chung cho cả create và update
+     * Name không được bắt đầu bằng số
      */
-    private void validateCommonFields(String name, BigDecimal basePrice) {
+    private void validateNameFormat(String name) {
 
-        // Name rỗng
-        if (name == null || name.trim().isEmpty()) {
-            throw new BusinessException(ErrorCode.SERVICE_PACKAGE_NAME_REQUIRED);
-        }
-
-        // Name bắt đầu bằng số
-        if (Character.isDigit(name.trim().charAt(0))) {
+        if (name != null && !name.trim().isEmpty()
+                && Character.isDigit(name.trim().charAt(0))) {
             throw new BusinessException(ErrorCode.SERVICE_PACKAGE_NAME_INVALID);
-        }
-
-        // Price null hoặc <= 0
-        if (basePrice == null || basePrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ErrorCode.SERVICE_PACKAGE_PRICE_INVALID);
-        }
-    }
-
-
-    /**
-     * Phải chọn ít nhất 1 addon
-     */
-    private void validateAddonIds(List<Integer> addonIds) {
-
-        if (addonIds == null || addonIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.SERVICE_PACKAGE_ADDON_REQUIRED);
         }
     }
 
@@ -135,6 +112,4 @@ public class ServicePackageValidator {
             throw new BusinessException(ErrorCode.SERVICE_PACKAGE_NAME_ALREADY_EXISTS);
         }
     }
-
-
 }
