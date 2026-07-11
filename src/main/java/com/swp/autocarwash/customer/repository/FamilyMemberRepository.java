@@ -18,4 +18,11 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
             "AND fs.status = 'ACTIVE' " +
             "AND :today BETWEEN fs.startDate AND fs.endDate")
     boolean existsActiveFamilyByVehicleId(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
+
+    // AC03: Kiểm tra khách hàng đã đi làm thành viên của nhóm nào khác chưa
+    boolean existsByCustomerId(Long customerId);
+
+    // AC04: Kiểm tra xe này đã bị trói vào nhóm gia đình nào khác chưa (Quy tắc UNIQUE xe)
+    boolean existsByVehicleId(Long vehicleId);
+
 }

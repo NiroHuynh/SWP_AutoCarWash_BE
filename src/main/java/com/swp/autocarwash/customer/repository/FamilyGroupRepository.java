@@ -19,4 +19,7 @@ public interface FamilyGroupRepository extends JpaRepository<FamilyGroup,Long> {
     Long findOwnerCustomerIdByMemberCustomerId(
             @Param("customerId") Long customerId
     );
+
+    // AC03: Kiểm tra xem khách hàng này có đang là chủ của nhóm nào chưa bị xóa mềm không
+    boolean existsByOwnerCustomerIdAndIsDeletedFalse(Long ownerCustomerId);
 }
