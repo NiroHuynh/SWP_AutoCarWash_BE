@@ -51,4 +51,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     // reset chủ động: restricted_until < now tự loại trừ NULL, không cần IS NOT NULL riêng
     List<Customer> findByRestrictedUntilBefore(Instant now);
 
+    // Tìm kiếm khách hàng bằng SĐT hoặc Email liên kết qua bảng User
+    //ĐÃ THÊM: Chỉ tìm những tài khoản đang hoạt động và chưa bị xóa mềm
+    @Query("SELECT c FROM Customer c " +
+            "WHERE (c.user.email = :identifier OR c.user.phone = :identifier) " +
+            "AND c.user.isActive = true " +
+            "AND c.user.isDeleted = false")
+    Optional<Customer> findByIdentifier(@Param("identifier") String identifier);
+
 }

@@ -25,4 +25,5 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
     // AC04: Kiểm tra xe này đã bị trói vào nhóm gia đình nào khác chưa (Quy tắc UNIQUE xe)
     boolean existsByVehicleId(Long vehicleId);
 
+    long countByFamilyGroupId(Long familyGroupId);
 }

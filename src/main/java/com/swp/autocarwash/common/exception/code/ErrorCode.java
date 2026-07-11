@@ -534,7 +534,53 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "FAMILY_SB__005",
             "The selected vehicle is already linked to another family group. Each vehicle can only be associated with one family group at a time."
+    ),
+    FAMILY_GROUP_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__006",
+            "Family group not found"
+    ),
+    FORBIDDEN_NOT_GROUP_OWNER(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__006",
+            "You do not have permission to perform this action. Only the owner of the family group can make changes to it."
+    ),
+    FAMILY_SUBSCRIPTION_EXPIRED_OR_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__007",
+            "The family subscription has either expired or does not exist."
+    ),
+    FAMILY_GROUP_LIMIT_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__008",
+            "The family group has reached its maximum member limit. You cannot add more members to this group."
+    ),
+    CANNOT_INVITE_YOURSELF(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__009",
+            "You cannot invite yourself to your own family group."
+    ),
+    INVITED_CUSTOMER_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__010",
+            "The customer you are trying to invite does not exist."
+    ),
+    INVITED_CUSTOMER_ALREADY_IN_ANOTHER_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__011",
+            "The customer you are trying to invite is already a member of another family group. A customer can only belong to one family group at a time."
+    ),
+    VEHICLE_HAS_ACTIVE_PERSONAL_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__012",
+            "The vehicle you are trying to add to the family group already has an active personal subscription. A vehicle cannot be part of a family subscription while it has an active personal subscription."
+    ),
+    IDENTIFIER_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__013",
+            "The identifier of the customer(phone or gmail) you are trying to invite cannot be empty. Please provide a valid identifier."
     );
+
 
 
 
