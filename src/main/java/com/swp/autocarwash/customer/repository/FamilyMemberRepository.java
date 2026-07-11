@@ -11,6 +11,15 @@ import java.util.Optional;
 public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long> {
     Optional<FamilyMember> findByVehicleId(Long vehicleId);
 
+    //VÁ LỖ HỔNG: Tìm thành viên theo xe, kèm điều kiện Gói Family của nhóm phải đang ACTIVE và CÒN HẠN
+    @Query("SELECT fm FROM FamilyMember fm " +
+            "JOIN FamilySubscription fs ON fm.familyGroup.id = fs.familyGroup.id " +
+            "WHERE fm.vehicle.id = :vehicleId " +
+            "AND fs.status = 'ACTIVE' " +
+            "AND fs.endDate >= :currentDate")
+    Optional<FamilyMember> findActiveFamilyMemberByVehicleId(@Param("vehicleId") Long vehicleId,
+                                                             @Param("currentDate") LocalDate currentDate);
+
     // Hàm check xe đích dính gói Family
     @Query("SELECT COUNT(fs) > 0 FROM FamilyMember fm " +
             "JOIN FamilySubscription fs ON fm.familyGroup.id = fs.familyGroup.id " +

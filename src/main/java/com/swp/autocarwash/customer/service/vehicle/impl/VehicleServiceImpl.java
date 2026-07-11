@@ -268,7 +268,7 @@ public class VehicleServiceImpl implements VehicleService {
         //Quét xem xe này đang thuộc gói nào
         Optional<UnlimitSubscription> unlimitOpt = unlimitSubscriptionRepository.findByVehicleIdAndStatus(request.getSourceVehicleId(),
                 "ACTIVE");
-        Optional<FamilyMember> familyMemberOpt = familyMemberRepository.findByVehicleId(request.getSourceVehicleId());
+        Optional<FamilyMember> familyMemberOpt = familyMemberRepository.findActiveFamilyMemberByVehicleId(request.getSourceVehicleId(), LocalDate.now());
 
         if(unlimitOpt.isEmpty() && familyMemberOpt.isEmpty()){
             throw new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND);
@@ -277,23 +277,40 @@ public class VehicleServiceImpl implements VehicleService {
         int lockPeriodDays = systemSettingServiceImpl.getTransferLock("SUBSCRIPTION_TRANSFER_LOCK_DAYS");
 
         //nếu xe sở hữu gói unlimited
-        if(unlimitOpt.isPresent()){
-            UnlimitSubscription unlimitSub = unlimitOpt.get();
-            if(unlimitSub.getLastVehicleChangeAt() != null) {
-                LocalDateTime lockDeadline = unlimitSub.getLastVehicleChangeAt().plusDays(lockPeriodDays);
+//        if(unlimitOpt.isPresent()){
+//            UnlimitSubscription unlimitSub = unlimitOpt.get();
+//            if(unlimitSub.getLastVehicleChangeAt() != null) {
+//                LocalDateTime lockDeadline = unlimitSub.getLastVehicleChangeAt().plusDays(lockPeriodDays);
+//
+//                if (LocalDateTime.now().isBefore(lockDeadline)) {
+//                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
+//                }
+//            }
+//        }
+//        else if(familyMemberOpt.isPresent()){
+//            FamilyMember familyMember = familyMemberOpt.get();
+//            if(familyMember.getVehicleChangeCount() != null && familyMember.getVehicleChangeCount() >= 1){
+//                LocalDateTime lockDeadline = familyMember.getVehicleChangeWindowStart().plusDays(lockPeriodDays);
+//                if(LocalDateTime.now().isBefore(lockDeadline)){
+//                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
+//                }
+//            }
+//        }
 
-                if (LocalDateTime.now().isBefore(lockDeadline)) {
-                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
-                }
-            }
+        // Trích xuất mốc thời gian đổi gần nhất dựa theo gói đang sở hữu
+        LocalDateTime lastChangeAt = null;
+        if (unlimitOpt.isPresent()) {
+            lastChangeAt = unlimitOpt.get().getLastVehicleChangeAt();
+        } else if (familyMemberOpt.isPresent()) {
+            // Tận dụng trường window start cũ để lưu mốc thời gian đổi gần nhất cho đồng bộ
+            lastChangeAt = familyMemberOpt.get().getVehicleChangeWindowStart();
         }
-        else if(familyMemberOpt.isPresent()){
-            FamilyMember familyMember = familyMemberOpt.get();
-            if(familyMember.getVehicleChangeCount() != null && familyMember.getVehicleChangeCount() >= 1){
-                LocalDateTime lockDeadline = familyMember.getVehicleChangeWindowStart().plusDays(lockPeriodDays);
-                if(LocalDateTime.now().isBefore(lockDeadline)){
-                    throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
-                }
+
+        // Gác cổng: Nếu đã từng đổi xe và thời gian hiện tại vẫn chưa vượt qua hạn lock -> Chặn đứng
+        if (lastChangeAt != null) {
+            LocalDateTime lockDeadline = lastChangeAt.plusDays(lockPeriodDays);
+            if (LocalDateTime.now().isBefore(lockDeadline)) {
+                throw new BusinessException(ErrorCode.TRANSFER_LIMIT_REACHED);
             }
         }
 
@@ -323,23 +340,24 @@ public class VehicleServiceImpl implements VehicleService {
 
         //PERFORM TRANSFER PLAN (CẬP NHẬT XE MỚI XUỐNG DB)
         // Nhánh A: Cập nhật cho gói Unlimited
-        if(unlimitOpt.isPresent()){
+        LocalDateTime now = LocalDateTime.now();
+
+        // Nhánh A: Cập nhật cho gói Unlimited
+        if (unlimitOpt.isPresent()) {
             UnlimitSubscription unlimitSub = unlimitOpt.get();
             unlimitSub.setVehicle(targetVehicle);
-            unlimitSub.setLastVehicleChangeAt(LocalDateTime.now());
+            unlimitSub.setLastVehicleChangeAt(now); // Găm mốc thời gian khóa lần này
             unlimitSubscriptionRepository.save(unlimitSub);
         }
-        else if(familyMemberOpt.isPresent()){
+        // Nhánh B: Cập nhật cho gói thành viên Family Group (Đã lược bỏ đếm số lần)
+        else if (familyMemberOpt.isPresent()) {
             FamilyMember familyMember = familyMemberOpt.get();
-            // Lấy số lần đổi cũ
-            int currentCount = (familyMember.getVehicleChangeCount() != null) ? familyMember.getVehicleChangeCount() : 0;
-            // Nếu chưa từng đổi (lần đầu của chu kỳ), găm mốc thời gian bắt đầu tính 30 ngày
-            if (currentCount == 0) {
-                familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
-            }
-            familyMember.setVehicleChangeCount(currentCount + 1);
-            familyMember.setVehicle(targetVehicle);
-            //familyMember.setVehicleChangeWindowStart(LocalDateTime.now());
+            familyMember.setVehicle(targetVehicle); // Ghi đè xe mới vào hệ thống gia đình
+            familyMember.setVehicleChangeWindowStart(now); // Găm mốc thời gian khóa lần này (Đồng bộ với Unlimited)
+
+            // Nếu DB chưa xóa cột count, có thể set cứng tạm thời hoặc bỏ qua dòng dưới nếu đã xóa DB:
+            // familyMember.setVehicleChangeCount(1);
+
             familyMemberRepository.save(familyMember);
         }
     }
