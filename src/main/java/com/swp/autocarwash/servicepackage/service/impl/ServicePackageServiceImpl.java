@@ -143,7 +143,7 @@ public class ServicePackageServiceImpl
     public List<ServicePackageResponse> getActiveServicePackages() {
 
         return repository
-                .findAllByStatusAndIsDeletedFalse(ServicePackageStatus.ACTIVE)
+                .findAllByIsDeletedFalse()
                 .stream()
                 .map(servicePackage -> ServicePackageResponse.builder()
                         .id(servicePackage.getId())

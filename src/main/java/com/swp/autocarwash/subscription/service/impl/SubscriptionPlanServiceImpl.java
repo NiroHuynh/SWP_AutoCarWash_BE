@@ -41,7 +41,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         switch (status.toUpperCase()) {
 
             case "ALL":
-                subscriptionPlans = subscriptionPlanRepository.findByStatusIn(
+                subscriptionPlans = subscriptionPlanRepository.findByStatusInAndIsDeletedFalse(
                         List.of(
                                 SubscriptionPlanStatus.ACTIVE,
                                 SubscriptionPlanStatus.INACTIVE
@@ -50,13 +50,13 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 break;
 
             case "ACTIVE":
-                subscriptionPlans = subscriptionPlanRepository.findByStatus(
+                subscriptionPlans = subscriptionPlanRepository.findByStatusAndIsDeletedFalse(
                         SubscriptionPlanStatus.ACTIVE
                 );
                 break;
 
             case "INACTIVE":
-                subscriptionPlans = subscriptionPlanRepository.findByStatus(
+                subscriptionPlans = subscriptionPlanRepository.findByStatusAndIsDeletedFalse(
                         SubscriptionPlanStatus.INACTIVE
                 );
                 break;
@@ -115,9 +115,8 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         validateBusiness(request);
 
         ServicePackage servicePackage = servicePackageRepository
-                .findByIdAndStatusAndIsDeletedFalse(
-                        request.getServicePackageId(),
-                        ServicePackageStatus.ACTIVE
+                .findByIdAndIsDeletedFalse(
+                        request.getServicePackageId()
                 )
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.INVALID_SERVICE_PACKAGE));
@@ -206,9 +205,8 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                                 new BusinessException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
 
         ServicePackage servicePackage =
-                servicePackageRepository.findByIdAndStatus(
-                                request.getServicePackageId(),
-                                ServicePackageStatus.ACTIVE)
+                servicePackageRepository.findById(
+                                request.getServicePackageId())
                         .orElseThrow(() ->
                                 new BusinessException(ErrorCode.INVALID_SERVICE_PACKAGE));
 

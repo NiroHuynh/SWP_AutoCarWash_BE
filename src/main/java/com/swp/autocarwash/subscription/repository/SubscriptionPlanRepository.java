@@ -13,7 +13,7 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
 
     List<SubscriptionPlan> findByStatus(SubscriptionPlanStatus status);
 
-    List<SubscriptionPlan> findByStatusIn(List<SubscriptionPlanStatus> statuses);
+    List<SubscriptionPlan> findByStatusInAndIsDeletedFalse(List<SubscriptionPlanStatus> statuses);
 
     Optional<SubscriptionPlan> findByIdAndIsDeletedFalse(Integer id);
 
