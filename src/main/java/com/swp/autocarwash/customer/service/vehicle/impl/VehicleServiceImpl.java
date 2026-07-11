@@ -125,20 +125,17 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional
     public CreateVehicleResponse createVehicle(Long userId, CreateVehicleRequest request) {
 
+
         String licensePlate = request.getLicensePlate().trim().toUpperCase();
 
-        boolean isPlateExists =
-                vehicleRepository.existsByLicensePlateAndIsDeletedFalse(licensePlate);
-
-        if (isPlateExists) {
-            throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
-        }
+// Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
+        vehicleValidator.validateCreate(licensePlate);
 
         Customer customer = customerPort.getCustomerReferenceByUserId(userId);
 
         Vehicle vehicle = Vehicle.builder()
                 .customer(customer)
-                .licensePlate(request.getLicensePlate())
+                .licensePlate(licensePlate)   // dùng bản đã normalize
                 .brandName(request.getBrandName())
                 .color(request.getColor())
                 .violationCount(0)
@@ -200,11 +197,11 @@ public class VehicleServiceImpl implements VehicleService {
         }
 
         //check xem thử license_plate mới đã tồn tại ở vehicle khác chưa
-        if(request.getLicensePlate() != null){
-            boolean isPlateDup = vehicleRepository.existsByLicensePlateAndIdNotAndIsDeletedFalse(request.getLicensePlate(), vehicleId);
-            if(isPlateDup){
-                throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
-            }
+        if (request.getLicensePlate() != null) {
+            String newPlate = request.getLicensePlate().trim().toUpperCase();
+            // Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
+            vehicleValidator.validateUpdate(newPlate, vehicleId);
+            request.setLicensePlate(newPlate); // chuẩn hóa luôn trước khi save
         }
 
         //update vào bảng vehicle
