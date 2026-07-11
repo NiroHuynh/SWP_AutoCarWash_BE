@@ -81,4 +81,7 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
     Optional<FamilySubscription> findActiveSubscription(@Param("groupId") Long groupId,
                                                         @Param("currentDate") LocalDate currentDate);
 
+    @Query("SELECT fs FROM FamilySubscription fs WHERE fs.familyGroup.id = :groupId AND fs.status = 'ACTIVE'")
+    Optional<FamilySubscription> findActiveSubscriptionByGroupId(@Param("groupId") Long groupId);
+
 }

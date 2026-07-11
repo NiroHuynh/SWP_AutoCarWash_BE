@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface FamilyGroupRepository extends JpaRepository<FamilyGroup,Long> {
     @Query("""
@@ -22,4 +24,8 @@ public interface FamilyGroupRepository extends JpaRepository<FamilyGroup,Long> {
 
     // AC03: Kiểm tra xem khách hàng này có đang là chủ của nhóm nào chưa bị xóa mềm không
     boolean existsByOwnerCustomerIdAndIsDeletedFalse(Long ownerCustomerId);
+
+    //Tìm xem khách hàng có đang làm Owner của nhóm nào không.
+    Optional<FamilyGroup> findByOwnerCustomerId(Long ownerCustomerId);
+    
 }

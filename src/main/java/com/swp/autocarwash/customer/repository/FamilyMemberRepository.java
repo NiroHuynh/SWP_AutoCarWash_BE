@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long> {
@@ -35,4 +36,11 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
     boolean existsByVehicleId(Long vehicleId);
 
     long countByFamilyGroupId(Long familyGroupId);
+
+    // Tìm xem khách hàng có đang nằm trong một nhóm nào không
+    Optional<FamilyMember> findByCustomerId(Long customerId);
+
+    // Kéo tất cả các thành viên đang thuộc về nhóm này
+    List<FamilyMember> findByFamilyGroupId(Long familyGroupId);
+
 }

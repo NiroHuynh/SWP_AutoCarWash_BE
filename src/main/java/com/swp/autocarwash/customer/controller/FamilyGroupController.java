@@ -5,9 +5,11 @@ import com.swp.autocarwash.customer.dto.request.AddFamilyMemberRequest;
 import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
+import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
 import com.swp.autocarwash.customer.service.family.FamilyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -51,6 +53,23 @@ public class FamilyGroupController {
                 .success(true)
                 .message("Found the customer information")
                 .data(response)
+                .build());
+    }
+
+    @GetMapping("/my-group")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<FamilyGroupDetailsResponse>> getMyFamilyGroupDetails() {
+
+        FamilyGroupDetailsResponse data = familyGroupService.getFamilyGroupDetails();
+
+        String msg = (data != null)
+                ? "Family group information loaded successfully!"
+                : "You haven't joined any family groups yet.";
+
+        return ResponseEntity.ok(ApiResponse.<FamilyGroupDetailsResponse>builder()
+                .success(true)
+                .message(msg)
+                .data(data) // Trả về data object lồng nhau hoặc null
                 .build());
     }
 }
