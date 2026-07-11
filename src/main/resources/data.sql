@@ -316,17 +316,17 @@ SET c.customer_tier_id = (
 );
 
 -- =====================================================================
--- SERVICE CATEGORY (3) — dong san pham: rua le, goi Family, goi Unlimited
+-- SERVICE CATEGORY (3)
 -- =====================================================================
 INSERT IGNORE INTO service_category
 (id, category_name, description)
 VALUES
-    (1, 'Single Wash', 'Dich vu rua xe theo lan, thanh toan tung luot'),
-    (2, 'Family',      'Dich vu thuoc goi thanh vien Family (nhieu xe)'),
-    (3, 'Unlimited',   'Dich vu thuoc goi thanh vien Unlimited (khong gioi han)');
+    (1, 'Add-on',            'Dich vu bo sung them cho goi rua xe'),
+    (2, 'Service Package',   'Goi dich vu rua xe theo lan (Basic/Medium/Premium)'),
+    (3, 'Subscription Plan', 'Goi dang ky thanh vien (Unlimited va Family)');
 
 -- =====================================================================
--- ADDON SERVICE (7) — addon tuong ung 3 goi Basic/Medium/Premium (FE mock)
+-- ADDON SERVICE (8) — service_category_id = 1 (Add-on)
 -- =====================================================================
 INSERT IGNORE INTO addon_service
 (id, name, price, duration_minutes, service_category_id, is_deleted)
@@ -338,23 +338,20 @@ VALUES
     (5, 'Window Cleaning',         30000,  15, 1, false),
     (6, 'Ceramic Boost Spray',     150000, 15, 1, false),
     (7, 'Dashboard UV Protection', 80000,  15, 1, false),
-
-    (50, 'Xịt Gầm Chống Rỉ', 30000.00, 15, 1, false);
+    (50, 'Xịt Gầm Chống Rỉ',     30000,  15, 1, false);
 
 -- =====================================================================
--- SERVICE PACKAGE (3) — dung dung 3 muc Basic/Medium/Premium theo FE mock.
--- required_slot = durationMinutes / 15 (Basic 15p, Medium 30p, Premium 45p)
+-- SERVICE PACKAGE (3) — service_category_id = 2 (Service Package)
 -- =====================================================================
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
-    (1, 1, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                     1, false),
-    (2, 1, 'Medium',  299000, 'Lam moi toan dien tu trong ra ngoai: bao gom Basic + hut bui noi that va lau kinh',                    2, false),
-    (3, 1, 'Premium', 499000, 'Cham soc va bao ve toi uu: bao gom Medium + xit ceramic boost va chong tia UV cho bang dieu khien',    3, false);
+    (1, 2, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                  1, false),
+    (2, 2, 'Medium',  299000, 'Lam moi toan dien tu trong ra ngoai: bao gom Basic + hut bui noi that va lau kinh',                 2, false),
+    (3, 2, 'Premium', 499000, 'Cham soc va bao ve toi uu: bao gom Medium + xit ceramic boost va chong tia UV cho bang dieu khien', 3, false);
 
 -- =====================================================================
--- PACKAGE ADDON MAPPING (15) — addon cong don theo tung muc (Basic 3,
--- Medium 5, Premium 7) dung khop danh sach addons trong FE mock
+-- PACKAGE ADDON MAPPING (15)
 -- =====================================================================
 INSERT IGNORE INTO package_addon_mapping
 (service_package_id, addon_service_id)
@@ -364,24 +361,23 @@ VALUES
     (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7);
 
 -- =====================================================================
--- SUBSCRIPTION PLAN (12) — moi to hop (Unlimited/Family x Basic/Premium)
--- co du 3 ky han: 1 thang, 3 thang, 6 thang
+-- SUBSCRIPTION PLAN (12) — service_category_id = 3 (Subscription Plan)
 -- =====================================================================
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted)
 VALUES
-    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang', false),
-    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang', false),
-    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang', false),
-    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang', false),
-    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 6 thang', false),
-    (6,  1, 2, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang', false),
-    (7,  3, 2, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang', false),
-    (8,  1, 2, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang', false),
-    (9,  3, 2, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang', false),
-    (10, 3, 2, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang', false),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang', false),
-    (12, 1, 2, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang', false);
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang',              false),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang',              false),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false),
+    (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang',   false),
+    (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang',          false),
+    (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang',   false),
+    (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang',          false),
+    (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang',          false),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang',              false),
+    (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang',   false);
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)

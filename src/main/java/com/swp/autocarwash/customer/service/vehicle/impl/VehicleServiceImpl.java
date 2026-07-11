@@ -123,66 +123,29 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     @Transactional
-    public CreateVehicleResponse createVehicle(
-            Long userId,
-            CreateVehicleRequest request
-    ){
-
-        Optional<Vehicle> existingVehicleOpt =
-                vehicleRepository.findByLicensePlate(
-                        request.getLicensePlate()
-                );
-
-        vehicleValidator
-                .validateCreate(existingVehicleOpt);
+    public CreateVehicleResponse createVehicle(Long userId, CreateVehicleRequest request) {
 
 
+        String licensePlate = request.getLicensePlate().trim().toUpperCase();
 
-        // Xác định customer đang đăng nhập dựa vào userId lấy từ JWT,
-        // không còn nhận customerId trực tiếp từ FE (tránh client tự ý add xe cho người khác)
-        Customer customer =
-                customerPort.getCustomerReferenceByUserId(userId);
+// Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
+        vehicleValidator.validateCreate(licensePlate);
 
+        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
 
+        Vehicle vehicle = Vehicle.builder()
+                .customer(customer)
+                .licensePlate(licensePlate)   // dùng bản đã normalize
+                .brandName(request.getBrandName())
+                .color(request.getColor())
+                .violationCount(0)
+                .restrictedUntil(null)
+                .isDeleted(false)
+                .build();
 
-        Vehicle savedVehicle;
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
 
-        if (existingVehicleOpt.isPresent()) {
-
-            // Xe walk-in cũ chưa có chủ -> gắn customer hiện tại vào,
-            // KHÔNG tạo dòng mới để tránh trùng license_plate và mất lịch sử cũ của xe
-            Vehicle existingVehicle =
-                    existingVehicleOpt.get();
-
-            existingVehicle.setCustomer(customer);
-
-            savedVehicle =
-                    vehicleRepository.save(existingVehicle);
-
-        } else {
-
-            Vehicle vehicle =
-                    Vehicle.builder()
-                            .customer(customer)
-                            .licensePlate(request.getLicensePlate())
-                            .brandName(request.getBrandName())
-                            .color(request.getColor())
-                            // các field FE không gửi -> set giá trị mặc định
-                            .violationCount(0)
-                            .restrictedUntil(null)
-                            .isDeleted(false)
-                            .build();
-
-            savedVehicle =
-                    vehicleRepository.save(vehicle);
-
-        }
-
-        return vehicleMapper
-                .toResponse(
-                        savedVehicle
-                );
-
+        return vehicleMapper.toResponse(savedVehicle);
     }
 
     @Transactional
@@ -234,11 +197,11 @@ public class VehicleServiceImpl implements VehicleService {
         }
 
         //check xem thử license_plate mới đã tồn tại ở vehicle khác chưa
-        if(request.getLicensePlate() != null){
-            boolean isPlateDup = vehicleRepository.existsByLicensePlateAndIdNotAndIsDeletedFalse(request.getLicensePlate(), vehicleId);
-            if(isPlateDup){
-                throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
-            }
+        if (request.getLicensePlate() != null) {
+            String newPlate = request.getLicensePlate().trim().toUpperCase();
+            // Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
+            vehicleValidator.validateUpdate(newPlate, vehicleId);
+            request.setLicensePlate(newPlate); // chuẩn hóa luôn trước khi save
         }
 
         //update vào bảng vehicle
