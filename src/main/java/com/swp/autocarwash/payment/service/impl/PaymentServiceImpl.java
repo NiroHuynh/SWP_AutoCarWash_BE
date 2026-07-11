@@ -36,6 +36,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +55,7 @@ import static java.lang.Math.min;
  * @author Ngọc
  * @version 1.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
@@ -300,10 +302,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentTransactionHistoryResponse getTransactionHistory(
             String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
-            Long bookingId, Long transactionId, Integer stationId, String phone) {
+            Long bookingId, Long transactionId, Integer stationId, Integer communeId, Integer provinceId,
+            String phone) {
 
         List<Payment> payments = paymentRepository.findAllTransactions(
-                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, phone);
+                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, communeId,
+                provinceId, phone);
 
         List<PaymentTransactionResponse> transactions = payments.stream()
                 .map(this::toPaymentTransactionResponse)
@@ -332,6 +336,7 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentTransactionResponse.builder()
                 .id(payment.getId())
                 .bookingId(bookingId)
+                .customerName(resolveCustomerName(payment))
                 .customerPhone(resolveCustomerPhone(payment))
                 .paymentMethod(payment.getPaymentMethod())
                 .amount(payment.getAmount())
@@ -340,12 +345,32 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
     }
 
-    private String resolveCustomerPhone(Payment payment) {
-        if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
-            return payment.getBookingInvoice().getCustomer().getUser().getPhone();
+    private String resolveCustomerName(Payment payment) {
+        try {
+            if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
+                return payment.getBookingInvoice().getCustomer().getFullName();
+            }
+            if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
+                return payment.getSubscriptionInvoice().getCustomer().getFullName();
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Payment {} tham chiếu tới customer/user không còn tồn tại (data mồ côi), bỏ qua customerName",
+                    payment.getId());
         }
-        if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
-            return payment.getSubscriptionInvoice().getCustomer().getUser().getPhone();
+        return null;
+    }
+
+    private String resolveCustomerPhone(Payment payment) {
+        try {
+            if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
+                return payment.getBookingInvoice().getCustomer().getUser().getPhone();
+            }
+            if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
+                return payment.getSubscriptionInvoice().getCustomer().getUser().getPhone();
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Payment {} tham chiếu tới customer/user không còn tồn tại (data mồ côi), bỏ qua customerPhone",
+                    payment.getId());
         }
         return null;
     }

@@ -329,7 +329,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional(readOnly = true)
     public CustomerListPageResponse getCustomerList(
-            String keyword, Integer year, Integer month, String tier, Boolean active, Pageable pageable) {
+            String keyword, Integer year, Integer month, String tier, Boolean active, Integer stationId,
+            Integer communeId, Integer provinceId, Pageable pageable) {
         LocalDateTime monthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime monthEnd = monthStart.plusMonths(1);
 
@@ -339,8 +340,8 @@ public class CustomerServiceImpl implements CustomerService {
                 .goldMembers(customerRepository.countGoldMembers())
                 .build();
 
-        Page<CustomerListProjection> page =
-                customerRepository.findCustomerList(keyword, year, month, tier, active, pageable);
+        Page<CustomerListProjection> page = customerRepository.findCustomerList(
+                keyword, year, month, tier, active, stationId, communeId, provinceId, pageable);
 
         List<CustomerListItemResponse> content = page.getContent().stream()
                 .map(p -> CustomerListItemResponse.builder()
