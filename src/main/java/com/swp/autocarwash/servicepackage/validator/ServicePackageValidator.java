@@ -60,28 +60,27 @@ public class ServicePackageValidator {
 
     }
     /**
-     * Validate business rule cho create:
-     * - Name không bắt đầu bằng số
-     * - Check trùng name
-     *
-     * (Các check rỗng/price/addonIds đã do DTO annotation xử lý)
+     * Validate cho create: name format + bội 15 + trùng name
      */
-    public void validateForCreate(String name) {
+    public void validateForCreate(String name, Integer durationMinutes) {
 
         validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
         validateNameDuplicateForCreate(name);
-    }
-
-    public void validateForUpdate(String name, Integer servicePackageId) {
-
-        validateNameFormat(name);
-        validateNameDuplicateForUpdate(name, servicePackageId);
     }
 
 
     /**
-     * Name không được bắt đầu bằng số
+     * Validate cho update: name format + bội 15 + trùng name
      */
+    public void validateForUpdate(String name, Integer durationMinutes, Integer servicePackageId) {
+
+        validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
+        validateNameDuplicateForUpdate(name, servicePackageId);
+    }
+
+
     private void validateNameFormat(String name) {
 
         if (name != null && !name.trim().isEmpty()
@@ -92,8 +91,16 @@ public class ServicePackageValidator {
 
 
     /**
-     * Check trùng name khi create
+     * Duration phải là bội 15 (cho phép 0)
      */
+    private void validateDurationMultiple(Integer durationMinutes) {
+
+        if (durationMinutes != null && durationMinutes % 15 != 0) {
+            throw new BusinessException(ErrorCode.SERVICE_PACKAGE_DURATION_INVALID);
+        }
+    }
+
+
     private void validateNameDuplicateForCreate(String name) {
 
         if (servicePackageRepository.existsByNameAndIsDeletedFalse(name.trim())) {
@@ -102,9 +109,6 @@ public class ServicePackageValidator {
     }
 
 
-    /**
-     * Check trùng name khi update — loại trừ chính nó
-     */
     private void validateNameDuplicateForUpdate(String name, Integer servicePackageId) {
 
         if (servicePackageRepository.existsByNameAndIsDeletedFalseAndIdNot(

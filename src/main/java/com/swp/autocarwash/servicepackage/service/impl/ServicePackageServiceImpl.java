@@ -158,18 +158,16 @@ public class ServicePackageServiceImpl
     }
 
     /**
-     * Lấy tất cả package chưa xóa.
-     * durationMinutes = SUM(addon.duration_minutes) qua package_addon_mapping.
-     * Không có addon nào → 0.
-     * Trả thêm danh sách addonIds của từng package.
+     * Lấy tất cả package chưa xóa
+     * durationMinutes = required_slot * 15 (admin tự nhập)
      */
     @Override
     public List<ServicePackageResponse> getAllServicePackages() {
 
-        List<Object[]> rows = repository.findAllWithDuration();
+        List<ServicePackage> packages = repository.findByIsDeletedFalse();
 
-        List<Integer> packageIds = rows.stream()
-                .map(row -> ((Number) row[0]).intValue())
+        List<Integer> packageIds = packages.stream()
+                .map(ServicePackage::getId)
                 .toList();
 
         Map<Integer, List<Integer>> addonMap =
@@ -183,40 +181,40 @@ public class ServicePackageServiceImpl
                                 )
                         ));
 
-        return rows.stream()
-                .map(row -> {
-                    Integer packageId = ((Number) row[0]).intValue();
-
-                    return ServicePackageResponse.builder()
-                            .id(packageId)
-                            .name((String) row[1])
-                            .description((String) row[2])
-                            .basePrice((BigDecimal) row[3])
-                            .durationMinutes(((Number) row[4]).intValue())
-                            .addonIds(addonMap.getOrDefault(packageId, List.of()))
-                            .build();
-                })
+        return packages.stream()
+                .map(sp -> ServicePackageResponse.builder()
+                        .id(sp.getId())
+                        .name(sp.getName())
+                        .description(sp.getDescription())
+                        .basePrice(sp.getBasePrice())
+                        .durationMinutes(sp.getRequiredSlot() * 15)
+                        .addonIds(addonMap.getOrDefault(sp.getId(), List.of()))
+                        .build()
+                )
                 .toList();
     }
+
 
     /**
      * Tạo service package mới
      * Flow:
-     * 1. Tìm tất cả addon theo ids — nếu số lượng không khớp → có addon không tồn tại/đã xóa
-     * 2. Tính tổng duration từ addon → required_slot = totalDuration / 15
-     * 3. Tạo service_package (category cố định, BE tự set)
-     * 4. Tạo package_addon_mapping cho từng addon
-     * 5. Trả response kèm durationMinutes
+     * 1. Validate name format + bội 15 + trùng name
+     * 2. Validate addon tồn tại
+     * 3. required_slot = durationMinutes / 15 (admin tự nhập duration)
+     * 4. Tạo service_package
+     * 5. Tạo package_addon_mapping
+     * 6. Trả response
      */
     @Override
     @Transactional
     public ServicePackageResponse createServicePackage(CreateServicePackageRequest request) {
 
-        validator.validateForCreate(request.getName());
+        // 1. Validate business rule
+        validator.validateForCreate(request.getName(), request.getDurationMinutes());
 
         List<Integer> addonIds = request.getAddonIds();
 
-        // 1. Validate addon tồn tại và chưa xóa
+        // 2. Validate addon tồn tại và chưa xóa
         List<AddonService> addons =
                 addonServiceRepository.findByIdInAndIsDeletedFalse(addonIds);
 
@@ -224,17 +222,13 @@ public class ServicePackageServiceImpl
             throw new BusinessException(ErrorCode.ADDON_SERVICE_NOT_FOUND);
         }
 
-        // 2. Tính tổng duration → required_slot
-        int totalDuration = addons.stream()
-                .mapToInt(AddonService::getDurationMinutes)
-                .sum();
-
-        int requiredSlot = totalDuration / 15;
+        // 3. required_slot từ duration admin nhập
+        int requiredSlot = request.getDurationMinutes() / 15;
 
         ServiceCategory category = serviceCategoryRepository.findById(2)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_CATEGORY_NOT_FOUND));
 
-        // 3. Tạo service_package
+        // 4. Tạo service_package
         ServicePackage servicePackage = ServicePackage.builder()
                 .name(request.getName())
                 .basePrice(request.getBasePrice())
@@ -248,42 +242,41 @@ public class ServicePackageServiceImpl
 
         ServicePackage saved = repository.save(servicePackage);
 
-        // 4. Tạo package_addon_mapping cho từng addon
+        // 5. Tạo package_addon_mapping
         List<PackageAddonMapping> mappings = addonIds.stream()
                 .map(addonId -> {
                     AddonService addon = addonServiceRepository.getReferenceById(addonId);
-
                     PackageAddonMapping mapping = new PackageAddonMapping();
                     mapping.setServicePackage(saved);
                     mapping.setAddonService(addon);
-
                     return mapping;
                 })
                 .toList();
 
         packageAddonMappingRepository.saveAll(mappings);
 
-        // 5. Trả response
+        // 6. Trả response
         return ServicePackageResponse.builder()
                 .id(saved.getId())
                 .name(saved.getName())
                 .description(saved.getDescription())
                 .basePrice(saved.getBasePrice())
-                .durationMinutes(totalDuration)
+                .durationMinutes(request.getDurationMinutes())
                 .addonIds(request.getAddonIds())
                 .build();
     }
 
+
     /**
-     * Cập nhật service package.
+     * Cập nhật service package
      * Flow:
-     * 1. Kiểm tra service package tồn tại và chưa bị xóa
-     * 2. Validate tất cả addonServiceIds tồn tại và chưa bị xóa
-     * 3. Tính tổng duration từ các add-on → required_slot = totalDuration / 15
-     * 4. Cập nhật thông tin service_package (name, basePrice, description, requiredSlot)
-     * 5. Xóa toàn bộ package_addon_mapping hiện tại của package
-     * 6. Tạo lại package_addon_mapping theo danh sách addonServiceIds mới
-     * 7. Trả response kèm durationMinutes
+     * 1. Validate name format + bội 15 + trùng name
+     * 2. Kiểm tra package tồn tại
+     * 3. Validate addon
+     * 4. required_slot = durationMinutes / 15 (admin tự nhập)
+     * 5. Update package
+     * 6. Xóa mapping cũ → thêm mapping mới
+     * 7. Trả response
      */
     @Override
     @Transactional
@@ -291,15 +284,16 @@ public class ServicePackageServiceImpl
             Integer servicePackageId,
             UpdateServicePackageRequest request) {
 
-        validator.validateForUpdate(request.getName(), servicePackageId);
+        // 1. Validate business rule
+        validator.validateForUpdate(request.getName(), request.getDurationMinutes(), servicePackageId);
 
-        // 1. Kiểm tra package tồn tại
+        // 2. Kiểm tra package tồn tại
         ServicePackage servicePackage = repository
                 .findByIdAndIsDeletedFalse(servicePackageId)
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.SERVICE_PACKAGE_NOT_FOUND));
 
-        // 2. Validate addon
+        // 3. Validate addon
         List<AddonService> addons = addonServiceRepository
                 .findByIdInAndIsDeletedFalse(request.getAddonIds());
 
@@ -307,13 +301,8 @@ public class ServicePackageServiceImpl
             throw new BusinessException(ErrorCode.ADDON_SERVICE_NOT_FOUND);
         }
 
-        // 3. Tính duration
-        int durationMinutes = addons.stream()
-                .mapToInt(AddonService::getDurationMinutes)
-                .sum();
-
-        // 4. required_slot
-        int requiredSlot = (int) Math.ceil(durationMinutes / 15.0);
+        // 4. required_slot từ duration admin nhập
+        int requiredSlot = request.getDurationMinutes() / 15;
 
         // 5. Update package
         servicePackage.setName(request.getName());
@@ -323,10 +312,9 @@ public class ServicePackageServiceImpl
 
         repository.save(servicePackage);
 
-        // 6. Xóa mapping cũ
+        // 6. Xóa mapping cũ → thêm mapping mới
         packageAddonMappingRepository.deleteByServicePackage_Id(servicePackageId);
 
-        // 7. Thêm mapping mới
         List<PackageAddonMapping> mappings = addons.stream()
                 .map(addon -> PackageAddonMapping.builder()
                         .id(PackageAddonMapping.PackageAddonMappingKey.builder()
@@ -340,25 +328,18 @@ public class ServicePackageServiceImpl
 
         packageAddonMappingRepository.saveAll(mappings);
 
-        // 8. Response
+        // 7. Response
         return ServicePackageResponse.builder()
                 .id(servicePackage.getId())
                 .name(servicePackage.getName())
                 .description(servicePackage.getDescription())
                 .basePrice(servicePackage.getBasePrice())
-                .durationMinutes(durationMinutes)
+                .durationMinutes(request.getDurationMinutes())
                 .addonIds(request.getAddonIds())
                 .build();
     }
 
-    /**
-     * Xóa mềm service package.
-     * Flow:
-     * 1. Kiểm tra service package tồn tại và chưa bị xóa
-     * 2. Kiểm tra package có đang được subscription plan chưa bị xóa sử dụng hay không
-     * 3. Nếu đang được sử dụng → throw SERVICE_PACKAGE_IN_USE
-     * 4. Hợp lệ → cập nhật isDeleted = true
-     */
+
     @Override
     @Transactional
     public void deleteServicePackage(Integer servicePackageId) {
@@ -376,7 +357,6 @@ public class ServicePackageServiceImpl
         }
 
         servicePackage.setIsDeleted(true);
-
         repository.save(servicePackage);
     }
 }
