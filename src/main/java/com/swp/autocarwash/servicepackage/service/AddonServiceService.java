@@ -1,7 +1,6 @@
 package com.swp.autocarwash.servicepackage.service;
 
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
-import com.swp.autocarwash.servicepackage.dto.request.CreateAddonServiceRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -103,10 +102,4 @@ public interface AddonServiceService {
     BigDecimal calculatePrice(
             List<Integer> ids
     );
-
-    /**
-     * Tạo mới 1 add-on service - dùng chung được ngay cho mọi gói (subscription plan) khác,
-     * vì đây là 1 dòng addon_service thật trong DB (không riêng cho gói nào).
-     */
-    AddonServiceContract create(CreateAddonServiceRequest request);
 }

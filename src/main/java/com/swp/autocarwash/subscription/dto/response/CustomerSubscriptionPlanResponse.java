@@ -4,7 +4,6 @@ import com.swp.autocarwash.subscription.entity.enums.PlanType;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Getter
 @Setter
@@ -28,7 +27,4 @@ public class CustomerSubscriptionPlanResponse {
     private Integer maxVehicleCount;
 
     private String description;
-
-    // Add-on đi kèm gói - hiển thị cho khách biết quyền lợi khi browse plan.
-    private List<String> addonNames;
 }
