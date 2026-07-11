@@ -509,7 +509,33 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_005",
             "Voucher code cannot be empty."
+    ),
+    GROUP_NAME_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__001",
+            "Group name cannot be empty."
+    ),
+    GROUP_NAME_TOO_LONG(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__002",
+            "Group name too long. Maximum length is 100 characters."
+    ),
+    VEHICLE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__003",
+            "Vehicle must be required"
+    ),
+    CUSTOMER_ALREADY_HAS_FAMILY_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__004",
+            "Customer already has a family group. A customer can only own or be a member of one family group at a time."
+    ),
+    VEHICLE_ALREADY_IN_ANOTHER_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__005",
+            "The selected vehicle is already linked to another family group. Each vehicle can only be associated with one family group at a time."
     );
+
 
 
     private final HttpStatus status;
