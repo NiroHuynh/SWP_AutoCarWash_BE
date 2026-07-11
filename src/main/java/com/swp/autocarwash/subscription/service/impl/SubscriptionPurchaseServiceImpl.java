@@ -128,6 +128,11 @@ public class SubscriptionPurchaseServiceImpl implements SubscriptionPurchaseServ
             throw new BusinessException(ErrorCode.SUBSCRIPTION_EXPIRED);
         }
 
+        // Chỉ cho renew khi còn <=3 ngày trước hạn (RENEW.docx AC01).
+        if (subscription.getEndDate().isAfter(LocalDate.now().plusDays(3))) {
+            throw new BusinessException(ErrorCode.RENEWAL_NOT_AVAILABLE);
+        }
+
         // Idempotent: đã có hóa đơn gia hạn PENDING -> trả lại QR cũ.
         SubscriptionInvoice existing = subscriptionInvoiceRepository
                 .findFirstByUnlimitSubscription_IdAndStatusOrderByCreatedAtDesc(
