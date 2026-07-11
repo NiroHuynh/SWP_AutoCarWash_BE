@@ -1,6 +1,7 @@
 package com.swp.autocarwash.servicepackage.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +25,10 @@ public class CreateServicePackageRequest {
     private BigDecimal basePrice;
 
     private String description;
+
+    @NotNull(message = "Duration is required")
+    @Min(value = 0, message = "Duration must be 0 or positive")
+    private Integer durationMinutes;
 
     @NotEmpty(message = "Please select at least one included service")
     private List<Integer> addonIds;

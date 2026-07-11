@@ -332,6 +332,11 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_008",
             "Service package name already exists"
     ),
+    SERVICE_PACKAGE_DURATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_009",
+            "Duration must be a multiple of 15 minutes"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
