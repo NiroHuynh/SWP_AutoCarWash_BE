@@ -3,6 +3,9 @@ package com.swp.autocarwash.servicepackage.repository;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +21,7 @@ import java.util.Optional;
  * @author Phong
  * @version 1.0
  */
+@Repository
 public interface ServicePackageRepository
         extends JpaRepository<ServicePackage, Integer> {
 
@@ -67,5 +71,31 @@ public interface ServicePackageRepository
     List<ServicePackage> findAllByIsDeletedFalse();
 
 
+
+
+    /**
+     * Lấy tất cả package chưa xóa + tính tổng duration từ addon mapping
+     * LEFT JOIN để package không có addon vẫn trả về (durationMinutes = 0)
+     */
+    @Query(value = """
+        SELECT sp.id, sp.name, sp.description, sp.base_price,
+               COALESCE(SUM(a.duration_minutes), 0) AS duration_minutes
+        FROM service_package sp
+        LEFT JOIN package_addon_mapping m ON m.service_package_id = sp.id
+        LEFT JOIN addon_service a ON a.id = m.addon_service_id
+        WHERE sp.is_deleted = false
+        GROUP BY sp.id, sp.name, sp.description, sp.base_price
+    """, nativeQuery = true)
+    List<Object[]> findAllWithDuration();
+
+    /**
+     * Kiểm tra name đã tồn tại (chưa xóa) — dùng cho create
+     */
+    boolean existsByNameAndIsDeletedFalse(String name);
+
+    /**
+     * Kiểm tra name đã tồn tại (chưa xóa), loại trừ chính nó — dùng cho update
+     */
+    boolean existsByNameAndIsDeletedFalseAndIdNot(String name, Integer id);
 
 }

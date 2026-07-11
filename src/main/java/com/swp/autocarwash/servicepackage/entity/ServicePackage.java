@@ -15,8 +15,8 @@ import java.util.List;
 @Setter
 @Entity
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "service_package", schema = "swp_auto_car_wash")
 public class ServicePackage {
     @Id
