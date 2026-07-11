@@ -1,5 +1,6 @@
 package com.swp.autocarwash.wash.service.impl;
 
+import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
@@ -17,6 +18,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -26,9 +29,28 @@ public class WashLaneServiceImpl implements WashLaneService {
     private final StationRepository stationRepository;
     private final WashLaneRepository washLaneRepository;
     private final WashLaneMapper washLaneMapper;
+    private final BookingSlotRepository bookingSlotRepository;
 
+    /**
+     * Chức năng: Đồng bộ capacity theo số làn active hiện tại của station —
+     * gọi mỗi khi thêm/xóa làn để station.max_wash_capacity và
+     * booking_slot.max_capacity (slot tương lai) luôn khớp số làn thật.
+     *
+     * @author Ngân
+     * @version 1.0
+     */
+    private void syncCapacity(Station station) {
+        long activeLaneCount = washLaneRepository.countByStationIdAndIsDeletedFalse(station.getId());
+
+        station.setMaxWashCapacity((int) activeLaneCount);
+        stationRepository.save(station);
+
+        bookingSlotRepository.updateFutureSlotsCapacity(
+                station.getId(), (int) activeLaneCount, LocalDate.now(), LocalTime.now());
+    }
 
     @Override
+    @Transactional
     public CreateWashLaneResponse createWashLane(CreateWashLaneRequest request) {
         // 1. [AC01]: Kiểm tra trạm tồn tại và hoạt động
         Station station = stationRepository.findByIdAndIsDeletedFalse(request.getStationId())
@@ -49,6 +71,7 @@ public class WashLaneServiceImpl implements WashLaneService {
                 .isDeleted(false)
                 .build();
         WashLane savedLane = washLaneRepository.save(newLane);
+        syncCapacity(station);
         return CreateWashLaneResponse.builder()
                 .id(savedLane.getId())
                 .stationId(station.getId())
@@ -74,6 +97,7 @@ public class WashLaneServiceImpl implements WashLaneService {
     }
 
     @Override
+    @Transactional
     public void deleteWashLane(Integer laneId) {
         //Tìm làn xe gốc trong Database theo ID lên trước
         WashLane lane = washLaneRepository.findById(laneId)
@@ -87,5 +111,6 @@ public class WashLaneServiceImpl implements WashLaneService {
         }
         lane.setIsDeleted(true);
         washLaneRepository.save(lane);
+        syncCapacity(lane.getStation());
     }
 }
