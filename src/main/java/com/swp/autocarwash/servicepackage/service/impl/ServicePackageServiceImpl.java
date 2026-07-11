@@ -3,6 +3,7 @@ package com.swp.autocarwash.servicepackage.service.impl;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
 import com.swp.autocarwash.servicepackage.dto.request.CreateServicePackageRequest;
 import com.swp.autocarwash.servicepackage.dto.request.UpdateServicePackageRequest;
 import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
@@ -10,6 +11,7 @@ import com.swp.autocarwash.servicepackage.entity.AddonService;
 import com.swp.autocarwash.servicepackage.entity.PackageAddonMapping;
 import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
+import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import com.swp.autocarwash.servicepackage.mapper.ServicePackageMapper;
 import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
 import com.swp.autocarwash.servicepackage.repository.PackageAddonMappingRepository;
@@ -157,6 +159,20 @@ public class ServicePackageServiceImpl
 
     }
 
+    @Override
+    public List<ServicePackageResponse> getActiveServicePackages() {
+
+        return repository
+                .findAllByIsDeletedFalse()
+                .stream()
+                .map(servicePackage -> ServicePackageResponse.builder()
+                        .id(servicePackage.getId())
+                        .name(servicePackage.getName())
+                        .basePrice(servicePackage.getBasePrice())
+                        .description(servicePackage.getDescription())
+                        .build())
+                .toList();
+    }
     /**
      * Lấy tất cả package chưa xóa.
      * durationMinutes = SUM(addon.duration_minutes) qua package_addon_mapping.

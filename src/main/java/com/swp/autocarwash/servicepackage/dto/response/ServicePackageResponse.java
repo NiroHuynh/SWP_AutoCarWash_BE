@@ -16,6 +16,8 @@ public class ServicePackageResponse {
 
     private String name;
 
+    private BigDecimal basePrice;
+
     private String description;
 
     private BigDecimal basePrice;

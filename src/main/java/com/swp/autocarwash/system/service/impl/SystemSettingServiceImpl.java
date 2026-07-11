@@ -40,6 +40,8 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     public static final String LOYALTY_RESET_MONTH_DAY = "LOYALTY_RESET_MONTH_DAY";
     /** Key cau hinh ty le VND tren 1 diem loyalty (vd 1000 = 1000d/diem). */
     public static final String LOYALTY_POINT_PER_VND = "LOYALTY_POINT_PER_VND";
+    /** Key cau hinh so phut booking PENDING duoc cho chuyen khoan coc truoc khi tu dong huy. */
+    public static final String PENDING_PAYMENT_TIMEOUT_MINUTES = "PENDING_PAYMENT_TIMEOUT_MINUTES";
     private final SystemSettingRepository systemSettingRepository;
 
     /**
@@ -76,6 +78,17 @@ public class SystemSettingServiceImpl implements SystemSettingService {
                 -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
         try{
             return Integer.valueOf(violationLimit);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
+
+    @Override
+    public Integer getPendingPaymentTimeoutMinutes() {
+        String timeout = systemSettingRepository.findBySettingKey(PENDING_PAYMENT_TIMEOUT_MINUTES).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(timeout);
         }catch(NumberFormatException e ){
             throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
         }

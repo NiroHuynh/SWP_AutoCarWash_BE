@@ -1,6 +1,7 @@
 package com.swp.autocarwash.servicepackage.repository;
 
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
+import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -65,6 +66,11 @@ public interface ServicePackageRepository
     );
 
     Optional<ServicePackage> findById(int id);
+
+
+    List<ServicePackage> findAllByIsDeletedFalse();
+
+
 
 
     /**

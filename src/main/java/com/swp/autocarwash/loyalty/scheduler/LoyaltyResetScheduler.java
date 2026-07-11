@@ -13,11 +13,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.MonthDay;
 import java.time.ZoneId;
+import java.util.List;
 
 /**
  * Job danh gia lai hang thanh vien va reset diem loyalty thuong nien (BR-FE-44).
@@ -45,9 +47,10 @@ public class LoyaltyResetScheduler {
     private final SystemSettingService systemSettingService;
 
     /** Chay luc 00:05:00 moi ngay theo gio Viet Nam. */
-    //@Scheduled(cron = "0 5 0 * * ?", zone = "Asia/Ho_Chi_Minh")
-    // TODO: chi de test thu cong - GO BO truoc khi merge/deploy production.
-    @Scheduled(cron = "0/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "0 5 0 * * ?", zone = "Asia/Ho_Chi_Minh")
+    /** Chạy 10s để test */
+//  @Scheduled(cron = "0/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
+    @Transactional
     public void resetLoyaltyPoints() {
         MonthDay configured = parseConfig(); // configured lấy từ database - bảng system_setting, key = LOYALTY_RESET_MONTH_DAY, value = "MM-DD"
         MonthDay todayMd = MonthDay.now(ZONE);
