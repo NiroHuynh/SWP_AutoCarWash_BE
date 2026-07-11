@@ -20,7 +20,6 @@ public class ServicePackageResponse {
 
     private String description;
 
-    private BigDecimal basePrice;
 
     // SUM(addon.duration_minutes) qua package_addon_mapping
     private Integer durationMinutes;
