@@ -90,7 +90,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SubscriptionPlanResponse> getSubscriptionPlans(String status) {
+    public List<SubscriptionPlanResponse> getSubscriptionPlans(String status,String type) {
 
         List<SubscriptionPlan> subscriptionPlans;
 
@@ -119,6 +119,29 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 
             default:
                 throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN_STATUS);
+        }
+
+        // Filter theo type
+        if (!"ALL".equalsIgnoreCase(type)) {
+
+            PlanType planType;
+
+            switch (type.toUpperCase()) {
+                case "UNLIMIT":
+                    planType = PlanType.UNLIMIT;
+                    break;
+
+                case "FAMILY":
+                    planType = PlanType.FAMILY;
+                    break;
+
+                default:
+                    throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN_TYPE);
+            }
+
+            subscriptionPlans = subscriptionPlans.stream()
+                    .filter(plan -> PlanType.valueOf(plan.getPlanType()) == planType)
+                    .toList();
         }
 
         return subscriptionPlans.stream()

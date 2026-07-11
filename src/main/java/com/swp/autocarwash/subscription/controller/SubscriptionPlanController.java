@@ -23,10 +23,12 @@ public class SubscriptionPlanController {
 
     @GetMapping("/api/admin/subscription-plans")
     public ApiResponse<List<SubscriptionPlanResponse>> getSubscriptionPlans(
-            @RequestParam(defaultValue = "ALL") String status) {
+            @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "ALL") String type
+    ) {
 
         List<SubscriptionPlanResponse> response =
-                subscriptionPlanService.getSubscriptionPlans(status);
+                subscriptionPlanService.getSubscriptionPlans(status,type);
 
         return ApiResponse.success(
                 "Subscription plans retrieved successfully.",

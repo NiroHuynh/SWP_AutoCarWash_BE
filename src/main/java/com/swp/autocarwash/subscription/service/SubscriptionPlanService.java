@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface SubscriptionPlanService {
 
-    List<SubscriptionPlanResponse> getSubscriptionPlans(String status);
+    List<SubscriptionPlanResponse> getSubscriptionPlans(String status,String type);
 
     CreateSubscriptionPlanResponse createSubscriptionPlan(
             CreateSubscriptionPlanRequest request
