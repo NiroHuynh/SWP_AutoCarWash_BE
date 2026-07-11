@@ -1,6 +1,7 @@
 package com.swp.autocarwash.servicepackage.service;
 
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
+import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
 import com.swp.autocarwash.servicepackage.dto.request.CreateServicePackageRequest;
 import com.swp.autocarwash.servicepackage.dto.request.UpdateServicePackageRequest;
 import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
@@ -86,6 +87,8 @@ public interface ServicePackageService {
             Integer id
     );
 
+
+    List<ServicePackageResponse> getActiveServicePackages();
     /**
      * Lấy danh sách tất cả service package
      */

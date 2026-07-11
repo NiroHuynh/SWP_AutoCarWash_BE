@@ -1,5 +1,6 @@
 package com.swp.autocarwash.servicepackage.entity;
 
+import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -65,4 +66,5 @@ public class ServicePackage {
             inverseJoinColumns = @JoinColumn(name = "addon_service_id")
     )
     private List<AddonService> addonServices = new ArrayList<>();
+
 }

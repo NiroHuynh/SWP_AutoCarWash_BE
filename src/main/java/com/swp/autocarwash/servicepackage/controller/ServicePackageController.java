@@ -19,6 +19,16 @@ public class ServicePackageController {
 
     private final ServicePackageService servicePackageService;
 
+    @GetMapping("/api/admin/service-packages/active")
+    public ApiResponse<List<ServicePackageResponse>> getActiveServicePackages() {
+
+        return ApiResponse.<List<ServicePackageResponse>>builder()
+                .success(true)
+                .message("Active service packages retrieved successfully.")
+                .data(servicePackageService.getActiveServicePackages())
+                .build();
+    }
+
     /**
      * API-14-04: Lấy danh sách service package (Admin)
      * AC-14.4.4: data rỗng → trả [] bình thường, FE tự hiện trạng thái trống
@@ -34,6 +44,7 @@ public class ServicePackageController {
                 data
         );
     }
+
 
     /**
      * API-14-01: Tạo service package mới
