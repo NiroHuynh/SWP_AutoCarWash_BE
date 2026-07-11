@@ -57,7 +57,10 @@ public class CustomerController {
      * @param year   lọc theo năm đăng ký tài khoản (User.createdAt), bỏ trống = không lọc
      * @param month  lọc theo tháng đăng ký tài khoản (1-12), bỏ trống = không lọc
      * @param tier   lọc theo hạng thành viên (MEMBER/SILVER/GOLD/PLATINUM), bỏ trống = không lọc
-     * @param active lọc theo trạng thái tài khoản (true=hoạt động/false=đã khoá), bỏ trống = không lọc
+     * @param active     lọc theo trạng thái tài khoản (true=hoạt động/false=đã khoá), bỏ trống = không lọc
+     * @param stationId  lọc theo chi nhánh cụ thể (khách có ít nhất 1 booking đã CHECK_OUT tại chi nhánh này), bỏ trống = không lọc
+     * @param communeId  lọc theo xã/phường (khách có ít nhất 1 booking đã CHECK_OUT tại chi nhánh nào đó thuộc xã/phường này), bỏ trống = không lọc
+     * @param provinceId lọc theo tỉnh/thành (khách có ít nhất 1 booking đã CHECK_OUT tại chi nhánh nào đó thuộc tỉnh/thành này), bỏ trống = không lọc
      */
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -68,10 +71,13 @@ public class CustomerController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) String tier,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) Integer stationId,
+            @RequestParam(required = false) Integer communeId,
+            @RequestParam(required = false) Integer provinceId) {
         Pageable pageable = PageRequest.of(page, size);
-        CustomerListPageResponse data =
-                customerService.getCustomerList(keyword, year, month, tier, active, pageable);
+        CustomerListPageResponse data = customerService.getCustomerList(
+                keyword, year, month, tier, active, stationId, communeId, provinceId, pageable);
         return ResponseEntity.ok(ApiResponse.success("Danh sách khách hàng", data));
     }
 
