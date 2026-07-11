@@ -34,6 +34,9 @@ public class CreateSubscriptionPlanRequest {
 
     private String description;
 
+    @NotNull(message = "SERVICE_PACKAGE_REQUIRED")
+    private Integer servicePackageId;
+
     @NotNull(message = "INVALID_PLAN_TYPE")
     private String planType;
 
@@ -41,9 +44,8 @@ public class CreateSubscriptionPlanRequest {
     @Positive(message = "INVALID_MAX_VEHICLE_COUNT")
     private Integer maxVehicleCount;
 
-    // Các add-on tạo nên nội dung gói (thay cho việc chọn 1 Service Package có sẵn) - hệ thống
-    // sẽ tự tạo 1 Service Package mới riêng cho gói này từ danh sách add-on được chọn, để gói vẫn
-    // có servicePackageId hợp lệ cho booking/walk-in tính quyền lợi. Bắt buộc chọn ít nhất 1.
-    @NotNull(message = "ADDON_SERVICES_REQUIRED")
+    // Add-on đi kèm gói (marketing/quyền lợi hiển thị cho khách) - KHÔNG liên quan servicePackageId
+    // ở trên (servicePackageId vẫn quyết định hạng dịch vụ rửa xe cho booking/walk-in).
+    // Tuỳ chọn - có thể để trống/null nếu gói không kèm add-on nào.
     private List<Integer> addonServiceIds;
 }

@@ -390,9 +390,5 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
         if (subscription.getEndDate().isBefore(LocalDate.now())) {
             throw new BusinessException(ErrorCode.SUBSCRIPTION_EXPIRED);
         }
-
-        if (subscription.getEndDate().isAfter(LocalDate.now().plusDays(3))) {
-            throw new BusinessException(ErrorCode.RENEWAL_NOT_AVAILABLE);
-        }
     }
 }

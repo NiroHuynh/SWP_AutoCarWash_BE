@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -37,55 +37,18 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     private final AddonServiceRepository addonServiceRepository;
 
     /**
-     * Add-on tạo nên nội dung gói - bắt buộc chọn ít nhất 1, vì đây là danh sách dùng để tự
-     * tạo Service Package riêng cho gói (xem buildDedicatedServicePackage).
+     * Add-on đi kèm gói (khác servicePackageId - servicePackageId vẫn quyết định hạng dịch
+     * vụ rửa xe cho booking/walk-in, KHÔNG đụng). Tuỳ chọn - trả list rỗng nếu không truyền.
      */
     private List<AddonService> resolveAddonServices(List<Integer> addonServiceIds) {
         if (addonServiceIds == null || addonServiceIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.ADDON_SERVICES_REQUIRED);
+            return Collections.emptyList();
         }
         List<AddonService> addons = addonServiceRepository.findByIdInAndIsDeletedFalse(addonServiceIds);
         if (addons.size() != addonServiceIds.size()) {
             throw new BusinessException(ErrorCode.INVALID_ADDON_SERVICE);
         }
         return addons;
-    }
-
-    /**
-     * Admin không còn chọn 1 Service Package có sẵn nữa - thay vào đó hệ thống tự tạo 1
-     * Service Package MỚI, RIÊNG cho gói này từ danh sách add-on đã chọn, để gói vẫn có
-     * servicePackageId hợp lệ cho booking/walk-in tính quyền lợi (giống hệt cơ chế của các
-     * gói Basic/Medium/Premium có sẵn).
-     */
-    private ServicePackage buildDedicatedServicePackage(
-            String planName, String planType, List<AddonService> addonServices) {
-
-        int totalMinutes = addonServices.stream()
-                .mapToInt(AddonService::getDurationMinutes)
-                .sum();
-        int requiredSlot = Math.max(1, (int) Math.ceil(totalMinutes / 15.0));
-
-        BigDecimal basePrice = addonServices.stream()
-                .map(AddonService::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        ServicePackage servicePackage = ServicePackage.builder()
-                .name(planName)
-                .serviceCategory(
-                        PlanType.valueOf(planType) == PlanType.UNLIMIT
-                                ? ServiceCategory.builder().id(3).build()
-                                : ServiceCategory.builder().id(2).build()
-                )
-                .basePrice(basePrice)
-                .requiredSlot(requiredSlot)
-                .addonServices(addonServices)
-                .averageRating(BigDecimal.ZERO)
-                .totalReviews(0)
-                .status(ServicePackageStatus.ACTIVE)
-                .isDeleted(false)
-                .build();
-
-        return servicePackageRepository.save(servicePackage);
     }
 
     @Override
@@ -136,7 +99,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .description(plan.getDescription())
                 .maxVehicleCount(plan.getMaxVehicleCount())
                 .servicePackageName(plan.getServicePackage().getName())
-                .addonNames(plan.getServicePackage().getAddonServices().stream().map(AddonService::getName).toList())
+                .addonNames(plan.getAddonServices().stream().map(AddonService::getName).toList())
                 .status(plan.getStatus().name())
                 .build();
     }
@@ -147,9 +110,15 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 
         validateBusiness(request);
 
+        ServicePackage servicePackage = servicePackageRepository
+                .findByIdAndStatusAndIsDeletedFalse(
+                        request.getServicePackageId(),
+                        ServicePackageStatus.ACTIVE
+                )
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.INVALID_SERVICE_PACKAGE));
+
         List<AddonService> addonServices = resolveAddonServices(request.getAddonServiceIds());
-        ServicePackage servicePackage = buildDedicatedServicePackage(
-                request.getPlanName(), request.getPlanType(), addonServices);
 
         SubscriptionPlan subscriptionPlan = SubscriptionPlan.builder()
                 .planName(request.getPlanName())
@@ -157,6 +126,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .durationDays(request.getDurationDays())
                 .description(request.getDescription())
                 .servicePackage(servicePackage)
+                .addonServices(addonServices)
                 .planType(request.getPlanType())
                 .maxVehicleCount(
                         PlanType.valueOf(request.getPlanType()) == PlanType.UNLIMIT
@@ -224,7 +194,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .planType(PlanType.valueOf(subscriptionPlan.getPlanType()))
                 .maxVehicleCount(subscriptionPlan.getMaxVehicleCount())
                 .status(subscriptionPlan.getStatus())
-                .addonServiceIds(subscriptionPlan.getServicePackage().getAddonServices().stream().map(AddonService::getId).toList())
+                .addonServiceIds(subscriptionPlan.getAddonServices().stream().map(AddonService::getId).toList())
                 .build();
     }
 
@@ -237,35 +207,21 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                         .orElseThrow(() ->
                                 new BusinessException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
 
+        ServicePackage servicePackage =
+                servicePackageRepository.findByIdAndStatus(
+                                request.getServicePackageId(),
+                                ServicePackageStatus.ACTIVE)
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.INVALID_SERVICE_PACKAGE));
+
         validateBusiness(request);
-
-        List<AddonService> addonServices = resolveAddonServices(request.getAddonServiceIds());
-        ServicePackage currentServicePackage = subscriptionPlan.getServicePackage();
-
-        // Nếu Service Package hiện tại chỉ dùng riêng cho gói này -> cập nhật tại chỗ. Nếu đang
-        // dùng chung với gói khác (vd Basic/Medium/Premium có sẵn) -> tạo 1 package mới riêng,
-        // tuyệt đối không đụng vào package dùng chung (tránh ảnh hưởng các gói khác).
-        boolean isExclusive = subscriptionPlanRepository.countByServicePackage_Id(currentServicePackage.getId()) <= 1;
-
-        ServicePackage servicePackage;
-        if (isExclusive) {
-            int totalMinutes = addonServices.stream().mapToInt(AddonService::getDurationMinutes).sum();
-            currentServicePackage.setName(request.getPlanName());
-            currentServicePackage.setRequiredSlot(Math.max(1, (int) Math.ceil(totalMinutes / 15.0)));
-            currentServicePackage.setBasePrice(
-                    addonServices.stream().map(AddonService::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
-            currentServicePackage.setAddonServices(addonServices);
-            servicePackage = servicePackageRepository.save(currentServicePackage);
-        } else {
-            servicePackage = buildDedicatedServicePackage(
-                    request.getPlanName(), request.getPlanType(), addonServices);
-        }
 
         subscriptionPlan.setPlanName(request.getPlanName());
         subscriptionPlan.setPrice(request.getPrice());
         subscriptionPlan.setDurationDays(request.getDurationDays());
         subscriptionPlan.setDescription(request.getDescription());
         subscriptionPlan.setServicePackage(servicePackage);
+        subscriptionPlan.setAddonServices(resolveAddonServices(request.getAddonServiceIds()));
         subscriptionPlan.setPlanType(request.getPlanType());
         subscriptionPlan.setMaxVehicleCount(request.getMaxVehicleCount());
         subscriptionPlan.setStatus(SubscriptionPlanStatus.valueOf(request.getStatus()));
@@ -358,7 +314,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .servicePackageName(subscriptionPlan.getServicePackage().getName())
                 .maxVehicleCount(subscriptionPlan.getMaxVehicleCount())
                 .description(subscriptionPlan.getDescription())
-                .addonNames(subscriptionPlan.getServicePackage().getAddonServices().stream().map(AddonService::getName).toList())
+                .addonNames(subscriptionPlan.getAddonServices().stream().map(AddonService::getName).toList())
                 .build();
     }
 }
