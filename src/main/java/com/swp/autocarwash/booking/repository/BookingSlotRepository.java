@@ -102,6 +102,29 @@ public interface BookingSlotRepository extends JpaRepository<BookingSlot, Long> 
             @Param("currentTime") LocalTime currentTime // Tham số nhận giờ thực tế từ Service truyền xuống
     );
 
+    /**
+     *
+     * Chức năng: Cập nhật hàng loạt max_capacity cho các slot TƯƠNG LAI (chưa
+     * diễn ra) của 1 station — dùng để auto-sync capacity theo số làn (wash_lane)
+     * active mỗi khi admin thêm/xóa làn. Slot đã qua/lịch sử giữ nguyên.
+     *
+     * @author Ngân
+     * @version 1.0
+     */
+    @Modifying
+    @Query("""
+                UPDATE BookingSlot s
+                SET s.maxCapacity = :newCapacity
+                WHERE s.station.id = :stationId
+                  AND (s.date > :today OR (s.date = :today AND s.startTime > :currentTime))
+            """)
+    int updateFutureSlotsCapacity(
+            @Param("stationId") Integer stationId,
+            @Param("newCapacity") Integer newCapacity,
+            @Param("today") LocalDate today,
+            @Param("currentTime") LocalTime currentTime
+    );
+
 //    kiểm tra xem slot đã hết hạn chưa
     @Query("""
                 SELECT CASE WHEN COUNT(bs.id) > 0 THEN true ELSE false END
