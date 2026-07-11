@@ -299,6 +299,23 @@ VALUES
     (12, 340,  840);
 
 -- =====================================================================
+-- Dong bo customer.customer_tier_id theo accumulated_points vua seed o tren,
+-- KHONG gan cung tier_id trong INSERT customer nua - tranh lech du lieu nhu
+-- truong hop Phong (id=1) tung bi seed cung MEMBER trong khi accumulated_points=820
+-- (dang le phai la SILVER). Dung cung nguong min_points nhu logic that cua app
+-- (CustomerTierRepository.findFirstByMinPointsLessThanEqualOrderByMinPointsDesc).
+-- =====================================================================
+UPDATE customer c
+JOIN loyalty_point_balance lb ON lb.customer_id = c.id
+SET c.customer_tier_id = (
+    SELECT ct.id
+    FROM customer_tier ct
+    WHERE ct.min_points <= lb.accumulated_points
+    ORDER BY ct.min_points DESC
+    LIMIT 1
+);
+
+-- =====================================================================
 -- SERVICE CATEGORY (3)
 -- =====================================================================
 INSERT IGNORE INTO service_category
@@ -404,14 +421,16 @@ INSERT IGNORE INTO subscription_invoice
 VALUES
     (1,  1,  1,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (2,  2,  2,    NULL, 900000,   'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (3,  3,  3,    NULL, 1350000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    -- Sua tu 1.350.000 xuong 400.000: cung subscription_invoice(10) tao tong chi tieu 2026
+    -- cua customer 3 = 873.500d, khop accumulated_points=1310 theo calculatePoint(amount,1.5) GOLD
+    (3,  3,  3,    NULL, 400000,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (4,  4,  4,    NULL, 2400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (5,  5,  5,    NULL, 8500000,  'PAID',    DATE_SUB(NOW(), INTERVAL 100 DAY), DATE_SUB(NOW(), INTERVAL 100 DAY)),
     (6,  6,  6,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 60 DAY),  DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (7,  8,  8,    NULL, 1350000,  'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL),
     (8,  1,  NULL, 1,    1200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    (10, 3,  NULL, 3,    3200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (10, 3,  NULL, 3,    353500,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL);
 
@@ -2066,14 +2085,14 @@ VALUES
 -- Chi luu cac lan NANG/HA hang thuc su (phai co ca hang cu va hang moi)
 -- =====================================================================
 INSERT IGNORE INTO customer_tier_history
-(id, customer_id, old_tier_id, new_tier_id, points_at_transition, change_type, created_at)
+(id, customer_id, old_tier_id, new_tier_id, value_at_transition, change_type, created_at)
 VALUES
     (1, 1, 1, 2, 520,  'UPGRADE', DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (2, 5, 1, 4, 2050, 'UPGRADE', DATE_SUB(NOW(), INTERVAL 30 DAY));
 
 -- Lich su len/ha hang nam 2025 cho customer 1 (phong@gmail.com) — khop ngay + gan booking cua moc doi hang
 INSERT IGNORE INTO customer_tier_history
-(id, customer_id, old_tier_id, new_tier_id, points_at_transition, change_type, created_at, booking_id)
+(id, customer_id, old_tier_id, new_tier_id, value_at_transition, change_type, created_at, booking_id)
 VALUES
     (3, 1, 1, 2, 600,  'UPGRADE',   '2025-02-14 10:30:00', 502),
     (4, 1, 2, 3, 1200, 'UPGRADE',   '2025-05-09 14:00:00', 505),
@@ -2120,7 +2139,21 @@ VALUES
     (29, 514, 1, 100000, 0,      100000, 'PAID', 0, 0,      100000, 0, '2026-02-22 14:15:00', '2026-02-22 14:15:00'),
     (30, 515, 1, 150000, 50000,  100000, 'PAID', 0, 50000,  150000, 0, '2026-03-15 10:45:00', '2026-03-15 10:45:00'),
     (31, 516, 1, 90000,  0,      90000,  'PAID', 0, 0,      90000,  0, '2026-04-20 16:00:00', '2026-04-20 16:00:00'),
-    (32, 517, 1, 200000, 90000,  110000, 'PAID', 0, 90000,  200000, 0, '2026-05-16 11:20:00', '2026-05-16 11:20:00');
+    (32, 517, 1, 200000, 90000,  110000, 'PAID', 0, 90000,  200000, 0, '2026-05-16 11:20:00', '2026-05-16 11:20:00'),
+    -- Hoa don cho cac booking CHECK_OUT moi cua customer 2-12,100,101 (FE-US-09)
+    (33, 600, 2,   150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-06-01 08:00:00', '2025-06-01 08:30:00'),
+    (34, 601, 3,   150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-06-05 09:00:00', '2025-06-05 09:30:00'),
+    (35, 602, 4,   300000, 0, 300000, 'PAID', 0, 0, 300000, 0, '2025-06-10 10:00:00', '2025-06-10 10:30:00'),
+    (36, 603, 5,   150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-06-15 11:00:00', '2025-06-15 11:30:00'),
+    (37, 604, 6,   300000, 0, 300000, 'PAID', 0, 0, 300000, 0, '2025-06-20 08:00:00', '2025-06-20 08:30:00'),
+    (38, 605, 7,   150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-06-25 09:00:00', '2025-06-25 09:30:00'),
+    (39, 606, 8,   500000, 0, 500000, 'PAID', 0, 0, 500000, 0, '2025-07-01 10:00:00', '2025-07-01 10:30:00'),
+    (40, 607, 9,   150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-07-05 11:00:00', '2025-07-05 11:30:00'),
+    (41, 608, 10,  300000, 0, 300000, 'PAID', 0, 0, 300000, 0, '2025-07-10 08:00:00', '2025-07-10 08:30:00'),
+    (42, 609, 11,  150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2025-07-15 09:00:00', '2025-07-15 09:30:00'),
+    (43, 610, 12,  300000, 0, 300000, 'PAID', 0, 0, 300000, 0, '2025-07-20 10:00:00', '2025-07-20 10:30:00'),
+    (44, 611, 100, 150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2026-06-01 08:00:00', '2026-06-01 08:30:00'),
+    (45, 612, 101, 150000, 0, 150000, 'PAID', 0, 0, 150000, 0, '2026-06-10 09:00:00', '2026-06-10 09:30:00');
 
 -- =====================================================================
 -- PAYMENT (15)
@@ -2135,13 +2168,13 @@ VALUES
     (5,  10,   NULL, 'CASH',  20000,   NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 6 DAY),    20000,  'REFUND'),
     (6,  NULL, 1,    'MOMO',  500000,  'TXN-0000000006', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   500000, 'PAYMENT'),
     (7,  NULL, 2,    'CASH',  900000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    900000, 'PAYMENT'),
-    (8,  NULL, 3,    'VNPAY', 1350000, 'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   1350000,'PAYMENT'),
+    (8,  NULL, 3,    'VNPAY', 400000,  'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   400000, 'PAYMENT'),
     (9,  NULL, 4,    'MOMO',  2400000, 'TXN-0000000009', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   2400000,'PAYMENT'),
     (10, NULL, 5,    'CASH',  8500000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 100 DAY),  8500000,'PAYMENT'),
     (11, NULL, 6,    'MOMO',  500000,  'TXN-0000000011', 'FAILED',  DATE_SUB(NOW(), INTERVAL 60 DAY),   0,      'PAYMENT'),
     (12, NULL, 8,    'CASH',  1200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   1200000,'PAYMENT'),
     (13, NULL, 9,    'VNPAY', 2000000, 'TXN-0000000013', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    2000000,'PAYMENT'),
-    (14, NULL, 10,   'CASH',  3200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   3200000,'PAYMENT'),
+    (14, NULL, 10,   'CASH',  353500,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   353500, 'PAYMENT'),
     (15, NULL, 11,   'MOMO',  5400000, 'TXN-0000000015', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   5400000,'PAYMENT'),
     -- Thanh toan cho hoa don 16-32 (booking lich su 501-517 cua customer 1)
     (16, 16, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-01-12 09:00:00', 300000, 'PAYMENT'),
@@ -2160,7 +2193,21 @@ VALUES
     (29, 29, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-02-22 14:15:00', 100000, 'PAYMENT'),
     (30, 30, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-03-15 10:45:00', 100000, 'PAYMENT'),
     (31, 31, NULL, 'CASH', 90000,  NULL, 'SUCCESS', '2026-04-20 16:00:00', 90000,  'PAYMENT'),
-    (32, 32, NULL, 'CASH', 110000, NULL, 'SUCCESS', '2026-05-16 11:20:00', 110000, 'PAYMENT');
+    (32, 32, NULL, 'CASH', 110000, NULL, 'SUCCESS', '2026-05-16 11:20:00', 110000, 'PAYMENT'),
+    -- Thanh toan cho hoa don 33-45 (booking CHECK_OUT moi cua customer 2-12,100,101)
+    (33, 33, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-01 08:30:00', 150000, 'PAYMENT'),
+    (34, 34, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-05 09:30:00', 150000, 'PAYMENT'),
+    (35, 35, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-10 10:30:00', 300000, 'PAYMENT'),
+    (36, 36, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-15 11:30:00', 150000, 'PAYMENT'),
+    (37, 37, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-20 08:30:00', 300000, 'PAYMENT'),
+    (38, 38, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-25 09:30:00', 150000, 'PAYMENT'),
+    (39, 39, NULL, 'CASH', 500000, NULL, 'SUCCESS', '2025-07-01 10:30:00', 500000, 'PAYMENT'),
+    (40, 40, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-05 11:30:00', 150000, 'PAYMENT'),
+    (41, 41, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-10 08:30:00', 300000, 'PAYMENT'),
+    (42, 42, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-15 09:30:00', 150000, 'PAYMENT'),
+    (43, 43, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-20 10:30:00', 300000, 'PAYMENT'),
+    (44, 44, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-01 08:30:00', 150000, 'PAYMENT'),
+    (45, 45, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-10 09:30:00', 150000, 'PAYMENT');
 
 -- =====================================================================
 -- REVIEW (12)
@@ -2421,19 +2468,33 @@ VALUES
     (502, 1, 1, 3, '2025-02-14', 'CHECK_OUT', 'ADVANCE', 1, '2025-02-14 10:00:00', '2025-02-14 10:15:00', '2025-02-14 10:30:00', NULL, true, 300000, 0, 300000, 0, 0),
     (503, 1, 1, 3, '2025-03-20', 'CHECK_OUT', 'ADVANCE', 1, '2025-03-20 14:30:00', '2025-03-20 14:45:00', '2025-03-20 15:00:00', NULL, true, 300000, 0, 200000, 0, 100000),
     (504, 1, 1, 3, '2025-04-18', 'CHECK_OUT', 'ADVANCE', 1, '2025-04-18 10:30:00', '2025-04-18 10:45:00', '2025-04-18 11:00:00', NULL, true, 400000, 0, 400000, 0, 0),
-    (505, 1, 1, 6, '2025-05-09', 'CHECK_OUT', 'ADVANCE', 1, '2025-05-09 13:30:00', '2025-05-09 13:45:00', '2025-05-09 14:00:00', NULL, true, 350000, 0, 350000, 0, 0),
+    (505, 1, 1, 3, '2025-05-09', 'CHECK_OUT', 'ADVANCE', 1, '2025-05-09 13:30:00', '2025-05-09 13:45:00', '2025-05-09 14:00:00', NULL, true, 350000, 0, 350000, 0, 0),
     (506, 1, 1, 3, '2025-06-22', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-22 16:00:00', '2025-06-22 16:15:00', '2025-06-22 16:30:00', NULL, true, 400000, 0, 200000, 0, 200000),
     (507, 1, 1, 3, '2025-07-15', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-15 09:15:00', '2025-07-15 09:30:00', '2025-07-15 09:45:00', NULL, true, 500000, 0, 500000, 0, 0),
     (508, 1, 1, 3, '2025-08-19', 'CHECK_OUT', 'ADVANCE', 1, '2025-08-19 12:50:00', '2025-08-19 13:05:00', '2025-08-19 13:20:00', NULL, true, 600000, 0, 600000, 0, 0),
     (509, 1, 1, 3, '2025-10-04', 'CHECK_OUT', 'ADVANCE', 1, '2025-10-04 09:30:00', '2025-10-04 09:45:00', '2025-10-04 10:00:00', NULL, true, 900000, 0, 250000, 0, 650000),
     (510, 1, 1, 3, '2025-11-10', 'CHECK_OUT', 'ADVANCE', 1, '2025-11-10 08:00:00', '2025-11-10 08:15:00', '2025-11-10 08:30:00', NULL, true, 300000, 0, 300000, 0, 0),
     (511, 1, 1, 3, '2025-11-30', 'CHECK_OUT', 'ADVANCE', 1, '2025-11-30 16:30:00', '2025-11-30 16:45:00', '2025-11-30 17:00:00', NULL, true, 300000, 0, 300000, 0, 0),
-    (512, 1, 1, 6, '2025-12-20', 'CHECK_OUT', 'ADVANCE', 1, '2025-12-20 11:30:00', '2025-12-20 11:45:00', '2025-12-20 12:00:00', NULL, true, 350000, 0, 200000, 0, 150000),
+    (512, 1, 1, 3, '2025-12-20', 'CHECK_OUT', 'ADVANCE', 1, '2025-12-20 11:30:00', '2025-12-20 11:45:00', '2025-12-20 12:00:00', NULL, true, 350000, 0, 200000, 0, 150000),
     (513, 1, 1, 2, '2026-01-18', 'CHECK_OUT', 'ADVANCE', 1, '2026-01-18 09:00:00', '2026-01-18 09:15:00', '2026-01-18 09:30:00', NULL, true, 120000, 0, 120000, 0, 0),
-    (514, 1, 1, 4, '2026-02-22', 'CHECK_OUT', 'ADVANCE', 1, '2026-02-22 13:45:00', '2026-02-22 14:00:00', '2026-02-22 14:15:00', NULL, true, 100000, 0, 100000, 0, 0),
+    (514, 1, 1, 2, '2026-02-22', 'CHECK_OUT', 'ADVANCE', 1, '2026-02-22 13:45:00', '2026-02-22 14:00:00', '2026-02-22 14:15:00', NULL, true, 100000, 0, 100000, 0, 0),
     (515, 1, 1, 2, '2026-03-15', 'CHECK_OUT', 'ADVANCE', 1, '2026-03-15 10:15:00', '2026-03-15 10:30:00', '2026-03-15 10:45:00', NULL, true, 150000, 0, 100000, 0, 50000),
     (516, 1, 1, 1, '2026-04-20', 'CHECK_OUT', 'ADVANCE', 1, '2026-04-20 15:30:00', '2026-04-20 15:45:00', '2026-04-20 16:00:00', NULL, true, 90000,  0, 90000,  0, 0),
-    (517, 1, 1, 2, '2026-05-16', 'CHECK_OUT', 'ADVANCE', 1, '2026-05-16 10:50:00', '2026-05-16 11:05:00', '2026-05-16 11:20:00', NULL, true, 200000, 0, 110000, 0, 90000);
+    (517, 1, 1, 2, '2026-05-16', 'CHECK_OUT', 'ADVANCE', 1, '2026-05-16 10:50:00', '2026-05-16 11:05:00', '2026-05-16 11:20:00', NULL, true, 200000, 0, 110000, 0, 90000),
+    -- Booking CHECK_OUT cho cac customer con lai (2-12,100,101) de moi khach deu co it nhat 1 luot rua da hoan thanh (FE-US-09)
+    (600, 2,   2,   1, '2025-06-01', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-01 08:00:00', '2025-06-01 08:10:00', '2025-06-01 08:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (601, 3,   3,   1, '2025-06-05', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-05 09:00:00', '2025-06-05 09:10:00', '2025-06-05 09:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (602, 4,   4,   2, '2025-06-10', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-10 10:00:00', '2025-06-10 10:10:00', '2025-06-10 10:30:00', NULL, true, 300000, 0, 300000, 0, 0),
+    (603, 5,   5,   1, '2025-06-15', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-15 11:00:00', '2025-06-15 11:10:00', '2025-06-15 11:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (604, 6,   6,   2, '2025-06-20', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-20 08:00:00', '2025-06-20 08:10:00', '2025-06-20 08:30:00', NULL, true, 300000, 0, 300000, 0, 0),
+    (605, 7,   7,   1, '2025-06-25', 'CHECK_OUT', 'ADVANCE', 1, '2025-06-25 09:00:00', '2025-06-25 09:10:00', '2025-06-25 09:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (606, 8,   8,   3, '2025-07-01', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-01 10:00:00', '2025-07-01 10:10:00', '2025-07-01 10:30:00', NULL, true, 500000, 0, 500000, 0, 0),
+    (607, 9,   9,   1, '2025-07-05', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-05 11:00:00', '2025-07-05 11:10:00', '2025-07-05 11:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (608, 10,  10,  2, '2025-07-10', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-10 08:00:00', '2025-07-10 08:10:00', '2025-07-10 08:30:00', NULL, true, 300000, 0, 300000, 0, 0),
+    (609, 11,  11,  1, '2025-07-15', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-15 09:00:00', '2025-07-15 09:10:00', '2025-07-15 09:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (610, 12,  12,  2, '2025-07-20', 'CHECK_OUT', 'ADVANCE', 1, '2025-07-20 10:00:00', '2025-07-20 10:10:00', '2025-07-20 10:30:00', NULL, true, 300000, 0, 300000, 0, 0),
+    (611, 100, 201, 1, '2026-06-01', 'CHECK_OUT', 'ADVANCE', 1, '2026-06-01 08:00:00', '2026-06-01 08:10:00', '2026-06-01 08:30:00', NULL, true, 150000, 0, 150000, 0, 0),
+    (612, 101, 203, 1, '2026-06-10', 'CHECK_OUT', 'ADVANCE', 1, '2026-06-10 09:00:00', '2026-06-10 09:10:00', '2026-06-10 09:30:00', NULL, true, 150000, 0, 150000, 0, 0);
 
 INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
@@ -2454,7 +2515,20 @@ VALUES
     (9514, 1, '14:15', '14:30', 5, '2026-02-22', 1, 'COMPLETED'),
     (9515, 1, '10:45', '11:00', 5, '2026-03-15', 1, 'COMPLETED'),
     (9516, 1, '16:00', '16:15', 5, '2026-04-20', 1, 'COMPLETED'),
-    (9517, 1, '11:20', '11:35', 5, '2026-05-16', 1, 'COMPLETED');
+    (9517, 1, '11:20', '11:35', 5, '2026-05-16', 1, 'COMPLETED'),
+    (9600, 1, '08:00', '08:15', 5, '2025-06-01', 1, 'COMPLETED'),
+    (9601, 1, '09:00', '09:15', 5, '2025-06-05', 1, 'COMPLETED'),
+    (9602, 1, '10:00', '10:15', 5, '2025-06-10', 1, 'COMPLETED'),
+    (9603, 1, '11:00', '11:15', 5, '2025-06-15', 1, 'COMPLETED'),
+    (9604, 1, '08:00', '08:15', 5, '2025-06-20', 1, 'COMPLETED'),
+    (9605, 1, '09:00', '09:15', 5, '2025-06-25', 1, 'COMPLETED'),
+    (9606, 1, '10:00', '10:15', 5, '2025-07-01', 1, 'COMPLETED'),
+    (9607, 1, '11:00', '11:15', 5, '2025-07-05', 1, 'COMPLETED'),
+    (9608, 1, '08:00', '08:15', 5, '2025-07-10', 1, 'COMPLETED'),
+    (9609, 1, '09:00', '09:15', 5, '2025-07-15', 1, 'COMPLETED'),
+    (9610, 1, '10:00', '10:15', 5, '2025-07-20', 1, 'COMPLETED'),
+    (9611, 1, '08:00', '08:15', 5, '2026-06-01', 1, 'COMPLETED'),
+    (9612, 1, '09:00', '09:15', 5, '2026-06-10', 1, 'COMPLETED');
 
 INSERT IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
@@ -2462,4 +2536,7 @@ VALUES
     (501, 9501), (502, 9502), (503, 9503), (504, 9504), (505, 9505),
     (506, 9506), (507, 9507), (508, 9508), (509, 9509), (510, 9510),
     (511, 9511), (512, 9512), (513, 9513), (514, 9514), (515, 9515),
-    (516, 9516), (517, 9517);
+    (516, 9516), (517, 9517),
+    (600, 9600), (601, 9601), (602, 9602), (603, 9603), (604, 9604), (605, 9605),
+    (606, 9606), (607, 9607), (608, 9608), (609, 9609), (610, 9610), (611, 9611), (612, 9612);
+
