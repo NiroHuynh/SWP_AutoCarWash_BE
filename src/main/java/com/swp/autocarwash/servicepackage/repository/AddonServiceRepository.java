@@ -2,7 +2,6 @@ package com.swp.autocarwash.servicepackage.repository;
 
 import com.swp.autocarwash.servicepackage.entity.AddonService;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -61,8 +60,4 @@ public interface AddonServiceRepository
     List<AddonService> findByIdInAndIsDeletedFalse(
             List<Integer> ids
     );
-
-    // id không @GeneratedValue - cần tự tính id tiếp theo khi tạo mới add-on.
-    @Query("SELECT COALESCE(MAX(a.id), 0) FROM AddonService a")
-    Integer findMaxId();
 }
