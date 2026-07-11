@@ -689,7 +689,12 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_030",
             "Invalid payment status."
-    );;
+    ),
+    INVALID_SUBSCRIPTION_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SUBSCRIPTION_PLAN_TYPE",
+            "Invalid subscription plan type."
+    ),;
 
 
 
