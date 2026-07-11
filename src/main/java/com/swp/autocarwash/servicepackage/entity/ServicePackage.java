@@ -67,9 +67,4 @@ public class ServicePackage {
     )
     private List<AddonService> addonServices = new ArrayList<>();
 
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private ServicePackageStatus status;
 }

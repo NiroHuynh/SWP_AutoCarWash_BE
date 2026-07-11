@@ -64,13 +64,8 @@ public interface ServicePackageRepository
     Optional<ServicePackage> findById(int id);
 
 
-    List<ServicePackage> findAllByStatusAndIsDeletedFalse(ServicePackageStatus status);
+    List<ServicePackage> findAllByIsDeletedFalse();
 
-    Optional<ServicePackage> findByIdAndStatusAndIsDeletedFalse(
-            Integer id,
-            ServicePackageStatus status
-    );
 
-    Optional<ServicePackage> findByIdAndStatus(Integer id, ServicePackageStatus status);
 
 }
