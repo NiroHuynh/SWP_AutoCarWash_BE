@@ -1,6 +1,9 @@
 package com.swp.autocarwash.servicepackage.service;
 
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
+import com.swp.autocarwash.servicepackage.dto.request.CreateAddonServiceRequest;
+import com.swp.autocarwash.servicepackage.dto.request.UpdateAddonServiceRequest;
+import com.swp.autocarwash.servicepackage.dto.response.AddonServiceResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -102,4 +105,24 @@ public interface AddonServiceService {
     BigDecimal calculatePrice(
             List<Integer> ids
     );
+
+    /**
+     * Lấy danh sách tất cả addon service (chưa xóa)
+     */
+    List<AddonServiceResponse> getAllAddonServices();
+
+    /**
+     * Tạo addon service mới
+     */
+    AddonServiceResponse createAddonService(CreateAddonServiceRequest request);
+
+    /**
+     * Cập nhật addon service
+     */
+    AddonServiceResponse updateAddonService(Integer addonServiceId, UpdateAddonServiceRequest request);
+
+    /**
+     * Xóa mềm addon service
+     */
+    void deleteAddonService(Integer addonServiceId);
 }

@@ -262,6 +262,36 @@ public enum ErrorCode {
         "SERVICE_002",
                 "Invalid addon service request"
     ),
+    ADDON_SERVICE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_003",
+            "Cannot delete addon service because it is being used by an active service package"
+    ),
+    ADDON_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_004",
+            "Addon service name is required"
+    ),
+    ADDON_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_005",
+            "Service name cannot start with a number"
+    ),
+    ADDON_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_006",
+            "Addon service price must be greater than 0"
+    ),
+    ADDON_DURATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_007",
+            "Duration must be a multiple of 15 minutes"
+    ),
+    ADDON_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_008",
+            "Addon service name already exists"
+    ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
             "SERVICE_PACKAGE_001",
@@ -272,7 +302,36 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_002",
             "Service package not found"
     ),
-
+    SERVICE_PACKAGE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_PACKAGE_003",
+            "Cannot delete service package because it is being used by an active subscription plan"
+    ),
+    SERVICE_PACKAGE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_004",
+            "Package name is required"
+    ),
+    SERVICE_PACKAGE_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_005",
+            "Package name cannot start with a number"
+    ),
+    SERVICE_PACKAGE_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_006",
+            "Package price must be greater than 0"
+    ),
+    SERVICE_PACKAGE_ADDON_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_007",
+            "Please select at least one included service"
+    ),
+    SERVICE_PACKAGE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_008",
+            "Service package name already exists"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
@@ -307,6 +366,11 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SYSTEM_SETTING_002",
             "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_CATEGORY_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SERVICE_CATEGORY_001",
+            "Service category not found"
     ),
     SERVICE_PACKAGE_NOT_EXIST(
             HttpStatus.BAD_REQUEST,
