@@ -518,12 +518,6 @@ public enum ErrorCode {
             "Selected service package is inactive or does not exist."
     ),
 
-    INVALID_ADDON_SERVICE(
-            HttpStatus.BAD_REQUEST,
-            "SUBSCRIPTION_031",
-            "One or more selected add-on services are invalid or do not exist."
-    ),
-
     FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SUBSCRIPTION_012",
