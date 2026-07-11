@@ -2,11 +2,15 @@ package com.swp.autocarwash.customer.service.family.impl;
 
 import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.dto.request.AddFamilyMemberRequest;
 import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
+import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
+import com.swp.autocarwash.customer.dto.response.GroupMemberDto;
+import com.swp.autocarwash.customer.dto.response.GroupSubscriptionDto;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.FamilyGroup;
 import com.swp.autocarwash.customer.entity.FamilyMember;
@@ -19,15 +23,16 @@ import com.swp.autocarwash.customer.service.family.FamilyGroupService;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -264,6 +269,121 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
                 .email(invitedCustomer.getUser().getEmail())
                 .vehicles(vehicleDtos)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FamilyGroupDetailsResponse getFamilyGroupDetails() {
+        // 1. Giải mã Token lấy userId của người đang đăng nhập
+        Long userId = securityUtils.getCurrentUserId();
+        Customer currentCustomer = customerRepository.findByUserId(userId);
+        if (currentCustomer == null) {
+            throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+
+        Long currentCustomerId = currentCustomer.getId();
+        FamilyGroup targetGroup = null;
+        boolean isOwner = false;
+
+        //Định vị nhóm
+        Optional<FamilyGroup> ownedGroupOpt = familyGroupRepository.findByOwnerCustomerId(currentCustomerId);
+        if (ownedGroupOpt.isPresent()) {
+            targetGroup = ownedGroupOpt.get();
+            isOwner = true;
+        } else {
+            // Nếu không phải Owner -> Tìm thẳng trong bảng family_member xem có tồn tại không
+            Optional<FamilyMember> memberOpt = familyMemberRepository.findByCustomerId(currentCustomerId);
+            if (memberOpt.isPresent()) {
+                targetGroup = memberOpt.get().getFamilyGroup();
+                isOwner = false;
+            }
+        }
+
+        // LUỒNG AC01: Nếu quét cả 2 bảng mà không ra nhóm nào -> Trả về null để FE hiện nút Tạo nhóm
+        if (targetGroup == null) {
+            return null;
+        }
+
+        // 3. Bốc thông tin gói cước của nhóm (AC02)
+        GroupSubscriptionDto subscriptionDto = null;
+        int maxVehicleCount = 0;
+
+        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
+        if (activeSubOpt.isPresent()) {
+            FamilySubscription sub = activeSubOpt.get();
+            maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
+
+            subscriptionDto = GroupSubscriptionDto.builder()
+                    .planName(sub.getSubscriptionPlan().getPlanName())
+                    .status(sub.getStatus())
+                    .endDate(sub.getEndDate())
+                    .build();
+        }
+
+        // 4. HỢP NHẤT DANH SÁCH THÀNH VIÊN VÀ XE LIÊN KẾT (AC03)
+        List<GroupMemberDto> memberList = new ArrayList<>();
+
+        //Dòng đầu tiên: Nạp thông tin của ông Chủ nhóm (Owner)
+        Customer owner = targetGroup.getOwnerCustomer();
+
+        //ĐÃ CẬP NHẬT: Vì xe của Owner nằm trong bảng family_member, quét thẳng tại đây
+        Optional<FamilyMember> ownerMemberOpt = familyMemberRepository.findByCustomerId(owner.getId());
+        Vehicle ownerVehicle = ownerMemberOpt.isPresent() ? ownerMemberOpt.get().getVehicle() : null;
+
+        memberList.add(GroupMemberDto.builder()
+                .customerId(owner.getId())
+                .fullName(owner.getLastName() + " " + owner.getFirstName())
+                .email(owner.getUser().getEmail())
+                .phone(owner.getUser().getPhone())
+                .roleInGroup("OWNER") // Găm tag Chủ nhóm để FE nhận diện
+                .linkedVehicle(ownerVehicle == null ? null : GroupMemberDto.LinkedVehicleDto.builder()
+                                                             .vehicleId(ownerVehicle.getId())
+                                                             .licensePlate(ownerVehicle.getLicensePlate())
+                                                             .brandName(ownerVehicle.getBrandName())
+                                                             .color(ownerVehicle.getColor())
+                                                             .build())
+                .build());
+
+        //Các dòng tiếp theo: Lấy tất cả thành viên phụ trong nhóm nối đuôi vào danh sách
+        List<FamilyMember> familyMembers = familyMemberRepository.findByFamilyGroupId(targetGroup.getId());
+        for (FamilyMember fm : familyMembers) {
+            Customer memberCust = fm.getCustomer();
+
+            //ĐÃ THÊM CHỐT CHẶN: Bỏ qua chính ông Chủ nhóm vì đã nạp ông ấy ở dòng đầu tiên rồi
+            if (memberCust.getId().equals(owner.getId())) {
+                continue;
+            }
+
+            Vehicle memberVehicle = fm.getVehicle();
+            memberList.add(GroupMemberDto.builder()
+                    .customerId(memberCust.getId())
+                    .fullName(memberCust.getLastName() + " " + memberCust.getFirstName())
+                    .email(memberCust.getUser().getEmail())
+                    .phone(memberCust.getUser().getPhone())
+                    .roleInGroup("MEMBER") // Găm tag Thành viên phụ
+                    .linkedVehicle(memberVehicle == null ? null : GroupMemberDto.LinkedVehicleDto.builder()
+                                                                  .vehicleId(memberVehicle.getId())
+                                                                  .licensePlate(memberVehicle.getLicensePlate())
+                                                                  .brandName(memberVehicle.getBrandName())
+                                                                  .color(memberVehicle.getColor())
+                                                                  .build())
+                    .build());
+        }
+
+        // 5. Tính toán chuỗi tỷ lệ hạn mức "Hiện tại / Tối đa" đổ vào DTO gói cước
+        if (subscriptionDto != null) {
+            subscriptionDto.setUsageSummary(memberList.size() + "/" + maxVehicleCount);
+        }
+
+        return FamilyGroupDetailsResponse.builder()
+                .familyGroupId(targetGroup.getId())
+                .groupName(targetGroup.getGroupName())
+                .createdAt(targetGroup.getCreatedAt())
+                .isOwner(isOwner)
+                .subscription(subscriptionDto)
+                .members(memberList)
+                .build();
+
     }
 
 }
