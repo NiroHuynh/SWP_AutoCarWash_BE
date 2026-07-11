@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Getter
 @Setter
@@ -34,8 +33,4 @@ public class CreateSubscriptionPlanResponse {
     private PlanType planType;
 
     private Integer maxVehicleCount;
-
-    private List<Integer> addonServiceIds;
-
-    private List<String> addonServiceNames;
 }
