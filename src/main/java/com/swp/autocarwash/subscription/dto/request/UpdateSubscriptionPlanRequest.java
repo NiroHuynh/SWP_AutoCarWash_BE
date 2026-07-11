@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Getter
 @Setter
@@ -44,8 +43,4 @@ public class UpdateSubscriptionPlanRequest {
 
     @NotNull(message = "INVALID_STATUS")
     private String status;
-
-    // Add-on đi kèm gói (marketing/quyền lợi hiển thị cho khách) - KHÔNG liên quan servicePackageId
-    // ở trên. Tuỳ chọn - có thể để trống/null nếu gói không kèm add-on nào.
-    private List<Integer> addonServiceIds;
 }
