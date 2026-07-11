@@ -18,6 +18,10 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
     Optional<SubscriptionPlan> findByIdAndIsDeletedFalse(Integer id);
 
     boolean existsByPlanNameIgnoreCaseAndIdNot(String planName, Integer id);
+    /**
+     * Kiểm tra còn subscription plan chưa bị xóa sử dụng service package hay không.
+     */
+    boolean existsByServicePackage_IdAndIsDeletedFalse(Integer servicePackageId);
 
     List<SubscriptionPlan> findByStatusAndIsDeletedFalse(
             SubscriptionPlanStatus status

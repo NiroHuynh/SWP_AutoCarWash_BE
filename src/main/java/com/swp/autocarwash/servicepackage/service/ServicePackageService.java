@@ -2,6 +2,9 @@ package com.swp.autocarwash.servicepackage.service;
 
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
+import com.swp.autocarwash.servicepackage.dto.request.CreateServicePackageRequest;
+import com.swp.autocarwash.servicepackage.dto.request.UpdateServicePackageRequest;
+import com.swp.autocarwash.servicepackage.dto.response.ServicePackageResponse;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 
 import java.util.List;
@@ -86,4 +89,23 @@ public interface ServicePackageService {
 
 
     List<ServicePackageResponse> getActiveServicePackages();
+    /**
+     * Lấy danh sách tất cả service package
+     */
+    List<ServicePackageResponse> getAllServicePackages();
+
+    /**
+     * Tạo service package mới
+     */
+    ServicePackageResponse createServicePackage(CreateServicePackageRequest request);
+
+    /**
+     *  Chỉnh sửa service package
+     */
+    ServicePackageResponse updateServicePackage(Integer servicePackageId, UpdateServicePackageRequest request);
+
+    /**
+     * Xóa mềm service package.
+     */
+    void deleteServicePackage(Integer servicePackageId);
 }
