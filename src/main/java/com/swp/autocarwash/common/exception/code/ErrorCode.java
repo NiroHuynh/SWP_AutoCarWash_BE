@@ -722,6 +722,76 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_SUBSCRIPTION_PLAN_TYPE",
             "Invalid subscription plan type."
+    ),
+    REFUND_NOT_ELIGIBLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_001",
+            "Booking chưa trả cọc nên không phát sinh hoàn tiền."
+    ),
+    BOOKING_NOT_CANCELABLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_002",
+            "Booking không ở trạng thái có thể hủy để hoàn tiền."
+    ),
+    BOOKING_CANCEL_WINDOW_PASSED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_003",
+            "Đã quá thời hạn hủy (phải hủy trước giờ hẹn ít nhất 2 giờ)."
+    ),
+    REFUND_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "REFUND_004",
+            "Booking này đã có yêu cầu hoàn tiền."
+    ),
+    REFUND_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "REFUND_005",
+            "Booking không thuộc về khách hàng đang đăng nhập."
+    ),
+    REFUND_ACCOUNT_LOOKUP_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_006",
+            "Không tìm thấy tài khoản, vui lòng kiểm tra lại Số tài khoản."
+    ),
+    INVALID_BANK(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_007",
+            "Ngân hàng không hợp lệ."
+    ),
+    REFUND_BOOKING_ID_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_008",
+            "Booking là bắt buộc"
+    ),
+    REFUND_BANK_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_009",
+            "Ngân hàng là bắt buộc"
+    ),
+    REFUND_ACCOUNT_NUMBER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_010",
+            "Số tài khoản là bắt buộc"
+    ),
+    REFUND_ACCOUNT_HOLDER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_011",
+            "Tên chủ tài khoản là bắt buộc"
+    ),
+    REFUND_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "REFUND_012",
+            "Không tìm thấy yêu cầu hoàn tiền."
+    ),
+    REFUND_ALREADY_PROCESSED(
+            HttpStatus.CONFLICT,
+            "REFUND_013",
+            "Yêu cầu hoàn tiền này đã được xử lý."
+    ),
+    REFUND_TRANSACTION_CODE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_014",
+            "Vui lòng nhập mã giao dịch"
     ),;
 
 
