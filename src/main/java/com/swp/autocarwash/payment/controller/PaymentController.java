@@ -19,6 +19,7 @@ import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
 import com.swp.autocarwash.payment.dto.response.WebhookLogResponse;
 import com.swp.autocarwash.payment.service.PaymentService;
 import com.swp.autocarwash.payment.service.SePayWebhookService;
+import com.swp.autocarwash.staff.util.StaffScopeResolver;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final SePayWebhookService sePayWebhookService;
     private final CustomerRepository customerRepository;
+    private final StaffScopeResolver staffScopeResolver;
 
     /**
      * Chức năng: Thu tiền mặt cho một booking đã COMPLETED — tạo/cập nhật hoá
@@ -162,8 +164,9 @@ public class PaymentController {
      * @return {@code 200 OK} với {@link PaymentTransactionHistoryResponse}
      */
     @GetMapping("/transactions")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<PaymentTransactionHistoryResponse>> getTransactionHistory(
+            @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) String method,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String type,
@@ -176,9 +179,14 @@ public class PaymentController {
             @RequestParam(required = false) Integer provinceId,
             @RequestParam(required = false) String phone) {
 
+        boolean isStaff = staffScopeResolver.isStaff(principal);
+        Integer effStationId = isStaff ? staffScopeResolver.staffStationId(principal) : stationId;
+        Integer effCommuneId = isStaff ? null : communeId;
+        Integer effProvinceId = isStaff ? null : provinceId;
+
         PaymentTransactionHistoryResponse result = paymentService.getTransactionHistory(
-                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, communeId,
-                provinceId, phone);
+                method, status, type, fromDate, toDate, bookingId, transactionId, effStationId, effCommuneId,
+                effProvinceId, phone);
 
         return ResponseEntity.ok(
                 ApiResponse.success("Lịch sử giao dịch thanh toán", result)

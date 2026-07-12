@@ -3,14 +3,20 @@ package com.swp.autocarwash.booking.controller;
 import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
+import com.swp.autocarwash.booking.dto.response.StationBookingListPageResponse;
 import com.swp.autocarwash.booking.service.BookingService;
+import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.staff.util.StaffScopeResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,6 +30,7 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +54,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final CustomerRepository customerRepository;
+    private final StaffScopeResolver staffScopeResolver;
 
     /**
      * Suy ra customerId của khách hàng đang đăng nhập từ token
@@ -214,5 +222,39 @@ public class BookingController {
                 "Booking created successfully",
                 bookingService.createBooking(request)
         );
+    }
+
+    /**
+     * Chức năng: Staff/Admin xem danh sách toàn bộ booking của 1 chi nhánh
+     * (staff bị pin cứng về station của mình, admin phải truyền stationId).
+     *
+     * <p><b>Ví dụ:</b> {@code GET /api/bookings/station?status=CHECK_IN&keyword=0912}</p>
+     *
+     * @param stationId chi nhánh cần xem — bắt buộc với ADMIN, bị bỏ qua/ép lại với STAFF
+     * @param status    giá trị thô của BookingStatus, bỏ trống = không lọc
+     * @param fromDate  lọc appointmentDate từ ngày này trở đi, bỏ trống = không giới hạn
+     * @param toDate    lọc appointmentDate đến ngày này, bỏ trống = không giới hạn
+     * @param keyword   tìm theo tên khách/SĐT/biển số, bỏ trống = không lọc
+     * @author Ngân
+     * @version 1.0
+     */
+    @GetMapping("/station")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    public ResponseEntity<ApiResponse<StationBookingListPageResponse>> getStationBookingList(
+            @AuthenticationPrincipal UserCustomerDetails principal,
+            @RequestParam(required = false) Integer stationId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer effectiveStationId = staffScopeResolver.resolveStationId(principal, stationId);
+        if (effectiveStationId == null) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        StationBookingListPageResponse data = bookingService.getStationBookingList(
+                effectiveStationId, status, fromDate, toDate, keyword, PageRequest.of(page, size));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách booking", data));
     }
 }

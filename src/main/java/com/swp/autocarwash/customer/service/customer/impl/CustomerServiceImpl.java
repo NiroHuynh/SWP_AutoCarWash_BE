@@ -335,9 +335,8 @@ public class CustomerServiceImpl implements CustomerService {
         LocalDateTime monthEnd = monthStart.plusMonths(1);
 
         CustomerSummaryResponse summary = CustomerSummaryResponse.builder()
-                .totalCustomers(customerRepository.countQualifiedCustomers())
-                .newThisMonth(customerRepository.countNewThisMonth(monthStart, monthEnd))
-                .goldMembers(customerRepository.countGoldMembers())
+                .totalCustomers(customerRepository.countQualifiedCustomers(stationId, communeId, provinceId))
+                .newThisMonth(customerRepository.countNewThisMonth(monthStart, monthEnd, stationId, communeId, provinceId))
                 .build();
 
         Page<CustomerListProjection> page = customerRepository.findCustomerList(
@@ -430,7 +429,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(readOnly = true)
     public CustomerBookingHistoryPageResponse getCustomerBookingHistory(
             Long customerId, String vehicleKeyword, Integer serviceCategoryId,
-            String status, Integer stationId, Integer year, Integer month, Pageable pageable) {
+            String status, Integer stationId, Integer communeId, Integer provinceId,
+            Integer year, Integer month, Pageable pageable) {
         customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND));
 
@@ -449,7 +449,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         Page<Booking> page = bookingRepository.findCustomerBookingHistory(
-                customerId, keyword, serviceCategoryId, status, stationId, year, month, pageable);
+                customerId, keyword, serviceCategoryId, status, stationId, communeId, provinceId, year, month, pageable);
 
         List<CustomerBookingHistoryItemResponse> content = page.getContent().stream()
                 .map(b -> CustomerBookingHistoryItemResponse.builder()
