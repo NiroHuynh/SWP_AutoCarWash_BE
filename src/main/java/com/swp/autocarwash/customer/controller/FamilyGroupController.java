@@ -5,6 +5,7 @@ import com.swp.autocarwash.customer.dto.request.AddFamilyMemberRequest;
 import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
+import com.swp.autocarwash.customer.dto.response.DissolveGroupResponse;
 import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
 import com.swp.autocarwash.customer.dto.response.RemoveMemberResponse;
 import com.swp.autocarwash.customer.service.family.FamilyGroupService;
@@ -85,6 +86,20 @@ public class FamilyGroupController {
         return ResponseEntity.ok(ApiResponse.<RemoveMemberResponse>builder()
                 .success(true)
                 .message("The member has been successfully removed from the family group. The group limit has been freed.")
+                .data(responseData)
+                .build());
+    }
+
+    @DeleteMapping("/dissolve")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<DissolveGroupResponse>> dissolveFamilyGroup() {
+
+        // Gọi Service thực thi chuỗi hành động dọn dẹp và giải tán nhóm hàng loạt
+        DissolveGroupResponse responseData = familyGroupService.dissolveFamilyGroup();
+
+        return ResponseEntity.ok(ApiResponse.<DissolveGroupResponse>builder()
+                .success(true)
+                .message("Family group disbanded successfully. Linked subscription plan cancelled.")
                 .data(responseData)
                 .build());
     }

@@ -4,6 +4,7 @@ import com.swp.autocarwash.customer.dto.request.AddFamilyMemberRequest;
 import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
+import com.swp.autocarwash.customer.dto.response.DissolveGroupResponse;
 import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
 import com.swp.autocarwash.customer.dto.response.RemoveMemberResponse;
 
@@ -19,4 +20,6 @@ public interface FamilyGroupService {
     FamilyGroupDetailsResponse getFamilyGroupDetails();
 
     RemoveMemberResponse removeMember(Long memberCustomerId);
+
+    DissolveGroupResponse dissolveFamilyGroup();
 }

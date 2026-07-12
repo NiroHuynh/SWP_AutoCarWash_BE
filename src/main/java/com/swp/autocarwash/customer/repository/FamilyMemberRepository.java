@@ -43,4 +43,7 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
     // Kéo tất cả các thành viên đang thuộc về nhóm này
     List<FamilyMember> findByFamilyGroupId(Long familyGroupId);
 
+    // Lệnh xóa sạch toàn bộ bản ghi có chung familyGroupId (Quét sạch cả Member phụ và Owner)
+    void deleteByFamilyGroupId(Long familyGroupId);
+
 }
