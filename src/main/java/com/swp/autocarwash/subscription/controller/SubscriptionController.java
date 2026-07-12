@@ -9,6 +9,8 @@ import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.subscription.dto.response.ActiveSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.FamilySubscriptionPlansResponse;
+import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import com.swp.autocarwash.subscription.service.SubscriptionQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,7 @@ public class SubscriptionController {
     private final SubscriptionQueryService subscriptionQueryService;
     private final CustomerRepository customerRepository;
     private final SubscriptionPaymentService subscriptionPaymentService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     /**
      * Chức năng: Lấy gói subscription đang hoạt động (ACTIVE, còn hạn) của
@@ -92,5 +95,14 @@ public class SubscriptionController {
             throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
         }
         return customer.getId();
+    }
+
+    @GetMapping("/family/plans")
+    public ApiResponse<FamilySubscriptionPlansResponse> getFamilyPlans() {
+
+        return ApiResponse.success(
+                "Get family subscription plans successfully.",
+                subscriptionPlanService.getFamilySubscriptionPlans()
+        );
     }
 }
