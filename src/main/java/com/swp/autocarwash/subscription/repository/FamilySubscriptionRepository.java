@@ -84,4 +84,16 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
 
     Optional<FamilySubscription> findFirstByFamilyGroupOrderByIdDesc(
             FamilyGroup familyGroup);
+
+    boolean existsByFamilyGroupAndStatus(
+            FamilyGroup familyGroup,
+            String status
+    );
+
+    Optional<FamilySubscription> findByFamilyGroupAndStatus(
+            FamilyGroup familyGroup,
+            String status
+    );
+
+
 }

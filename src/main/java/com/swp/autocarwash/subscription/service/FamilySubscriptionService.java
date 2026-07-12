@@ -1,5 +1,8 @@
 package com.swp.autocarwash.subscription.service;
 
+import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
+
 public interface FamilySubscriptionService {
 
     /**
@@ -28,4 +31,10 @@ public interface FamilySubscriptionService {
      * @Author Phong
      */
     boolean hasFamilySubscription(Long vehicle, Integer servicePackageId);
+
+
+    RegisterFamilySubscriptionResponse registerFamilySubscription(
+            RegisterFamilySubscriptionRequest request);
+
+    void cancelFamilySubscription();
 }

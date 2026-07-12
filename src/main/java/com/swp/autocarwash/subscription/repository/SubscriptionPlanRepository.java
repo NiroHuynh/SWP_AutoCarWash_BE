@@ -44,4 +44,6 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
             ORDER BY sp.price
             """)
     List<SubscriptionPlan> findAllFamilyPlans();
+
+
 }

@@ -24,4 +24,6 @@ public interface FamilyGroupRepository extends JpaRepository<FamilyGroup,Long> {
     );
 
     Optional<FamilyGroup> findByOwnerCustomerAndIsDeletedFalse(Customer owner);
+
+    Optional<FamilyGroup> findByIdAndIsDeletedFalse(Long id);
 }
