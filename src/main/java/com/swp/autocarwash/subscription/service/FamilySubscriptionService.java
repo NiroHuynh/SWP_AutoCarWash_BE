@@ -1,7 +1,9 @@
 package com.swp.autocarwash.subscription.service;
 
 import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.RenewFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewFamilySubscriptionResponse;
 
 public interface FamilySubscriptionService {
 
@@ -37,4 +39,8 @@ public interface FamilySubscriptionService {
             RegisterFamilySubscriptionRequest request);
 
     void cancelFamilySubscription();
+
+
+    RenewFamilySubscriptionResponse renewFamilySubscription(
+            RenewFamilySubscriptionRequest request);
 }

@@ -3,8 +3,10 @@ package com.swp.autocarwash.subscription.controller;
 
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.RenewFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.FamilySubscriptionPlansResponse;
 import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewFamilySubscriptionResponse;
 import com.swp.autocarwash.subscription.service.FamilySubscriptionService;
 import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import jakarta.validation.Valid;
@@ -49,4 +51,15 @@ public class FamilySubscriptionController {
                 null
         );
     }
+
+    @PostMapping("/renew")
+    public ApiResponse<RenewFamilySubscriptionResponse> renewFamilySubscription(
+            @Valid @RequestBody RenewFamilySubscriptionRequest request) {
+
+        return ApiResponse.success(
+                "Family subscription renewed successfully.",
+                familySubscriptionService.renewFamilySubscription(request)
+        );
+    }
+
 }
