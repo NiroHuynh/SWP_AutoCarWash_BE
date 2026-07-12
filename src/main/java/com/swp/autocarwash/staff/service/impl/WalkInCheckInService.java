@@ -110,7 +110,7 @@ public class WalkInCheckInService {
                         .planName(sub.getSubscriptionPlan().getPlanName())
                         .planType(sub.getSubscriptionPlan().getPlanType())
                         .endDate(sub.getEndDate())
-                        .status(sub.getStatus())
+                        .status(sub.getStatus().name())
                         .build());
             }
 

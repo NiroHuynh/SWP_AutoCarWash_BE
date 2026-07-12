@@ -18,4 +18,9 @@ public class SystemSettingBookingAdapter implements SystemSettingPort {
         BigDecimal depositAmount = systemSettingService.getDepositAmount(settingKey);
         return depositAmount ;
     }
+
+    @Override
+    public Integer getPendingPaymentTimeoutMinutes() {
+        return systemSettingService.getPendingPaymentTimeoutMinutes();
+    }
 }

@@ -2,9 +2,11 @@ package com.swp.autocarwash.servicepackage.validator;
 
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.servicepackage.repository.AddonServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AddonServiceValidator {
 
+    private final AddonServiceRepository addonServiceRepository;
 
     /**
      *
@@ -121,5 +124,74 @@ public class AddonServiceValidator {
 
         }
 
+    }
+
+
+    /**
+     * Validate business rule cho create/update:
+     * - Name không bắt đầu bằng số
+     * - Duration phải là bội 15 (cho phép 0)
+     * - Check trùng name
+     *
+     * (Các check rỗng/null/price đã do DTO annotation xử lý)
+     */
+    public void validateForCreate(String name, Integer durationMinutes) {
+
+        validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
+        validateNameDuplicateForCreate(name);
+    }
+
+    public void validateForUpdate(String name, Integer durationMinutes, Integer addonServiceId) {
+
+        validateNameFormat(name);
+        validateDurationMultiple(durationMinutes);
+        validateNameDuplicateForUpdate(name, addonServiceId);
+    }
+
+
+    /**
+     * Name không được bắt đầu bằng số — AC-15.1.4
+     */
+    private void validateNameFormat(String name) {
+
+        if (name != null && !name.trim().isEmpty()
+                && Character.isDigit(name.trim().charAt(0))) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_INVALID);
+        }
+    }
+
+
+    /**
+     * Duration phải là bội 15 (cho phép 0) — AC-15.1.3
+     */
+    private void validateDurationMultiple(Integer durationMinutes) {
+
+        if (durationMinutes != null && durationMinutes % 15 != 0) {
+            throw new BusinessException(ErrorCode.ADDON_DURATION_INVALID);
+        }
+    }
+
+
+    /**
+     * Check trùng name khi create
+     */
+    private void validateNameDuplicateForCreate(String name) {
+
+        if (addonServiceRepository.existsByNameAndIsDeletedFalse(name.trim())) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_ALREADY_EXISTS);
+        }
+    }
+
+
+    /**
+     * Check trùng name khi update — loại trừ chính nó
+     */
+    private void validateNameDuplicateForUpdate(String name, Integer addonServiceId) {
+
+        if (addonServiceRepository.existsByNameAndIsDeletedFalseAndIdNot(
+                name.trim(), addonServiceId)) {
+            throw new BusinessException(ErrorCode.ADDON_NAME_ALREADY_EXISTS);
+        }
     }
 }

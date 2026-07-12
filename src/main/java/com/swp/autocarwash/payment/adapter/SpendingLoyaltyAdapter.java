@@ -23,17 +23,14 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class SpendingLoyaltyAdapter implements SpendingPort {
 
-    private static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private final BookingInvoiceRepository bookingInvoiceRepository;
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
 
     @Override
     public BigDecimal getTotalSpending(Long customerId, LocalDateTime from, LocalDateTime to) {
-        // BookingInvoice.paidAt la LocalDateTime -> truyen thang; SubscriptionInvoice.paidAt la Instant -> convert.
+        // BookingInvoice.paidAt va SubscriptionInvoice.paidAt deu la LocalDateTime -> truyen thang.
         BigDecimal bookingSum = bookingInvoiceRepository.sumFinalAmountPaidBetween(customerId, from, to);
-        BigDecimal subscriptionSum = subscriptionInvoiceRepository.sumPlanPricePaidBetween(
-                customerId, from.atZone(ZONE).toInstant(), to.atZone(ZONE).toInstant());
+        BigDecimal subscriptionSum = subscriptionInvoiceRepository.sumPlanPricePaidBetween(customerId, from, to);
         return nvl(bookingSum).add(nvl(subscriptionSum));
     }
 

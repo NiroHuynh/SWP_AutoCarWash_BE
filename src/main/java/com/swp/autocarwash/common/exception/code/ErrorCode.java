@@ -90,6 +90,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking already has an invoice"
     ),
+    INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "INVOICE_001",
+            "Invoice not found"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",
@@ -140,6 +145,11 @@ public enum ErrorCode {
             "CUSTOMER_005",
             "Customer account is restricted because violation exceeded the limit. " +
                     "Please come back to book after 14 days or check in at the store"
+    ),
+    CUSTOMER_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "CUSTOMER_006",
+            "Không thể xóa: khách hàng đang có đặt lịch hoạt động"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -252,6 +262,36 @@ public enum ErrorCode {
             "SERVICE_002",
             "Invalid addon service request"
     ),
+    ADDON_SERVICE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_003",
+            "Cannot delete addon service because it is being used by an active service package"
+    ),
+    ADDON_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_004",
+            "Addon service name is required"
+    ),
+    ADDON_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_005",
+            "Service name cannot start with a number"
+    ),
+    ADDON_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_006",
+            "Addon service price must be greater than 0"
+    ),
+    ADDON_DURATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_007",
+            "Duration must be a multiple of 15 minutes"
+    ),
+    ADDON_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_008",
+            "Addon service name already exists"
+    ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
             "SERVICE_PACKAGE_001",
@@ -262,7 +302,36 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_002",
             "Service package not found"
     ),
-
+    SERVICE_PACKAGE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_PACKAGE_003",
+            "Cannot delete service package because it is being used by an active subscription plan"
+    ),
+    SERVICE_PACKAGE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_004",
+            "Package name is required"
+    ),
+    SERVICE_PACKAGE_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_005",
+            "Package name cannot start with a number"
+    ),
+    SERVICE_PACKAGE_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_006",
+            "Package price must be greater than 0"
+    ),
+    SERVICE_PACKAGE_ADDON_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_007",
+            "Please select at least one included service"
+    ),
+    SERVICE_PACKAGE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_008",
+            "Service package name already exists"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
@@ -297,6 +366,11 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SYSTEM_SETTING_002",
             "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_CATEGORY_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SERVICE_CATEGORY_001",
+            "Service category not found"
     ),
     SERVICE_PACKAGE_NOT_EXIST(
             HttpStatus.BAD_REQUEST,
@@ -398,7 +472,7 @@ public enum ErrorCode {
     SUBSCRIPTION_NOT_FOUND(
             HttpStatus.BAD_REQUEST,
             "SUBSCRIPTION_001",
-            "This vehicle does not have an active subscription."
+            "Subscription not found."
     ),
     TRANSFER_LIMIT_REACHED(
             HttpStatus.BAD_REQUEST,
@@ -601,6 +675,211 @@ public enum ErrorCode {
             "The family group has active bookings. You cannot dissolve the group until all active bookings are completed or canceled."
     );
 
+    ),
+    INVALID_SUBSCRIPTION_PLAN_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "SUBSCRIPTION_001",
+                "Invalid status filter"
+    ),
+    SUBSCRIPTION_PLAN_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "SUBSCRIPTION_002",
+                "No subscription plans found"
+    ),
+    FAILED_TO_RETRIEVE_SUBSCRIPTION_PLANS(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+        "SUBSCRIPTION_003",
+                "Failed to retrieve subscription plans"
+    ),
+    PLAN_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_004",
+            "Plan name is required."
+    ),
+
+    SERVICE_PACKAGE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_005",
+            "Service package is required."
+    ),
+
+    INVALID_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_006",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_DURATION_DAYS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_007",
+            "Duration days must be greater than 0."
+    ),
+
+    INVALID_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_008",
+            "Max vehicle count must be greater than 0."
+    ),
+
+    INVALID_FAMILY_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_009",
+            "Family plan must allow more than one vehicle."
+    ),
+
+    INVALID_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Invalid plan type."
+    ),
+
+    INVALID_SERVICE_PACKAGE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Selected service package is inactive or does not exist."
+    ),
+
+    FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SUBSCRIPTION_012",
+            "Failed to create subscription plan."
+    ),
+
+    PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_008",
+            "Subscription plan name already exists."
+    ),
+
+    INVALID_UNLIMITED_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Unlimited plan must allow exactly one vehicle."
+    ),
+
+    INVALID_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Invalid status."
+    ),
+
+    SUBSCRIPTION_PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_012",
+            "Subscription plan name already exists."
+    ),
+    SUBSCRIPTION_PLAN_ALREADY_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_013",
+            "Subscription plan is already inactive."
+    ),
+    SUBSCRIPTION_PLAN_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_014",
+            "Subscription plan is required."
+    ),
+
+    VEHICLE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_015",
+            "Vehicle is required."
+    ),
+
+    VEHICLE_ALREADY_SUBSCRIBED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_016",
+            "The vehicle is already registered with another subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_PLAN(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_017",
+            "Invalid subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_020",
+            "Only active subscriptions can be canceled."
+    ),
+
+    ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_001",
+            "You are not authorized to cancel this subscription."
+    ),
+    INVALID_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_021",
+            "Invalid vehicle."
+    ),
+
+    VEHICLE_TRANSFER_NOT_ALLOWED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_022",
+            "You can only change your vehicle once every 30 days."
+    ),
+    DEPOSIT_ALREADY_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_003",
+            "Booking is not awaiting deposit (already confirmed, canceled, or deposit already paid)"
+    ),
+    INVOICE_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_005",
+            "Subscription invoice is not awaiting payment (already paid or canceled)"
+    ),
+    RENEWAL_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_023",
+            "Subscription can only be renewed within 3 days before expiration."
+    ),
+
+    SUBSCRIPTION_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_024",
+            "Subscription has expired and cannot be renewed."
+    ),
+
+    RENEWAL_ALREADY_PENDING(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_025",
+            "A renewal request is already pending payment."
+    ),
+    SUBSCRIPTION_INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUBSCRIPTION_026",
+            "Subscription invoice not found."
+    ),
+
+    INVALID_RENEWAL_INVOICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_027",
+            "Invalid renewal invoice."
+    ),
+
+    INVOICE_ALREADY_PROCESSED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_028",
+            "Invoice has already been processed."
+    ),
+
+    PAYMENT_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_029",
+            "Payment status is required."
+    ),
+
+    INVALID_PAYMENT_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_030",
+            "Invalid payment status."
+    ),
+    INVALID_SUBSCRIPTION_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SUBSCRIPTION_PLAN_TYPE",
+            "Invalid subscription plan type."
+    ),;
 
 
 

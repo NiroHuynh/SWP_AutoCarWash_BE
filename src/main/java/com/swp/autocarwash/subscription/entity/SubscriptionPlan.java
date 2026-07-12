@@ -2,11 +2,11 @@ package com.swp.autocarwash.subscription.entity;
 
 import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionPlanStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
@@ -14,6 +14,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "subscription_plan", schema = "swp_auto_car_wash")
 public class SubscriptionPlan {
     @Id
@@ -58,5 +61,10 @@ public class SubscriptionPlan {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private SubscriptionPlanStatus status = SubscriptionPlanStatus.ACTIVE;
 
 }

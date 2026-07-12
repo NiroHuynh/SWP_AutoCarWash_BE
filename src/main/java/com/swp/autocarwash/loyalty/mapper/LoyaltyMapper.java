@@ -44,7 +44,7 @@ public class LoyaltyMapper {
                 .id(history.getId())
                 .oldTierName(oldTier == null ? null : oldTier.getTierName())
                 .newTierName(history.getNewTier().getTierName())
-                .pointsAtTransition(history.getPointsAtTransition())
+                .valueAtTransition(history.getValueAtTransition())
                 .changeType(history.getChangeType())
                 .bookingId(booking == null ? null : booking.getId())
                 .createdAt(history.getCreatedAt())
