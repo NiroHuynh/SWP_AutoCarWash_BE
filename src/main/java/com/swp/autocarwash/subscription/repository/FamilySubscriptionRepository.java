@@ -95,5 +95,5 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             String status
     );
 
-
+    
 }

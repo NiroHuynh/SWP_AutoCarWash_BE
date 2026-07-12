@@ -13,7 +13,9 @@ import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceStatus;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
+import com.swp.autocarwash.subscription.dto.request.RenewFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.RenewFamilySubscriptionResponse;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
@@ -189,5 +191,118 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
         familySubscription.setCanceledAt(LocalDateTime.now());
 
         familySubscriptionRepository.save(familySubscription);
+    }
+
+    @Override
+    @Transactional
+    public RenewFamilySubscriptionResponse renewFamilySubscription(
+            RenewFamilySubscriptionRequest request) {
+
+        Customer customer = securityUtils.getCustomer();
+
+        // ===== Find Family Group =====
+        FamilyMember familyMember = familyMemberRepository
+                .findByCustomerAndIsDeletedFalse(customer)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.FAMILY_GROUP_NOT_FOUND));
+
+        FamilyGroup familyGroup = familyMember.getFamilyGroup();
+
+        // ===== Validate Owner =====
+        if (!familyGroup.getOwnerCustomer().getId().equals(customer.getId())) {
+            throw new BusinessException(ErrorCode.FAMILY_GROUP_NOT_OWNED);
+        }
+
+        // ===== Validate Subscription Plan =====
+        SubscriptionPlan subscriptionPlan = subscriptionPlanRepository
+                .findByIdAndIsDeletedFalse(request.getSubscriptionPlanId())
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN));
+
+        if (!PlanType.FAMILY.name().equals(subscriptionPlan.getPlanType())
+                || subscriptionPlan.getStatus() != SubscriptionPlanStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN);
+        }
+
+        FamilySubscription familySubscription = familySubscriptionRepository
+                .findFirstByFamilyGroupOrderByIdDesc(familyGroup)
+                .orElse(null);
+
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate;
+
+        SubscriptionInvoiceType invoiceType;
+
+        if (familySubscription == null) {
+
+            // ===== Đăng ký lần đầu =====
+            familySubscription = new FamilySubscription();
+            familySubscription.setFamilyGroup(familyGroup);
+
+            startDate = LocalDate.now();
+            endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
+
+            invoiceType = SubscriptionInvoiceType.REGISTER;
+
+        } else {
+
+            // ===== Gia hạn =====
+            invoiceType = SubscriptionInvoiceType.RENEW;
+
+            if (SubscriptionStatus.ACTIVE.name().equals(familySubscription.getStatus())
+                    && familySubscription.getSubscriptionPlan().getId()
+                    .equals(subscriptionPlan.getId())) {
+
+                // Gia hạn cùng gói -> cộng thêm thời gian
+                startDate = familySubscription.getStartDate();
+                endDate = familySubscription.getEndDate()
+                        .plusDays(subscriptionPlan.getDurationDays());
+
+            } else {
+
+                // Đổi gói hoặc gói đã hết hạn
+                startDate = LocalDate.now();
+                endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
+            }
+        }
+
+        familySubscription.setSubscriptionPlan(subscriptionPlan);
+        familySubscription.setStatus(SubscriptionStatus.PENDING.name());
+        familySubscription.setStartDate(startDate);
+        familySubscription.setEndDate(endDate);
+        familySubscription.setCanceledAt(null);
+
+        familySubscription = familySubscriptionRepository.save(familySubscription);
+
+        // ===== Create Invoice =====
+        SubscriptionInvoice invoice = SubscriptionInvoice.builder()
+                .customer(customer)
+                .familySubscription(familySubscription)
+                .planPrice(subscriptionPlan.getPrice())
+                .status(SubscriptionInvoiceStatus.PENDING.name())
+                .type(invoiceType)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        subscriptionInvoiceRepository.save(invoice);
+
+        long slotsUsed = familyMemberRepository
+                .countByFamilyGroupAndIsDeletedFalse(familyGroup);
+
+        String inheritedTierName = customer.getCustomerTier() != null
+                ? customer.getCustomerTier().getTierName()
+                : null;
+
+        return RenewFamilySubscriptionResponse.builder()
+                .familySubscriptionId(familySubscription.getId())
+                .planName(subscriptionPlan.getPlanName())
+                .planDuration(subscriptionPlan.getDurationDays())
+                .status(familySubscription.getStatus())
+                .startDate(familySubscription.getStartDate())
+                .endDate(familySubscription.getEndDate())
+                .slotsUsed((int) slotsUsed)
+                .maxSlots(subscriptionPlan.getMaxVehicleCount())
+                .inheritedTierName(inheritedTierName)
+                .build();
     }
 }
