@@ -40,4 +40,10 @@ public interface StationService {
     List<StationResponse> getStationsByCommune(Integer communeId);
 
     Station getStationById(Integer stationId);
+
+    /**
+     * Chức năng: Danh sách phẳng toàn bộ station chưa xóa, dùng cho dropdown
+     * "Chi nhánh" trên FE (không phụ thuộc communeId).
+     */
+    List<StationResponse> getAllStations();
 }

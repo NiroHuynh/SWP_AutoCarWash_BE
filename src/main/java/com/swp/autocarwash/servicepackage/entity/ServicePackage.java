@@ -1,10 +1,10 @@
 package com.swp.autocarwash.servicepackage.entity;
 
+import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
@@ -14,6 +14,9 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "service_package", schema = "swp_auto_car_wash")
 public class ServicePackage {
     @Id
@@ -63,4 +66,5 @@ public class ServicePackage {
             inverseJoinColumns = @JoinColumn(name = "addon_service_id")
     )
     private List<AddonService> addonServices = new ArrayList<>();
+
 }

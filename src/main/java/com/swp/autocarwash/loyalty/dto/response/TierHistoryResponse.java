@@ -27,8 +27,8 @@ public class TierHistoryResponse {
 
     private String newTierName;
 
-    /** Diem tich luy tai thoi diem chuyen hang. */
-    private Integer pointsAtTransition;
+    /** Snapshot tai thoi diem chuyen hang: diem tich luy (checkout) hoac tong chi tieu VND (annual job). */
+    private Integer valueAtTransition;
 
     private TierChangeType changeType;
 

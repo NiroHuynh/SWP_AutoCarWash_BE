@@ -182,6 +182,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingInvoicePort bookingInvoicePort;
     private final LoyaltyPort loyaltyPort;
     private final SystemSettingPort systemSettingPort;
+    private final PaymentQrPort paymentQrPort;
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
@@ -752,6 +753,9 @@ public class BookingServiceImpl implements BookingService {
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(appDate)
                 .status(BookingStatus.CONFIRMED.toString())
+                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+                //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
+                .status(BookingStatus.PENDING.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
@@ -778,11 +782,16 @@ public class BookingServiceImpl implements BookingService {
         Booking saved = bookingRepository.save(booking);
         bookingInvoicePort.createInvoice(booking);
 
+        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn
+        String transferContent = "BK" + saved.getId();
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
                 .status(saved.getStatus())
                 .totalAmount(subTotal)
                 .slotIds(request.getSlotIds())
+                .depositAmount(DEFAULT_DEPOSIT_AMOUNT)
+                .transferContent(transferContent)
+                .qrImageUrl(paymentQrPort.buildQrImageUrl(DEFAULT_DEPOSIT_AMOUNT, transferContent))
                 .build();
     }
 

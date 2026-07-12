@@ -59,4 +59,6 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
             "WHERE s.is_deleted = false AND s.is_operating = true " +
             "GROUP BY s.id, s.station_name", nativeQuery = true)
     List<Object[]> countPromotionsPerBranch(@Param("status") String status);
+
+    List<Station> findByIsDeletedFalse();
 }
