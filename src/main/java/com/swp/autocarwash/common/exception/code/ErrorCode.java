@@ -673,8 +673,6 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "GROUP_HAS_ACTIVE_BOOKINGS",
             "The family group has active bookings. You cannot dissolve the group until all active bookings are completed or canceled."
-    );
-
     ),
     INVALID_SUBSCRIPTION_PLAN_STATUS(
             HttpStatus.BAD_REQUEST,
@@ -779,11 +777,11 @@ public enum ErrorCode {
             "Subscription plan is required."
     ),
 
-    VEHICLE_REQUIRED(
-            HttpStatus.BAD_REQUEST,
-            "SUBSCRIPTION_015",
-            "Vehicle is required."
-    ),
+//    VEHICLE_REQUIRED(
+//            HttpStatus.BAD_REQUEST,
+//            "SUBSCRIPTION_015",
+//            "Vehicle is required."
+//    ),
 
     VEHICLE_ALREADY_SUBSCRIBED(
             HttpStatus.BAD_REQUEST,
@@ -879,7 +877,7 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_SUBSCRIPTION_PLAN_TYPE",
             "Invalid subscription plan type."
-    ),;
+    );
 
 
 
