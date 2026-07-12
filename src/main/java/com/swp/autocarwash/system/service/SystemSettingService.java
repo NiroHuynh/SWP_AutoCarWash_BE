@@ -1,10 +1,15 @@
 package com.swp.autocarwash.system.service;
 
+import com.swp.autocarwash.system.dto.request.CreateSettingRequest;
+import com.swp.autocarwash.system.dto.request.UpdateSettingRequest;
+import com.swp.autocarwash.system.dto.response.SystemSettingResponse;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
-@Service
+
 public interface SystemSettingService {
     BigDecimal getDepositAmount(String settingKey);
     Integer getTransferLock(String settingKey);
@@ -26,4 +31,10 @@ public interface SystemSettingService {
      * truoc khi bi job tu dong huy (key PENDING_PAYMENT_TIMEOUT_MINUTES).
      */
     Integer getPendingPaymentTimeoutMinutes();
+
+    Map<String, List<SystemSettingResponse>> getAllSettingsGrouped();
+
+    SystemSettingResponse createSetting(CreateSettingRequest request);
+
+    SystemSettingResponse updateSetting(Long id, UpdateSettingRequest request);
 }
