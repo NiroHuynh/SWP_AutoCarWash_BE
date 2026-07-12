@@ -24,4 +24,6 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
     long countByFamilyGroupAndIsDeletedFalse(FamilyGroup familyGroup);
 
     Optional<FamilyMember> findByCustomerAndIsDeletedFalse(Customer customer);
+
+
 }
