@@ -19,6 +19,7 @@ import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.booking.validator.BookingValidator;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.promotion.VoucherContract;
+import com.swp.autocarwash.common.contract.refund.RefundContract;
 import com.swp.autocarwash.common.contract.servicepackage.ServicePackageContract;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
@@ -97,7 +98,9 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> PAST_STATUSES =
             List.of(BookingStatus.CHECK_OUT.name(),
                     BookingStatus.CANCELED.name(),
-                    BookingStatus.NO_SHOW.name());
+                    BookingStatus.NO_SHOW.name(),
+                    BookingStatus.REFUND_PENDING.name(),
+                    BookingStatus.REFUNDED.name());
 
     /**
      * Ngưỡng thời gian (phút) để hiển thị nút CANCEL theo AC-25.1.5.
@@ -145,6 +148,7 @@ public class BookingServiceImpl implements BookingService {
     private final LoyaltyPort loyaltyPort;
     private final SystemSettingPort systemSettingPort;
     private final PaymentQrPort paymentQrPort;
+    private final RefundPort refundPort;
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
@@ -186,9 +190,16 @@ public class BookingServiceImpl implements BookingService {
             // Xác định hành động được phép
             List<String> allowedAction = determineAllowedActions(b, startTime);
 
+            // Chỉ tra refund khi booking đã hủy-để-hoàn-tiền, tránh query thừa cho các status khác
+            RefundContract refund = null;
+            if (BookingStatus.REFUND_PENDING.name().equals(b.getStatus())
+                    || BookingStatus.REFUNDED.name().equals(b.getStatus())) {
+                refund = refundPort.findByBookingId(b.getId()).orElse(null);
+            }
+
             // Map sang response
             BookingCardResponse bookingResponse = bookingHistoryMapper
-                    .toBookingCardResponse(b, startTime, endTime, allowedAction);
+                    .toBookingCardResponse(b, startTime, endTime, allowedAction, refund);
 
             result.add(bookingResponse);
         }
@@ -373,11 +384,18 @@ public class BookingServiceImpl implements BookingService {
         }
 
 
+        // Bước 6.7: Thông tin hoàn tiền — chỉ tra khi booking đã hủy-để-hoàn-tiền
+        RefundContract refund = null;
+        if (BookingStatus.REFUND_PENDING.name().equals(booking.getStatus())
+                || BookingStatus.REFUNDED.name().equals(booking.getStatus())) {
+            refund = refundPort.findByBookingId(bookingId).orElse(null);
+        }
+
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
                 technicianName, voucherCode, voucherDiscountPercent, deposit, remainingAmount,
-                subscriptionInfo, loyaltyPoint, pointsEarned, pointsRedeemed);
+                subscriptionInfo, loyaltyPoint, pointsEarned, pointsRedeemed, refund);
     }
 
     /**
