@@ -457,4 +457,70 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public DissolveGroupResponse dissolveFamilyGroup() {
+        // 1. SECURITY GUARD: Lấy thông tin người dùng từ Token JWT
+        Long userId = securityUtils.getCurrentUserId();
+        Customer currentCustomer = customerRepository.findByUserId(userId);
+        if (currentCustomer == null) {
+            throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+        Long currentCustomerId = currentCustomer.getId();
+
+        // 2. PHÂN QUYỀN: Tìm xem khách hàng này có phải là Owner của nhóm nào không
+        FamilyGroup targetGroup = familyGroupRepository.findByOwnerCustomerId(currentCustomerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED_ACTION));
+        // Không phải Owner -> Bắn lỗi 403 Forbidden lập tức (AC01/AC02)
+
+        // 3. BOOKING GUARD (AC03): Gom toàn bộ xe trong nhóm để check lịch dở dang
+        List<FamilyMember> allMembers = familyMemberRepository.findByFamilyGroupId(targetGroup.getId());
+
+        // Trích xuất danh sách ID xe của toàn bộ nhóm (Bao gồm cả xe của Owner và Member phụ)
+        List<Long> groupVehicleIds = new ArrayList<>();
+        for (FamilyMember member : allMembers) {
+            if (member.getVehicle() != null) {
+                groupVehicleIds.add(member.getVehicle().getId());
+            }
+        }
+
+        if (!groupVehicleIds.isEmpty()) {
+            List<String> unfinishedStatuses = List.of(BookingStatus.PENDING.name(), BookingStatus.CONFIRMED.name(), BookingStatus.CHECK_IN.name(), BookingStatus.WASHING.name(), BookingStatus.COMPLETED.name());
+            boolean hasActiveBookings = bookingRepository.existsByVehicleIdInAndStatusIn(groupVehicleIds, unfinishedStatuses);
+
+            if (hasActiveBookings) {
+                throw new BusinessException(ErrorCode.GROUP_HAS_ACTIVE_BOOKINGS);
+                // Có ít nhất 1 xe đang rửa hoặc chờ rửa -> Chặn đứng, bắt xử lý xong lịch mới cho hủy nhóm
+            }
+        }
+
+        // 4. VÔ HIỆU HÓA GÓI CƯỚC (Hủy gói liên kết của nhóm)
+        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
+        String subStatus = "NO_SUBSCRIPTION";
+        if (activeSubOpt.isPresent()) {
+            FamilySubscription subscription = activeSubOpt.get();
+            subscription.setStatus("CANCELED");
+            subscription.setCanceledAt(LocalDateTime.now());
+            familySubscriptionRepository.save(subscription);
+            subStatus = "CANCELED";
+        }
+
+        // 5. HARD DELETE (AC04): Xóa cứng toàn bộ thành viên + Owner ra khỏi bảng family_member
+        int kickedCount = allMembers.size();
+        familyMemberRepository.deleteByFamilyGroupId(targetGroup.getId());
+        // Lệnh này bẻ gãy mọi sợi xích liên kết xe, đưa tất cả thành viên về trạng thái "vô gia cư" để tự do đi nhóm khác
+
+        // 6. SOFT DELETE GROUP (AC04): Ẩn nhóm gia đình này đi
+        targetGroup.setIsDeleted(true);
+        familyGroupRepository.save(targetGroup);
+
+        // 7. Trả kết quả về cho Controller đổ ra JSON (AC05)
+        return DissolveGroupResponse.builder()
+                .familyGroupId(targetGroup.getId())
+                .ownerCustomerId(currentCustomerId)
+                .totalMembersKicked(kickedCount)
+                .subscriptionStatus(subStatus)
+                .build();
+    }
+
 }

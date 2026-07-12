@@ -594,6 +594,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_ACTION",
             "The member you are trying to remove from the family group does not exist in the group."
+    ),
+    GROUP_HAS_ACTIVE_BOOKINGS(
+            HttpStatus.BAD_REQUEST,
+            "GROUP_HAS_ACTIVE_BOOKINGS",
+            "The family group has active bookings. You cannot dissolve the group until all active bookings are completed or canceled."
     );
 
 
