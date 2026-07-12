@@ -5,6 +5,7 @@ import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
 import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
+import com.swp.autocarwash.customer.dto.response.RemoveMemberResponse;
 
 public interface FamilyGroupService {
     Long getOwnerCustomerIdOfCustomerId(Long customerId);
@@ -16,4 +17,6 @@ public interface FamilyGroupService {
     SearchInvitedCustomerResponse searchInvitedCustomer(String identifier);
 
     FamilyGroupDetailsResponse getFamilyGroupDetails();
+
+    RemoveMemberResponse removeMember(Long memberCustomerId);
 }

@@ -579,6 +579,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "FAMILY_SB__013",
             "The identifier of the customer(phone or gmail) you are trying to invite cannot be empty. Please provide a valid identifier."
+    ),
+    UNAUTHORIZED_ACTION(
+            HttpStatus.BAD_REQUEST,
+            "UNAUTHORIZED_ACTION",
+            "You are not authorized to perform this action(just owner in group can action)."
+    ),
+    MEMBER_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "MEMBER_NOT_FOUND",
+            "The member you are trying to remove from the family group does not exist in the group."
+    ),
+    INVALID_ACTION(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_ACTION",
+            "The member you are trying to remove from the family group does not exist in the group."
     );
 
 

@@ -1,16 +1,15 @@
 package com.swp.autocarwash.customer.service.family.impl;
 
 import com.swp.autocarwash.auth.util.SecurityUtils;
+import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.dto.request.AddFamilyMemberRequest;
 import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
-import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
-import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
-import com.swp.autocarwash.customer.dto.response.GroupMemberDto;
-import com.swp.autocarwash.customer.dto.response.GroupSubscriptionDto;
+import com.swp.autocarwash.customer.dto.response.*;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.FamilyGroup;
 import com.swp.autocarwash.customer.entity.FamilyMember;
@@ -46,6 +45,7 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
 
     private final FamilySubscriptionRepository familySubscriptionRepository;
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public Long getOwnerCustomerIdOfCustomerId(Long customerId) {
@@ -384,6 +384,77 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
                 .members(memberList)
                 .build();
 
+    }
+
+    @Override
+    public RemoveMemberResponse removeMember(Long memberCustomerId) {
+
+        // 1. SECURITY GUARD: Giải mã Token lấy customerId của người đang thực hiện hành động
+        Long userId = securityUtils.getCurrentUserId();
+        Customer currentCustomer = customerRepository.findByUserId(userId);
+        if (currentCustomer == null) {
+            throw new ResourceNotFoundException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+        Long currentCustomerId = currentCustomer.getId();
+
+        // 2. Kiểm tra xem người gọi có phải là Owner của nhóm nào không
+        FamilyGroup ownedGroup = familyGroupRepository.findByOwnerCustomerId(currentCustomerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED_ACTION));
+        // Không phải Owner -> Chặn đứng ngay lập tức (AC02)
+
+        // 3. Kiểm tra xem thành viên phụ sắp bị xóa có thực sự nằm trong nhóm của Owner này không
+        FamilyMember memberToDelete = familyMemberRepository.findByCustomerId(memberCustomerId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (!memberToDelete.getFamilyGroup().getId().equals(ownedGroup.getId())) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+            // Thành viên tồn tại nhưng thuộc nhóm nhà người khác -> Báo lỗi không tìm thấy
+        }
+
+        // Chặn luồng nếu Owner tự xóa chính mình bằng API này (Owner muốn rời nhóm phải dùng luồng giải tán nhóm riêng)
+        if (memberCustomerId.equals(currentCustomerId)) {
+            throw new BusinessException(ErrorCode.INVALID_ACTION);
+        }
+
+        // 4. BOOKING GUARD (AC03): Kiểm tra lịch đặt dở dang của chiếc xe gắn liền với thành viên đó
+        if (memberToDelete.getVehicle() != null) {
+            Long memberVehicleId = memberToDelete.getVehicle().getId();
+            List<String> unfinishedStatuses = List.of(BookingStatus.PENDING.name(), BookingStatus.CONFIRMED.name(), BookingStatus.CHECK_IN.name(), BookingStatus.WASHING.name(), BookingStatus.CONFIRMED.name());
+
+            boolean hasUnfinishedBooking = bookingRepository.existsByVehicleIdAndStatusIn(memberVehicleId, unfinishedStatuses);
+            if (hasUnfinishedBooking) {
+                throw new BusinessException(ErrorCode.VEHICLE_HAS_ACTIVE_BOOKING);
+                // Xe đang rửa hoặc có lịch hẹn chưa xong -> Chặn đứng, quăng lỗi nghiệp vụ
+            }
+        }
+
+        // 5. HARD DELETE (AC04): Thực thi xóa vật lý dòng dữ liệu khỏi bảng family_member
+        familyMemberRepository.delete(memberToDelete);
+
+        // Sau lệnh này, liên kết xe biến mất -> Mọi quyền lợi tự động bị bẻ gãy, ra quầy tự tính tiền mặt
+
+        // 6. ĐẾM VÀ TÍNH TOÁN HẠN MỨC MỚI (AC05)
+        // Lấy danh sách thành viên còn lại
+        List<FamilyMember> remainingMembers = familyMemberRepository.findByFamilyGroupId(ownedGroup.getId());
+
+        // Không +1 nữa vì Owner đã nằm sẵn trong remainingMembers
+        int currentCount = remainingMembers.size();
+
+        // Tìm số xe tối đa được phép của gói ACTIVE để làm mẫu số
+        int maxVehicleCount = 0;
+        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(ownedGroup.getId());
+        if (activeSubOpt.isPresent()) {
+            maxVehicleCount = activeSubOpt.get().getSubscriptionPlan().getMaxVehicleCount();
+        }
+
+        String newUsageSummary = currentCount + "/" + maxVehicleCount;
+
+        // 7. Đóng gói dữ liệu trả về theo đúng API Contract
+        return RemoveMemberResponse.builder()
+                .familyGroupId(ownedGroup.getId())
+                .removedCustomerId(memberCustomerId)
+                .newUsageSummary(newUsageSummary)
+                .build();
     }
 
 }
