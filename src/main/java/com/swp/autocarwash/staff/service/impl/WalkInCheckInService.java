@@ -5,6 +5,7 @@ import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.BookingSlot;
 import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.booking.entity.enums.BookingType;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
@@ -28,10 +29,7 @@ import com.swp.autocarwash.servicepackage.repository.PackageAddonMappingReposito
 import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
 import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
-import com.swp.autocarwash.staff.dto.response.BookingSummaryResponse;
-import com.swp.autocarwash.staff.dto.response.CheckPhoneResponse;
-import com.swp.autocarwash.staff.dto.response.CreateWalkInResponse;
-import com.swp.autocarwash.staff.dto.response.WalkInFormDataResponse;
+import com.swp.autocarwash.staff.dto.response.*;
 import com.swp.autocarwash.staff.mapper.WalkInMapper;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
@@ -112,7 +110,7 @@ public class WalkInCheckInService {
                         .planName(sub.getSubscriptionPlan().getPlanName())
                         .planType(sub.getSubscriptionPlan().getPlanType())
                         .endDate(sub.getEndDate())
-                        .status(sub.getStatus())
+                        .status(sub.getStatus().name())
                         .build());
             }
 
@@ -446,14 +444,6 @@ public class WalkInCheckInService {
                     throw new BusinessException(ErrorCode.PENALTY_DEPOSIT_NOT_CONFIRMED);
                 }
 
-                //PHÂN NHÁNH 2: Staff đã thu tiền, FE lật cờ thành true gửi lên (Lần bấm thứ hai)
-                else {
-                    // Thực hiện xóa án tích trực tiếp dưới DB ngay tại luồng này để giải phóng xe
-                    vehicle.setViolationCount(0);
-                    vehicle.setRestrictedUntil(null);
-                    vehicleRepository.save(vehicle); // Lưu xe sạch án xuống DB
-
-                }
             }
         }
 
@@ -489,10 +479,10 @@ public class WalkInCheckInService {
                     .servicePackage(servicePackage)
                     .appointmentDate(LocalDate.now())
                     .status(BookingStatus.CHECK_IN.name()) // Mặc định chuyển thẳng sang CHECKED_IN theo luồng Walk-In tại quầy
-                    .bookingType("WALK_IN")
+                    .bookingType(BookingType.WALK_IN.name())
                     .createdAt(LocalDateTime.now())
                     .checkInAt(LocalDateTime.now())
-                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0)
+                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
                     .build();
             Booking savedBooking = bookingRepository.save(newBooking);
 
@@ -545,6 +535,14 @@ public class WalkInCheckInService {
                 }
             }
 
+            // Ghi lại đúng số tiền lên chính Booking (không chỉ BookingInvoice) — nếu không,
+            // các field này giữ nguyên default 0 (@Builder.Default), khiến GET booking detail /
+            // Payment page luôn hiện Total Due = 0 cho mọi đơn walk-in.
+            savedBooking.setTotalServiceAmount(serviceAmount);
+            savedBooking.setTotalAddonAmount(addonAmount);
+            savedBooking.setTotalAmount(remainingBalanceAtCheckout);
+            bookingRepository.save(savedBooking);
+
             //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
             //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
             BookingInvoice invoice = BookingInvoice.builder()
@@ -582,7 +580,7 @@ public class WalkInCheckInService {
                     .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
                     .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
                     //Trạng thái và Phân loại
-                    .status("CHECK_IN")    // Trạng thái vé (status - NOT NULL)
+                    .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé (status - NOT NULL)
                     .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
                     .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
                     //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
@@ -600,6 +598,7 @@ public class WalkInCheckInService {
                     .ticketNumber(nextTicketNumber)
                     .status(savedBooking.getStatus())
                     .remainingBalance(remainingBalanceAtCheckout)
+                    .checkInAt(savedBooking.getCheckInAt())
                     .message("Walk-in booking has been created successfully. The vehicle has been added to the service queue.")
                     .build();
         }
@@ -665,25 +664,29 @@ public class WalkInCheckInService {
                 .build();
     }
 
-//    @Transactional
-//    public CreateWalkInResponse confirmPenaltyDeposit(CreateWalkInRequest request) {
-//
-//        // 1. Tìm xem chiếc xe vãng lai này có tồn tại trong hệ thống không
-//        Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate())
-//                .orElseThrow(() -> new BusinessException(ErrorCode.VEHICLE_NOT_FOUND));
-//
-//        // 2. Kiểm tra xem xe này có thực sự đang trong diện bị phạt/hạn chế không
-//        if (vehicle.getViolationCount() == null || vehicle.getViolationCount() <= 3
-//                || vehicle.getRestrictedUntil() == null || vehicle.getRestrictedUntil().isBefore(Instant.now())) {
-//            throw new BusinessException(ErrorCode.VEHICLE_NOT_IN_VIOLATION_RESTRICTION);
-//        }
-//
-//        // 3. Set cờ thu tiền lên true
-//        request.setPenaltyDepositCollected(true);
-//
-//        // 4. Gọi lại hàm tạo đơn gốc để chạy tiếp luồng lưu Booking, Invoice và cấp số QueueTicket
-//        return this.createWalkInOrder(request);
-//        //Staff phải nhập đầy đủ thông tin rồi mới cho ấn nút xác nhận đã thu
-//    }
+    /**
+     * API XÁC NHẬN THU TIỀN CỌC PHẠT 20K TẠI QUẦY (TRƯỚC KHI TẠO ĐƠN)
+     * Luồng đi: Staff thấy thông báo phạt -> Thu 20k tiền mặt của khách -> Bấm nút [XÁC NHẬN ĐÃ THU]
+     */
+    @Transactional
+    public CheckInResultResponse collectWalkInPenaltyDeposit(String licensePlate) {
+
+        // 1. Tìm xem chiếc xe vãng lai này có tồn tại trong hệ thống không
+        Vehicle vehicle = vehicleRepository.findByLicensePlateAndIsDeletedFalse(licensePlate)
+                .orElseThrow(() -> new BusinessException(ErrorCode.VEHICLE_NOT_FOUND));
+
+        // 2. Kiểm tra xem xe này có thực sự đang trong diện bị phạt/hạn chế không (vi phạm > 3 lần và chưa hết hạn phạt)
+        if (vehicle.getViolationCount() == null || vehicle.getViolationCount() <= systemSettingServiceImpl.getMaxViolationLimit("MAX_VIOLATION_LIMIT")
+                || vehicle.getRestrictedUntil() == null || vehicle.getRestrictedUntil().isBefore(Instant.now())) {
+            throw new BusinessException(ErrorCode.VEHICLE_CLEAR_NO_PENALTY);
+        }
+
+        // 3. Trả về phản hồi cho Frontend biết là BE đã xác thực xe dính án phạt và hợp lệ để thu cọc
+        // Sau khi nhận được cái này, FE sẽ set biến State thành true để mở khóa nút [TẠO ĐƠN & CHECK-IN]
+        return CheckInResultResponse.builder()
+                .message("Collected 20,000 VND penalty deposit successfully for vehicle " + licensePlate + ". You may now proceed to create the walk-in order.")
+                .requiresWalkIn(false)
+                .build();
+    }
 
 }

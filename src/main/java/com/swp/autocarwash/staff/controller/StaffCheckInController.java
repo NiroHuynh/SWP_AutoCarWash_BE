@@ -34,15 +34,4 @@ public class StaffCheckInController {
                 result));
     }
 
-    /**
-     * AC04: Endpoint Staff thu 20.000đ cọc tại quầy cho khách Walk-in đang bị restricted_until.
-     * Phải gọi thành công API này trước khi gọi lại /confirm/{bookingId}.
-     */
-    @PostMapping("/collect-penalty-deposit/{bookingId}")
-    public ResponseEntity<ApiResponse<CheckInResultResponse>> collectWalkInPenaltyDeposit(
-            @PathVariable Long bookingId
-    ) {
-        CheckInResultResponse result = staffCheckinService.collectWalkInPenaltyDeposit(bookingId);
-        return ResponseEntity.ok(ApiResponse.success("The walk-in customer paid deposit",result));
-    }
 }

@@ -1,7 +1,6 @@
 package com.swp.autocarwash.booking.service.impl;
 
 import com.swp.autocarwash.auth.util.SecurityUtils;
-import com.swp.autocarwash.booking.dto.request.BookingPricePreviewRequest;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
@@ -16,8 +15,8 @@ import com.swp.autocarwash.booking.port.*;
 import com.swp.autocarwash.booking.repository.BookingAddonRepository;
 import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotAllocationRepository;
+import com.swp.autocarwash.booking.service.BookingInvoiceService;
 import com.swp.autocarwash.booking.service.BookingService;
-import com.swp.autocarwash.booking.service.BookingSlotService;
 import com.swp.autocarwash.booking.validator.BookingValidator;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.promotion.VoucherContract;
@@ -26,11 +25,23 @@ import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.booking.mapper.BookingHistoryMapper.SubscriptionInfo;
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.customer.repository.VehicleRepository;
+import com.swp.autocarwash.promotion.entity.Promotion;
+import com.swp.autocarwash.promotion.entity.PromotionStationMapping;
+import com.swp.autocarwash.promotion.entity.Voucher;
 import com.swp.autocarwash.promotion.entity.VoucherUsage;
+import com.swp.autocarwash.promotion.entity.enums.VoucherStatus;
+import com.swp.autocarwash.promotion.entity.enums.VoucherUsageStatus;
+import com.swp.autocarwash.promotion.repository.PromotionRepository;
+import com.swp.autocarwash.promotion.repository.PromotionStationMappingRepository;
+import com.swp.autocarwash.promotion.repository.VoucherRepository;
 import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
-import com.swp.autocarwash.queue.entity.enums.QueueStatus;
+import com.swp.autocarwash.queue.entity.enums
+        .QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.servicepackage.entity.AddonService;
+import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
@@ -43,21 +54,19 @@ import com.swp.autocarwash.booking.port.AddonServicePort;
 import com.swp.autocarwash.booking.port.ServicePackagePort;
 import com.swp.autocarwash.booking.port.VehiclePort;
 import com.swp.autocarwash.booking.port.VoucherPort;
-import com.swp.autocarwash.booking.repository.BookingRepository;
 import com.swp.autocarwash.booking.repository.BookingSlotRepository;
-import com.swp.autocarwash.booking.service.BookingService;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.contract.servicepackage.AddonServiceContract;
 import com.swp.autocarwash.common.exception.BusinessException;
-import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -67,6 +76,7 @@ import java.util.*;
 
 
 import java.time.LocalDate;
+
 
 /**
  * Triển khai các nghiệp vụ lịch đặt xe định nghĩa trong {@link BookingService}.
@@ -84,6 +94,32 @@ import java.time.LocalDate;
 // là một annotation từ thư viện Lombok — tự động sinh ra constructor cho các field final
 public class BookingServiceImpl implements BookingService {
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
+    @Autowired
+    private ServicePackageRepository servicePackageRepository;
+
+    @Autowired
+    private VoucherRepository voucherRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
+
+    @Autowired
+    private PromotionStationMappingRepository promotionStationMappingRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private VoucherUsageRepository voucherUsageRepository;
+
+    @Autowired
+    private BookingInvoiceService bookingInvoiceService;
 
     /**
      * Danh sách trạng thái được coi là "sắp tới" theo AC-25.1.2.
@@ -92,6 +128,7 @@ public class BookingServiceImpl implements BookingService {
             List.of(BookingStatus.CONFIRMED.name(),
                     BookingStatus.CHECK_IN.name(),
                     BookingStatus.WASHING.name(),
+                    BookingStatus.COMPLETED.name(),
                     BookingStatus.PENDING.name());
 
     /**
@@ -128,10 +165,8 @@ public class BookingServiceImpl implements BookingService {
      */
     private final BookingEventPublisher bookingEventPublisher;
 
-    private final BookingRepository bookingRepository;
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
     private final BookingAddonRepository bookingAddonRepository;
-    private final VoucherUsageRepository voucherUsageRepository;
     private final BookingHistoryMapper bookingHistoryMapper;
     private final BookingSlotRepository slotRepository;
     private final ServicePackagePort servicePackagePort;
@@ -145,7 +180,9 @@ public class BookingServiceImpl implements BookingService {
     private final SecurityUtils securityUtils;
     private final VoucherUsagePort voucherUsagePort;
     private final BookingInvoicePort bookingInvoicePort;
+    private final LoyaltyPort loyaltyPort;
     private final SystemSettingPort systemSettingPort;
+    private final PaymentQrPort paymentQrPort;
 
     private final ModelMapper modelMapper;
     private final SlotAvailabilityCalculator slotCalculator = new SlotAvailabilityCalculator();
@@ -356,11 +393,29 @@ public class BookingServiceImpl implements BookingService {
                             .orElse(null));
         }
 
+
+
+
+        // Bước 6.6: Điểm loyalty — chỉ chốt & hiển thị khi booking đã CHECK_OUT
+        // (COMPLETED = rửa xong nhưng chưa thanh toán nên chưa phát sinh điểm).
+        // Đồng thời tránh NPE khi booking là walk-in (customer == null).
+        Integer loyaltyPoint = booking.getCustomer() != null
+                ? loyaltyPort.getLotaltyPoint(booking.getCustomer().getId())
+                : null;
+        Integer pointsEarned = null;
+        Integer pointsRedeemed = null;
+        if (BookingStatus.CHECK_OUT.name().equals(booking.getStatus())
+                && booking.getCustomer() != null) {
+            pointsEarned = loyaltyPort.getEarnedPointForBooking(bookingId);
+            pointsRedeemed = loyaltyPort.getRedeemedPointForBooking(bookingId);
+        }
+
+
         // Bước 7: Map tất cả dữ liệu sang response rồi trả về
         return bookingHistoryMapper.toBookingDetailResponse(
                 booking, startTime, endTime, station, addons,
                 technicianName, voucherCode, voucherDiscountPercent, deposit, remainingAmount,
-                subscriptionInfo);
+                subscriptionInfo, loyaltyPoint, pointsEarned, pointsRedeemed);
     }
 
     /**
@@ -438,12 +493,18 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if (!"CHECK_IN".equals(booking.getStatus())) {
-            throw new BusinessException(ErrorCode.BOOKING_NOT_CHECKED_IN);
+        if(!BookingStatus.CHECK_IN.name().equals(booking.getStatus())){
+            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
         booking.setStatus(BookingStatus.CANCELED.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
+        // AC02: booking single-package đã trả cọc online -> hủy do khách bỏ về => KHÔNG hoàn cọc.
+        // "Thu 100% cọc" chỉ là ghi nhận tịch thu (không refund). Gói không cọc (isDepositPaid=false)
+        // giữ nguyên depositConfiscatedAt = null. Mirror DepositConfiscationScheduler.
+        if (Boolean.TRUE.equals(booking.getIsDepositPaid())) {
+            booking.setDepositConfiscatedAt(LocalDateTime.now(ZONE));
+        }
         bookingRepository.save(booking);
 
         List<BookingSlotAllocation> allocations =
@@ -459,7 +520,7 @@ public class BookingServiceImpl implements BookingService {
             ticket.setStatus(QueueStatus.CANCELED.name());
             queueTicketRepository.save(ticket);
         });
-        if (booking.getCheckInEmployee() != null) {
+
             bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
                     .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
                     .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
@@ -469,7 +530,7 @@ public class BookingServiceImpl implements BookingService {
                     .isDepositPaid(booking.getIsDepositPaid())
                     .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
                     .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
-        }
+
 
         return getBookingDetail(bookingId);
     }
@@ -485,7 +546,7 @@ public class BookingServiceImpl implements BookingService {
     private List<String> determineAllowedActions(Booking booking, LocalTime startTime) {
         List<String> actions;
         switch (booking.getStatus()) {
-            case "PAID":
+            case "CHECK_OUT":
                 actions = List.of("WRITE_REVIEW", "VIEW_DETAILS");
                 break;
             case "CONFIRMED":
@@ -547,7 +608,12 @@ public class BookingServiceImpl implements BookingService {
 
 //        lấy customer
         Long userId = getCurrentUserId();
-        CustomerContract customer = customerPort.getCustomerByUserId(userId);
+        Customer customer = customerRepository.findByUserId(userId);
+        if (customer == null) {
+            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+
+//      CustomerContract customer = customerPort.getCustomerByUserId(userId);
 
 //        lấy vehicle
         VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
@@ -566,65 +632,224 @@ public class BookingServiceImpl implements BookingService {
 //        tổng tiền của service package và addon package
         BigDecimal subTotal = packagePrice.add(addonPrice);
 
+        // Trích xuất mốc thời gian ngày hẹn để đối soát thời hạn Voucher
+        LocalDate appDate = LocalDate.parse(request.getAppointmentDate());
+        LocalDateTime appDateTime = appDate.atStartOfDay();
+
         // VOUCHER
-        BigDecimal discount = BigDecimal.ZERO;
+        BigDecimal discountAmount = BigDecimal.ZERO;
 
-        VoucherContract voucher = null;
-        if (request.getVoucherCode() != null) {
+        Voucher appliedVoucher = null;
 
-            voucher = voucherPort.getDiscountPercent(request.getVoucherCode(), subTotal.intValue());
-            if (!voucher.isValid()) {
+        //HỆ THỐNG GÁC CỔNG VOUCHER
+
+        Integer customerTierId = customer.getCustomerTier().getId(); // Lấy Hạng thành viên của khách hàng
+
+        //VOUCHER CONFIG 1: Tự động quét Chế độ 1 (Giảm giá sàn trực tiếp hệ thống theo Chi nhánh + Hạng xe)
+        List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
+
+        if (activePromos != null && !activePromos.isEmpty()) {
+            BigDecimal maxDiscountCalculated = BigDecimal.ZERO;
+            Voucher bestVoucher = null;
+
+            // Vòng lặp duyệt qua các chiến dịch Chế độ 1 trùng khung cấu hình để tìm deal tốt nhất
+            for (Promotion p : activePromos) {
+                List<Voucher> subVouchers = voucherRepository.findByPromotionId(p.getId());
+
+                for (Voucher tempVoucher : subVouchers) {
+                    if (tempVoucher == null || !VoucherStatus.ACTIVE.name().equalsIgnoreCase(tempVoucher.getStatus()) || Boolean.TRUE.equals(tempVoucher.getIsDeleted())) {
+                        continue;
+                    }
+
+                    // (Giữ nguyên logic tính toán thử số tiền giảm giá currentDiscount của tempVoucher...)
+                    BigDecimal currentDiscount = BigDecimal.ZERO;
+                    if (tempVoucher.getDiscountPercentage() != null) {
+                        BigDecimal percentFactor = BigDecimal.valueOf(tempVoucher.getDiscountPercentage()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                        BigDecimal calculated = subTotal.multiply(percentFactor);
+                        currentDiscount = (tempVoucher.getMaxDiscountAmount() != null && calculated.compareTo(tempVoucher.getMaxDiscountAmount()) > 0)
+                                ? tempVoucher.getMaxDiscountAmount() : calculated;
+                    } else {
+                        currentDiscount = tempVoucher.getMaxDiscountAmount();
+                    }
+
+                    // Thuật toán tìm Max deal hời nhất cho khách
+                    if (currentDiscount.compareTo(maxDiscountCalculated) > 0 || bestVoucher == null) {
+                        maxDiscountCalculated = currentDiscount;
+                        bestVoucher = tempVoucher;
+                    }
+                }
+            }
+            // Gán mã giảm sàn tốt nhất tìm được vào đơn hàng
+            if (bestVoucher != null) {
+                appliedVoucher = bestVoucher;
+            }
+        }
+        // VOUCHER CONFIG 2: Nếu không dính Chế độ 1 nào, kiểm tra mã Voucher khách tự chọn (Chế độ 2 hoặc 3)
+        else if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+            String inputCode = request.getVoucherCode().trim().toUpperCase();
+            appliedVoucher = voucherRepository.findByVoucherCodeAndIsDeletedFalse(inputCode)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_INVALID));
+            // Chốt chặn A: Kiểm tra trạng thái hoạt động và cờ xóa mềm dưới DB
+            if (!VoucherStatus.ACTIVE.name().equalsIgnoreCase(appliedVoucher.getStatus()) || Boolean.TRUE.equals(appliedVoucher.getIsDeleted())) {
                 throw new BusinessException(ErrorCode.VOUCHER_INVALID);
             }
+            //Chốt chặn B: Kiểm tra thời hạn hiệu lực dựa theo Ngày hẹn đến tiệm
+            if (appDateTime.isBefore(appliedVoucher.getStartDate()) || appDateTime.isAfter(appliedVoucher.getExpiryDate())) {
+                throw new BusinessException(ErrorCode.VOUCHER_EXPIRED);
+            }
 
-            discount = subTotal.multiply(
-                    BigDecimal.valueOf(voucher.getDiscountPercentage())
-                            .divide(BigDecimal.valueOf(100))
-            );
+            //Chốt chặn C: Kiểm tra giới hạn số lượt sử dụng toàn hệ thống
+            if (appliedVoucher.getUsedCount() >= appliedVoucher.getUsageLimit()) {
+                throw new BusinessException(ErrorCode.VOUCHER_USED_UP);
+            }
 
-            subTotal = subTotal.subtract(discount);
+            //Chốt chặn D: Kiểm tra giá trị đơn hàng tối thiểu (minOrderValue)
+            if (subTotal.compareTo(appliedVoucher.getMinOrderValue()) < 0) {
+                throw new BusinessException(ErrorCode.ORDER_VALUE_TOO_LOW);
+            }
+
+            //Chốt chặn E: Đối với Chế độ 2 (Voucher Chiến dịch), kiểm tra chi nhánh áp dụng
+            if (appliedVoucher.getPromotion() != null) {
+                List<PromotionStationMapping> mappings = promotionStationMappingRepository.findById_PromotionId(appliedVoucher.getPromotion().getId());
+                boolean isValidStation = mappings.stream().anyMatch(m -> m.getId().getStationId().equals(request.getStationId()));
+                if (!isValidStation) {
+                    throw new BusinessException(ErrorCode.VOUCHER_NOT_APPLICABLE_AT_STATION);
+                }
+            }
         }
+
+        // LOGIC KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ SAU KHI CHỐT MÃ
+
+        if (appliedVoucher != null) {
+            if (appliedVoucher.getDiscountPercentage() != null) {
+                BigDecimal percentFactor = BigDecimal.valueOf(appliedVoucher.getDiscountPercentage())
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                BigDecimal calculatedDiscount = subTotal.multiply(percentFactor);
+
+                if (appliedVoucher.getMaxDiscountAmount() != null && calculatedDiscount.compareTo(appliedVoucher.getMaxDiscountAmount()) > 0) {
+                    discountAmount = appliedVoucher.getMaxDiscountAmount();
+                } else {
+                    discountAmount = calculatedDiscount;
+                }
+            } else {
+                discountAmount = appliedVoucher.getMaxDiscountAmount();
+            }
+
+            if (discountAmount.compareTo(subTotal) > 0) {
+                discountAmount = subTotal;
+            }
+
+            // Trừ tiền thực tế
+            subTotal = subTotal.subtract(discountAmount);
+        }
+
+        // ĐÓNG GÓI BẢN GHI VÀ LƯU VẾT LỊCH SỬ THỜI GIAN THỰC
 
         BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
 
-        // BUILD BOOKING ENTITY (FIXED)
         Booking booking = Booking.builder()
-                .customer(modelMapper.map(customer, Customer.class))
+                .customer(customer)
                 .vehicle(modelMapper.map(vehicle, Vehicle.class))
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
-                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+                .appointmentDate(appDate)
                 .status(BookingStatus.CONFIRMED.toString())
+                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+                //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
+                .status(BookingStatus.PENDING.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
-                .voucherDiscountAmount(discount)
+                .voucherDiscountAmount(discountAmount)
                 .totalAmount(subTotal)
                 .build();
 
-
-//        tạo BookingAddon
         booking = createBookingAddon(booking, request.getAddonServiceIds());
-
-
-        // SLOT ALLOCATION
-//        tạo booking slot allocation và cộng biến đếm bookingCount trong booking slot;
         booking = createBookingAlocation(booking, request.getSlotIds());
 
-//        tạo voucherUsage
-        createVoucherUsage(voucher, booking);
+        // Cập nhật số lượt dùng thời gian thực của Voucher
+        if (appliedVoucher != null) {
+            appliedVoucher.setUsedCount(appliedVoucher.getUsedCount() + 1);
+
+            if (appliedVoucher.getUsedCount().equals(appliedVoucher.getUsageLimit())) {
+                appliedVoucher.setStatus(VoucherStatus.USED_UP.name());
+            }
+            voucherRepository.save(appliedVoucher);
+
+            // Đúc bản ghi lịch sử voucher_usage an toàn
+            createVoucherUsage(appliedVoucher, booking);
+        }
 
         Booking saved = bookingRepository.save(booking);
-
-//        tạo booking invoice
         bookingInvoicePort.createInvoice(booking);
 
+        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn
+        String transferContent = "BK" + saved.getId();
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
                 .status(saved.getStatus())
                 .totalAmount(subTotal)
                 .slotIds(request.getSlotIds())
+                .depositAmount(DEFAULT_DEPOSIT_AMOUNT)
+                .transferContent(transferContent)
+                .qrImageUrl(paymentQrPort.buildQrImageUrl(DEFAULT_DEPOSIT_AMOUNT, transferContent))
                 .build();
     }
+
+//        VoucherContract voucher = null;
+//        if (request.getVoucherCode() != null) {
+//
+//            voucher = voucherPort.getDiscountPercent(request.getVoucherCode(), subTotal.intValue());
+//            if (!voucher.isValid()) {
+//                throw new BusinessException(ErrorCode.VOUCHER_INVALID);
+//            }
+//
+//            discount = subTotal.multiply(
+//                    BigDecimal.valueOf(voucher.getDiscountPercentage())
+//                            .divide(BigDecimal.valueOf(100))
+//            );
+//
+//            subTotal = subTotal.subtract(discount);
+//        }
+//
+//        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+//
+//        // BUILD BOOKING ENTITY (FIXED)
+//        Booking booking = Booking.builder()
+//                .customer(modelMapper.map(customer, Customer.class))
+//                .vehicle(modelMapper.map(vehicle, Vehicle.class))
+//                .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
+//                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+//                .status(BookingStatus.CONFIRMED.toString())
+//                .bookingType(bookingType.toString())
+//                .totalServiceAmount(packagePrice)
+//                .totalAddonAmount(addonPrice)
+//                .voucherDiscountAmount(discount)
+//                .totalAmount(subTotal)
+//                .build();
+//
+//
+////        tạo BookingAddon
+//        booking = createBookingAddon(booking, request.getAddonServiceIds());
+//
+//
+//        // SLOT ALLOCATION
+////        tạo booking slot allocation và cộng biến đếm bookingCount trong booking slot;
+//        booking = createBookingAlocation(booking, request.getSlotIds());
+//
+////        tạo voucherUsage
+//        createVoucherUsage(voucher, booking);
+//
+//        Booking saved = bookingRepository.save(booking);
+//
+////        tạo booking invoice
+//        bookingInvoicePort.createInvoice(booking);
+//
+//        return CreateBookingResponse.builder()
+//                .bookingId(saved.getId())
+//                .status(saved.getStatus())
+//                .totalAmount(subTotal)
+//                .slotIds(request.getSlotIds())
+//                .build();
 
     private BookingType getBookingType(Long vehicleId, Integer servicePackageId) {
         if (hasSubscription(vehicleId, servicePackageId)){
@@ -633,9 +858,23 @@ public class BookingServiceImpl implements BookingService {
         return BookingType.ADVANCE;
     }
 
-    private void createVoucherUsage(VoucherContract voucherContract, Booking booking) {
-        if (voucherContract == null) return;
-        voucherUsagePort.consumeVoucher(voucherContract.getId(), booking);
+    private void createVoucherUsage(Voucher voucher, Booking booking) {
+        if (voucher == null) return;
+
+        // Tự đúc bản ghi lịch sử và lưu trực tiếp xuống bảng trung gian bằng Repository nội bộ
+        VoucherUsage usage = VoucherUsage.builder()
+                .booking(booking)
+                .voucher(voucher)
+                //CHỐT CHẶN CHÍ MẠNG CHO CHẾ ĐỘ 3:
+                // Nếu là voucher lẻ (no promotion), trường này sẽ lưu null xuống DB một cách an toàn, không lo bị nổ lỗi NullPointer
+                .voucher(voucher)
+                .usedAt(LocalDateTime.now())
+                .customer(booking.getCustomer())
+                .status(VoucherUsageStatus.USED.name())
+                .build();
+
+        // Tiêm voucherUsageRepository ở đầu class Service và gọi hàm save này:
+        voucherUsageRepository.save(usage);
     }
 
     private Booking createBookingAlocation(Booking booking, List<Long> slotIds) {

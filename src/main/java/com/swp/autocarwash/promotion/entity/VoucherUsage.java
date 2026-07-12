@@ -10,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -38,7 +39,7 @@ public class VoucherUsage {
 
     @CreationTimestamp
     @Column(name = "used_at")
-    private Instant usedAt;
+    private LocalDateTime usedAt;
 
     @Size(max = 20)
     @NotNull

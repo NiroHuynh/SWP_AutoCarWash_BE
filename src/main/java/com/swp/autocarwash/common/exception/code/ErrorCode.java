@@ -13,10 +13,20 @@ public enum ErrorCode {
             "COMMON_001",
             "Internal server error"
     ),
+    LOYALTY_POINT_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_001",
+            "Loyalty point balance not found"
+    ),
     UNAUTHORIZED(
             HttpStatus.UNAUTHORIZED,
             "AUTH_001",
             "Unauthorized access"
+    ),
+    SYSTEM_SETTING_NOT_FOUND(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SYSTEM_SETTING_001",
+            "System setting not found"
     ),
     INVALID_REQUEST(
             HttpStatus.BAD_REQUEST,
@@ -80,6 +90,11 @@ public enum ErrorCode {
             "BOOKING_001",
             "Booking already has an invoice"
     ),
+    INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "INVOICE_001",
+            "Invoice not found"
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",
@@ -122,13 +137,19 @@ public enum ErrorCode {
     ),
     CUSTOMER_NOT_ELIGIBLE_FOR_BOOKING(
             HttpStatus.BAD_REQUEST,
-        "CUSTOMER_004",
-                "Customer is not eligible for booking"
+            "CUSTOMER_004",
+            "Customer is not eligible for booking"
     ),
     CUSTOMER_RESTRICTED(
             HttpStatus.BAD_REQUEST,
-        "CUSTOMER_005",
-                "Customer account is restricted"
+            "CUSTOMER_005",
+            "Customer account is restricted because violation exceeded the limit. " +
+                    "Please come back to book after 14 days or check in at the store"
+    ),
+    CUSTOMER_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "CUSTOMER_006",
+            "Không thể xóa: khách hàng đang có đặt lịch hoạt động"
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -153,22 +174,22 @@ public enum ErrorCode {
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "COMMON_003",
-                    "Validation failed"
+            "Validation failed"
     ),
     EMAIL_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_001",
-                    "Email already exists"
+            "Email already exists"
     ),
     PHONE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_002",
-                    "Phone already exists"
+            "Phone already exists"
     ),
     INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
-                    "Password is invalid"
+            "Password is invalid"
     ),
     ROLE_NOT_FOUND(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -182,8 +203,8 @@ public enum ErrorCode {
     ),
     VEHICLE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "VEHICLE_002",
-                "Vehicle not found"
+            "VEHICLE_002",
+            "Vehicle not found"
     ),
     TIER_NOT_FOUND(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -202,44 +223,74 @@ public enum ErrorCode {
     ),
     VEHICLE_NOT_OWNED(
             HttpStatus.FORBIDDEN,
-        "VEHICLE_002",
-                "Vehicle does not belong to customer"
+            "VEHICLE_002",
+            "Vehicle does not belong to customer"
     ),
 
     VEHICLE_INACTIVE(
             HttpStatus.BAD_REQUEST,
-        "VEHICLE_003",
-                "Vehicle is inactive or deleted"
+            "VEHICLE_003",
+            "Vehicle is inactive or deleted"
     ),
     VOUCHER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "VOUCHER_002",
-                "Voucher not found"
+            "VOUCHER_002",
+            "Voucher not found"
     ),
     VOUCHER_EXPIRED(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_003",
-                "Voucher has expired"
+            "VOUCHER_003",
+            "Voucher has expired"
     ),
     VOUCHER_USAGE_LIMIT_REACHED(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_004",
-                "Voucher usage limit reached"
+            "VOUCHER_004",
+            "Voucher usage limit reached"
     ),
     VOUCHER_NOT_APPLICABLE(
             HttpStatus.BAD_REQUEST,
-        "VOUCHER_005",
-                "Voucher not applicable for this order"
+            "VOUCHER_005",
+            "Voucher not applicable for this order"
     ),
     ADDON_SERVICE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-        "SERVICE_001",
-                "Addon service not found"
+            "SERVICE_001",
+            "Addon service not found"
     ),
     ADDON_SERVICE_INVALID(
             HttpStatus.BAD_REQUEST,
-        "SERVICE_002",
-                "Invalid addon service request"
+            "SERVICE_002",
+            "Invalid addon service request"
+    ),
+    ADDON_SERVICE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_003",
+            "Cannot delete addon service because it is being used by an active service package"
+    ),
+    ADDON_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_004",
+            "Addon service name is required"
+    ),
+    ADDON_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_005",
+            "Service name cannot start with a number"
+    ),
+    ADDON_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_006",
+            "Addon service price must be greater than 0"
+    ),
+    ADDON_DURATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_007",
+            "Duration must be a multiple of 15 minutes"
+    ),
+    ADDON_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_008",
+            "Addon service name already exists"
     ),
     INVALID_SERVICE_PACKAGE_ID(
             HttpStatus.BAD_REQUEST,
@@ -251,7 +302,36 @@ public enum ErrorCode {
             "SERVICE_PACKAGE_002",
             "Service package not found"
     ),
-
+    SERVICE_PACKAGE_IN_USE(
+            HttpStatus.CONFLICT,
+            "SERVICE_PACKAGE_003",
+            "Cannot delete service package because it is being used by an active subscription plan"
+    ),
+    SERVICE_PACKAGE_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_004",
+            "Package name is required"
+    ),
+    SERVICE_PACKAGE_NAME_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_005",
+            "Package name cannot start with a number"
+    ),
+    SERVICE_PACKAGE_PRICE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_006",
+            "Package price must be greater than 0"
+    ),
+    SERVICE_PACKAGE_ADDON_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_007",
+            "Please select at least one included service"
+    ),
+    SERVICE_PACKAGE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "SERVICE_PACKAGE_008",
+            "Service package name already exists"
+    ),
     EARLY_ARRIVAL_SLOT_FULL(
             HttpStatus.BAD_REQUEST,
             "CHECK_IN_QUEUE_001",
@@ -277,15 +357,20 @@ public enum ErrorCode {
             "CHECK_IN_QUEUE_005",
             "This vehicle is not currently restricted - no penalty deposit required"
     ),
-    SYSTEM_SETTING_NOT_FOUND(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "SYSTEM_SETTING_001",
-            "System setting not found for key. Please ask Admin to configure"
+    INSUFFICIENT_LOYALTY_POINTS(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_001",
+            "Insufficient loyalty points"
     ),
     INVALID_CONFIG_VALUE_FORMAT(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SYSTEM_SETTING_002",
             "System setting [%s] has invalid numeric value"
+    ),
+    SERVICE_CATEGORY_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SERVICE_CATEGORY_001",
+            "Service category not found"
     ),
     SERVICE_PACKAGE_NOT_EXIST(
             HttpStatus.BAD_REQUEST,
@@ -362,13 +447,453 @@ public enum ErrorCode {
     PASSWORD_SAME_AS_CURRENT(
             HttpStatus.BAD_REQUEST,
             "AUTH_003",
-            "The new password must not be the same as the current password"
+            "The new password must not be the same as the current password."
     ),
     PASSWORD_CONFIRMATION_MISMATCH(
             HttpStatus.BAD_REQUEST,
             "AUTH_004",
             "The password confirmation does not match."
+    ),
+    UNAUTHORIZED_ACCESS_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_004",
+            "Vehicle does not belong to customer."
+    ),
+    VEHICLE_HAS_ACTIVE_BOOKING(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_005",
+            "Cannot delete a vehicle with an unfinished booking."
+    ),
+    VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_006",
+            "Cannot delete a vehicle that is associated with an active membership package."
+    ),
+    SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_001",
+            "Subscription not found."
+    ),
+    TRANSFER_LIMIT_REACHED(
+            HttpStatus.BAD_REQUEST,
+            "TRANSFER_LIMIT_001",
+            "This vehicle has already used its transfer. Please try again after the lock period."
+    ),
+    TRANSFER_SAME_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_007",
+            "Source and target vehicle must be different."
+    ),
+    TARGET_VEHICLE_HAS_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "VEHICLE_008",
+            "The target vehicle already has an active subscription."
+    ),
+    STATION_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_001",
+            "The station not valid or not operate"
+    ),
+    LANE_NAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_001",
+            "Name of the new lane existed in this station"
+    ),
+    LANE_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_002",
+            "Lane can not be found"
+    ),
+    CANNOT_DELETE_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_003",
+            "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
+    ),
+    LOYALTY_BALANCE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "LOYALTY_002",
+            "Loyalty point balance not found"
+    ),
+    INVALID_LOYALTY_FILTER(
+            HttpStatus.BAD_REQUEST,
+            "LOYALTY_003",
+            "Invalid year/month filter"
+    ),
+    INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The start date wrong or must not be later than the end date."
+    ),
+    VOUCHER_CODE_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "This voucher code already exists in the system. Please enter a different code."
+    ),
+    INVALID_CONFIG_MODE(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_001",
+            "The mode config invalid."
+    ),
+    STATION_LIST_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "STATION_001",
+            "Please select at least one branch that applies to the campaign."
+    ),
+    STATION_NOT_FOUND_OR_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "STATION_002",
+            "The configured branch does not exist or has ceased operation."
+    ),
+    PROMOTION_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_001",
+            "No promotional offers were found."
+    ),
+    CANNOT_EDIT_AUTO_PROMOTION_RULES(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_002",
+            "The system blocks unauthorized editing of the financial rules for platform-wide discount codes."
+    ),
+    CANNOT_EDIT_EXPIRED_VOUCHER(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_003",
+            "It is not possible to edit the financial configuration of an expired voucher code"
+    ),
+    USAGE_LIMIT_MUST_BE_GREATER_THAN_USED_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The limit for new uses must be greater than the actual number of uses already made."
+    ),
+    VOUCHER_USED_UP(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "Voucher has been fully redeemed and is no longer available."
+    ),
+    ORDER_VALUE_TOO_LOW(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "The order value does not meet the minimum requirement for this voucher."
+    ),
+    VOUCHER_NOT_APPLICABLE_AT_STATION(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_004",
+            "This voucher is not applicable at the selected station."
+    ),
+    VOUCHER_CODE_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_005",
+            "Voucher code cannot be empty."
+    ),
+    GROUP_NAME_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__001",
+            "Group name cannot be empty."
+    ),
+    GROUP_NAME_TOO_LONG(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__002",
+            "Group name too long. Maximum length is 100 characters."
+    ),
+    VEHICLE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__003",
+            "Vehicle must be required"
+    ),
+    CUSTOMER_ALREADY_HAS_FAMILY_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__004",
+            "Customer already has a family group. A customer can only own or be a member of one family group at a time."
+    ),
+    VEHICLE_ALREADY_IN_ANOTHER_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__005",
+            "The selected vehicle is already linked to another family group. Each vehicle can only be associated with one family group at a time."
+    ),
+    FAMILY_GROUP_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__006",
+            "Family group not found"
+    ),
+    FORBIDDEN_NOT_GROUP_OWNER(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__006",
+            "You do not have permission to perform this action. Only the owner of the family group can make changes to it."
+    ),
+    FAMILY_SUBSCRIPTION_EXPIRED_OR_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__007",
+            "The family subscription has either expired or does not exist."
+    ),
+    FAMILY_GROUP_LIMIT_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__008",
+            "The family group has reached its maximum member limit. You cannot add more members to this group."
+    ),
+    CANNOT_INVITE_YOURSELF(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__009",
+            "You cannot invite yourself to your own family group."
+    ),
+    INVITED_CUSTOMER_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__010",
+            "The customer you are trying to invite does not exist."
+    ),
+    INVITED_CUSTOMER_ALREADY_IN_ANOTHER_GROUP(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__011",
+            "The customer you are trying to invite is already a member of another family group. A customer can only belong to one family group at a time."
+    ),
+    VEHICLE_HAS_ACTIVE_PERSONAL_SUBSCRIPTION(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__012",
+            "The vehicle you are trying to add to the family group already has an active personal subscription. A vehicle cannot be part of a family subscription while it has an active personal subscription."
+    ),
+    IDENTIFIER_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_SB__013",
+            "The identifier of the customer(phone or gmail) you are trying to invite cannot be empty. Please provide a valid identifier."
+    ),
+    UNAUTHORIZED_ACTION(
+            HttpStatus.BAD_REQUEST,
+            "UNAUTHORIZED_ACTION",
+            "You are not authorized to perform this action(just owner in group can action)."
+    ),
+    MEMBER_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "MEMBER_NOT_FOUND",
+            "The member you are trying to remove from the family group does not exist in the group."
+    ),
+    INVALID_ACTION(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_ACTION",
+            "The member you are trying to remove from the family group does not exist in the group."
+    ),
+    GROUP_HAS_ACTIVE_BOOKINGS(
+            HttpStatus.BAD_REQUEST,
+            "GROUP_HAS_ACTIVE_BOOKINGS",
+            "The family group has active bookings. You cannot dissolve the group until all active bookings are completed or canceled."
+    ),
+    INVALID_SUBSCRIPTION_PLAN_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "SUBSCRIPTION_001",
+                "Invalid status filter"
+    ),
+    SUBSCRIPTION_PLAN_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "SUBSCRIPTION_002",
+                "No subscription plans found"
+    ),
+    FAILED_TO_RETRIEVE_SUBSCRIPTION_PLANS(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+        "SUBSCRIPTION_003",
+                "Failed to retrieve subscription plans"
+    ),
+    PLAN_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_004",
+            "Plan name is required."
+    ),
+
+    SERVICE_PACKAGE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_005",
+            "Service package is required."
+    ),
+
+    INVALID_PRICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_006",
+            "Price must be greater than 0."
+    ),
+
+    INVALID_DURATION_DAYS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_007",
+            "Duration days must be greater than 0."
+    ),
+
+    INVALID_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_008",
+            "Max vehicle count must be greater than 0."
+    ),
+
+    INVALID_FAMILY_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_009",
+            "Family plan must allow more than one vehicle."
+    ),
+
+    INVALID_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Invalid plan type."
+    ),
+
+    INVALID_SERVICE_PACKAGE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Selected service package is inactive or does not exist."
+    ),
+
+    FAILED_TO_CREATE_SUBSCRIPTION_PLAN(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SUBSCRIPTION_012",
+            "Failed to create subscription plan."
+    ),
+
+    PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_008",
+            "Subscription plan name already exists."
+    ),
+
+    INVALID_UNLIMITED_MAX_VEHICLE_COUNT(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_010",
+            "Unlimited plan must allow exactly one vehicle."
+    ),
+
+    INVALID_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_011",
+            "Invalid status."
+    ),
+
+    SUBSCRIPTION_PLAN_NAME_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_012",
+            "Subscription plan name already exists."
+    ),
+    SUBSCRIPTION_PLAN_ALREADY_INACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_013",
+            "Subscription plan is already inactive."
+    ),
+    SUBSCRIPTION_PLAN_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_014",
+            "Subscription plan is required."
+    ),
+
+//    VEHICLE_REQUIRED(
+//            HttpStatus.BAD_REQUEST,
+//            "SUBSCRIPTION_015",
+//            "Vehicle is required."
+//    ),
+
+    VEHICLE_ALREADY_SUBSCRIBED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_016",
+            "The vehicle is already registered with another subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_PLAN(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_017",
+            "Invalid subscription plan."
+    ),
+
+    INVALID_SUBSCRIPTION_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_020",
+            "Only active subscriptions can be canceled."
+    ),
+
+    ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_001",
+            "You are not authorized to cancel this subscription."
+    ),
+    INVALID_VEHICLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_021",
+            "Invalid vehicle."
+    ),
+
+    VEHICLE_TRANSFER_NOT_ALLOWED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_022",
+            "You can only change your vehicle once every 30 days."
+    ),
+    DEPOSIT_ALREADY_CONFIRMED(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_003",
+            "Booking is not awaiting deposit (already confirmed, canceled, or deposit already paid)"
+    ),
+    INVOICE_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "PAYMENT_005",
+            "Subscription invoice is not awaiting payment (already paid or canceled)"
+    ),
+    RENEWAL_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_023",
+            "Subscription can only be renewed within 3 days before expiration."
+    ),
+
+    SUBSCRIPTION_EXPIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_024",
+            "Subscription has expired and cannot be renewed."
+    ),
+
+    RENEWAL_ALREADY_PENDING(
+            HttpStatus.CONFLICT,
+            "SUBSCRIPTION_025",
+            "A renewal request is already pending payment."
+    ),
+    SUBSCRIPTION_INVOICE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUBSCRIPTION_026",
+            "Subscription invoice not found."
+    ),
+
+    INVALID_RENEWAL_INVOICE(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_027",
+            "Invalid renewal invoice."
+    ),
+
+    INVOICE_ALREADY_PROCESSED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_028",
+            "Invoice has already been processed."
+    ),
+
+    PAYMENT_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_029",
+            "Payment status is required."
+    ),
+
+    INVALID_PAYMENT_STATUS(
+            HttpStatus.BAD_REQUEST,
+            "SUBSCRIPTION_030",
+            "Invalid payment status."
+    ),
+    INVALID_SUBSCRIPTION_PLAN_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SUBSCRIPTION_PLAN_TYPE",
+            "Invalid subscription plan type."
+    ),
+    DUPLICATE_SETTING_KEY(
+            HttpStatus.BAD_REQUEST,
+            "DUPLICATE_SETTING_KEY",
+            "The setting key already exists in the system. Please choose a different key."
+    ),
+    INVALID_SETTING_VALUE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting value is invalid. Please provide a valid value."
+    ),
+    SETTING_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting key does not exist in the system. Please check the key and try again."
     );
+
 
 
     private final HttpStatus status;

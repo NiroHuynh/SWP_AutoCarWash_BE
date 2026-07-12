@@ -1,7 +1,7 @@
 package com.swp.autocarwash.payment.dto.request;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,8 +25,16 @@ public class CashPaymentRequest {
 
     /**
      * Số tiền mặt khách đưa cho staff — dùng để tính tiền thừa (changeAmount).
+     * Cho phép = 0 khi booking đã được subscription miễn phí toàn bộ (Total Due = 0).
      */
     @NotNull
-    @Positive
+    @PositiveOrZero
     private BigDecimal receivedAmount;
+
+    /**
+     * Số điểm khách muốn đổi để giảm tiền.
+     * Có thể bằng 0 nếu không sử dụng.
+     */
+    @PositiveOrZero
+    private BigDecimal usedLoyaltyPoints;
 }

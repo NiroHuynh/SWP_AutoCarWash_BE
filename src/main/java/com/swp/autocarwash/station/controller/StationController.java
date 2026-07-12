@@ -22,7 +22,6 @@ import java.util.List;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/api/communes")
 @RequiredArgsConstructor
 public class StationController {
 
@@ -46,7 +45,7 @@ public class StationController {
      * @author Phong
      * @version 1.0
      */
-    @GetMapping("/{communeId}/stations")
+    @GetMapping("/api/communes/{communeId}/stations")
     public ApiResponse<List<StationResponse>> getStationsByCommune(
             @PathVariable Integer communeId
     ) {
@@ -56,6 +55,24 @@ public class StationController {
         return ApiResponse.success(
                 "Get stations successfully",
                 data
+        );
+    }
+
+    /**
+     * Chức năng: Danh sách phẳng toàn bộ station (id + tên), dùng để dựng
+     * dropdown "Chi nhánh" ở màn hình Lịch sử đặt lịch (FE-US-09-04 AC5/AC6),
+     * không phụ thuộc communeId như {@link #getStationsByCommune}.
+     *
+     * <p>Không dùng chung prefix {@code /api/communes} với
+     * {@link #getStationsByCommune} — mỗi method khai báo path tuyệt đối
+     * riêng, tránh Spring nối chuỗi nhầm path khi controller không có
+     * class-level {@code @RequestMapping}.</p>
+     */
+    @GetMapping("/api/stations")
+    public ApiResponse<List<StationResponse>> getAllStations() {
+        return ApiResponse.success(
+                "Get stations successfully",
+                stationService.getAllStations()
         );
     }
 }

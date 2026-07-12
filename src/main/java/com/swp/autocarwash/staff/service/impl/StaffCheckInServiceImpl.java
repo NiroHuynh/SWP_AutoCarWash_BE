@@ -246,7 +246,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     private CheckInResultResponse doCheckIn(Booking booking, BookingSlot slot, int minutesDeviation, String message) {
         booking.setStatus(BookingStatus.CHECK_IN.toString());
         booking.setCheckInAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+         Booking savedBooking = bookingRepository.save(booking);
 
         QueueTicket ticket = QueueTicket.builder()
                 .station(slot.getStation())
@@ -264,6 +264,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .minutesDeviation(minutesDeviation)
                 .message(message)
                 .requiresWalkIn(false)
+                .checkInAt(savedBooking.getCheckInAt())
                 .build();
     }
 
@@ -337,31 +338,5 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         return prefix + String.format("%03d", nextNumber);
     }
 
-    // ===================== AC04 - Thu cọc phạt cho Walk-in bị restricted =====================
-
-    @Override
-    public CheckInResultResponse collectWalkInPenaltyDeposit(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BOOKING_NOT_FOUND));
-
-        if (!booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
-            throw new BusinessException(ErrorCode.PENALTY_ONLY_FOR_WALK_IN);
-        }
-
-        Vehicle vehicle = booking.getVehicle();
-        if (!isVehiclePenalized(vehicle)) {
-            throw new BusinessException(ErrorCode.VEHICLE_CLEAR_NO_PENALTY);
-        }
-
-        booking.setIsDepositPaid(true);
-        bookingRepository.save(booking);
-
-        return CheckInResultResponse.builder()
-                .bookingId(booking.getId())
-                .status(booking.getStatus())
-                .message("Collected 20,000 VND penalty deposit. You may now proceed with check-in.")
-                .requiresWalkIn(false)
-                .build();
-    }
 
 }
