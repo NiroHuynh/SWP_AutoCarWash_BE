@@ -3,8 +3,7 @@ package com.swp.autocarwash.promotion.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -15,6 +14,9 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "voucher", schema = "swp_auto_car_wash")
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,5 +71,7 @@ public class Voucher {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-
+    @Builder.Default
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 }

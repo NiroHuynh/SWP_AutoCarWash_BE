@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -42,7 +43,7 @@ public class FamilySubscription {
     private String status;
 
     @Column(name = "canceled_at")
-    private Instant canceledAt;
+    private LocalDateTime canceledAt;
 
 
 }

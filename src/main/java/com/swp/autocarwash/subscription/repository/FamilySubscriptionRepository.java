@@ -73,6 +73,17 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             @Param("today") LocalDate today
     );
 
+    // AC07 + AC08: Tìm kiếm gói cước đang ACTIVE và còn hạn của nhóm gia đình
+    @Query("SELECT fs FROM FamilySubscription fs " +
+            "WHERE fs.familyGroup.id = :groupId " +
+            "AND fs.status = 'ACTIVE' " +
+            "AND fs.endDate >= :currentDate")
+    Optional<FamilySubscription> findActiveSubscription(@Param("groupId") Long groupId,
+                                                        @Param("currentDate") LocalDate currentDate);
+
+    @Query("SELECT fs FROM FamilySubscription fs WHERE fs.familyGroup.id = :groupId AND fs.status = 'ACTIVE'")
+    Optional<FamilySubscription> findActiveSubscriptionByGroupId(@Param("groupId") Long groupId);
+
     /** Gói family đang ACTIVE của khách hàng, không giới hạn theo xe cụ thể — dùng cho màn "gói đang hoạt động". */
     @Query("SELECT fs FROM FamilySubscription fs JOIN FETCH fs.subscriptionPlan " +
             "WHERE fs.familyGroup IN (" +
