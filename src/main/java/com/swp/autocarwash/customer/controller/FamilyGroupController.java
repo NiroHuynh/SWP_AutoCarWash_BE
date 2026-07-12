@@ -6,6 +6,7 @@ import com.swp.autocarwash.customer.dto.request.CreateFamilyGroupRequest;
 import com.swp.autocarwash.customer.dto.request.SearchInvitedCustomerResponse;
 import com.swp.autocarwash.customer.dto.response.CreateFamilyGroupResponse;
 import com.swp.autocarwash.customer.dto.response.FamilyGroupDetailsResponse;
+import com.swp.autocarwash.customer.dto.response.RemoveMemberResponse;
 import com.swp.autocarwash.customer.service.family.FamilyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,21 @@ public class FamilyGroupController {
                 .success(true)
                 .message(msg)
                 .data(data) // Trả về data object lồng nhau hoặc null
+                .build());
+    }
+
+    @DeleteMapping("/members/{memberCustomerId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<RemoveMemberResponse>> removeMemberFromGroup(
+            @PathVariable Long memberCustomerId) {
+
+        // Gọi service thực thi xóa cứng và kiểm duyệt nghiệp vụ
+        RemoveMemberResponse responseData = familyGroupService.removeMember(memberCustomerId);
+
+        return ResponseEntity.ok(ApiResponse.<RemoveMemberResponse>builder()
+                .success(true)
+                .message("The member has been successfully removed from the family group. The group limit has been freed.")
+                .data(responseData)
                 .build());
     }
 }
