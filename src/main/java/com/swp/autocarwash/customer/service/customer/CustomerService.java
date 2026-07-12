@@ -101,5 +101,6 @@ public interface CustomerService {
      */
     CustomerBookingHistoryPageResponse getCustomerBookingHistory(
             Long customerId, String vehicleKeyword, Integer serviceCategoryId,
-            String status, Integer stationId, Integer year, Integer month, Pageable pageable);
+            String status, Integer stationId, Integer communeId, Integer provinceId,
+            Integer year, Integer month, Pageable pageable);
 }

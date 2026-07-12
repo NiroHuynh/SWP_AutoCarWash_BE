@@ -125,16 +125,46 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             @Param("provinceId") Integer provinceId,
             Pageable pageable);
 
-    @Query("SELECT COUNT(c) FROM Customer c JOIN c.user u WHERE u.isDeleted = false")
-    long countQualifiedCustomers();
-
+    /**
+     * Tổng số khách hàng hợp lệ, lọc theo chi nhánh phân cấp station/commune/
+     * province nếu có truyền (khách được tính thuộc chi nhánh nếu có ít nhất
+     * 1 booking CHECK_OUT tại chi nhánh đó) — dùng cho thẻ KPI "totalCustomers".
+     */
     @Query("""
-            SELECT COUNT(c.id) FROM Customer c JOIN c.user u
-            WHERE u.isDeleted = false AND u.createdAt >= :monthStart AND u.createdAt < :monthEnd
+            SELECT COUNT(DISTINCT c.id) FROM Customer c JOIN c.user u
+                 LEFT JOIN Booking b ON b.customer = c AND b.status = 'CHECK_OUT'
+                 LEFT JOIN b.slotAllocations bsa LEFT JOIN bsa.bookingSlot bs LEFT JOIN bs.station st
+                 LEFT JOIN st.commune cm LEFT JOIN cm.province pv
+            WHERE u.isDeleted = false
+              AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:communeId IS NULL OR cm.id = :communeId)
+              AND (:provinceId IS NULL OR pv.id = :provinceId)
             """)
-    long countNewThisMonth(@Param("monthStart") LocalDateTime monthStart, @Param("monthEnd") LocalDateTime monthEnd);
+    long countQualifiedCustomers(
+            @Param("stationId") Integer stationId,
+            @Param("communeId") Integer communeId,
+            @Param("provinceId") Integer provinceId);
 
-    @Query("SELECT COUNT(c) FROM Customer c JOIN c.user u WHERE c.customerTier.tierName = 'GOLD' AND u.isDeleted = false")
-    long countGoldMembers();
+    /**
+     * Số khách hàng mới đăng ký trong khoảng thời gian, lọc theo chi nhánh
+     * phân cấp station/commune/province nếu có truyền — dùng cho thẻ KPI
+     * "newThisMonth".
+     */
+    @Query("""
+            SELECT COUNT(DISTINCT c.id) FROM Customer c JOIN c.user u
+                 LEFT JOIN Booking b ON b.customer = c AND b.status = 'CHECK_OUT'
+                 LEFT JOIN b.slotAllocations bsa LEFT JOIN bsa.bookingSlot bs LEFT JOIN bs.station st
+                 LEFT JOIN st.commune cm LEFT JOIN cm.province pv
+            WHERE u.isDeleted = false AND u.createdAt >= :monthStart AND u.createdAt < :monthEnd
+              AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:communeId IS NULL OR cm.id = :communeId)
+              AND (:provinceId IS NULL OR pv.id = :provinceId)
+            """)
+    long countNewThisMonth(
+            @Param("monthStart") LocalDateTime monthStart,
+            @Param("monthEnd") LocalDateTime monthEnd,
+            @Param("stationId") Integer stationId,
+            @Param("communeId") Integer communeId,
+            @Param("provinceId") Integer provinceId);
 
 }
