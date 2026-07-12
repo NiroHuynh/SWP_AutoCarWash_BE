@@ -366,17 +366,17 @@ VALUES
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted)
 VALUES
-    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang',              false),
-    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false),
-    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang',              false),
-    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false),
-    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false),
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMIT', 1, 'Rua xe khong gioi han trong 1 thang',              false),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 3 thang',              false),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false),
     (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang',   false),
     (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang',          false),
     (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang',   false),
     (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang',          false),
     (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang',          false),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang',              false),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 6 thang',              false),
     (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang',   false);
 
 -- =====================================================================
@@ -2333,7 +2333,9 @@ VALUES
     ('LOYALTY_RESET_MONTH_DAY',     '01-01',   'Annual loyalty point reset date (MM-DD)',        'STRING',  true),
     ('LOYALTY_EARN_RATE_VND_PER_POINT', '1000', 'Customer earns 1 loyalty point for every 1,000 VND spent','NUMBER', TRUE),
     ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
-    ( 'LOYALTY_REDEEM_RATE_VND_PER_POINT', '100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER', TRUE);
+    ( 'LOYALTY_REDEEM_RATE_VND_PER_POINT', '100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER', TRUE),
+    ('REFUND_TRANSFER_CONTENT_PREFIX', 'RF',   'Prefix for refund bank-transfer content (RF{refundId})', 'STRING', true),
+    ('REFUND_TRANSFER_CONTENT_TEMPLATE', 'Hoan tien coc booking {booking_id}', 'Template noi dung chuyen khoan hoan tien, thay the {booking_id}', 'STRING', true);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
