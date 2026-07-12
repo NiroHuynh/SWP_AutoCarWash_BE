@@ -3,13 +3,15 @@ package com.swp.autocarwash.system.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 /**
  * Bảng cấu hình dạng key-value dùng chung cho toàn hệ thống.
  * Dùng để lưu các con số CỐ ĐỊNH (không đổi theo từng booking/khách hàng),
@@ -32,6 +34,9 @@ public class SystemSetting {
     @Column(name = "setting_value", nullable = false, length = 255)
     private String settingValue;
 
+    @Column(name = "category", nullable = false, length = 50)
+    private String category;
+
     /** Mô tả ý nghĩa của setting này, giúp Admin dễ hiểu khi chỉnh trong DB. */
     @Column(name = "description", length = 255)
     private String description;
@@ -41,9 +46,10 @@ public class SystemSetting {
     @Column(name = "data_type", nullable = false, length = 20)
     private String dataType;
 
+    @Builder.Default
     @ColumnDefault("1")
     @Column(name = "is_active")
-    private Boolean isActive;
+    private Boolean isActive = true;
 
 
 }

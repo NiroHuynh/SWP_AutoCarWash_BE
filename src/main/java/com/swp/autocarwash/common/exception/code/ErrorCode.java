@@ -877,6 +877,21 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_SUBSCRIPTION_PLAN_TYPE",
             "Invalid subscription plan type."
+    ),
+    DUPLICATE_SETTING_KEY(
+            HttpStatus.BAD_REQUEST,
+            "DUPLICATE_SETTING_KEY",
+            "The setting key already exists in the system. Please choose a different key."
+    ),
+    INVALID_SETTING_VALUE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting value is invalid. Please provide a valid value."
+    ),
+    SETTING_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting key does not exist in the system. Please check the key and try again."
     );
 
 
