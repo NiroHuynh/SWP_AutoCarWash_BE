@@ -34,7 +34,7 @@ public class QueueController {
      * @return {@code 200 OK} với danh sách {@link QueueBoardResponse}
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('STAFF')")
+    //@PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> getActiveQueue(
             @AuthenticationPrincipal UserCustomerDetails principal) {
         return ResponseEntity.ok(
@@ -51,7 +51,7 @@ public class QueueController {
      * @return {@code 200 OK} với {@link QueueBoardResponse} — board mới sau khi hoàn tất
      */
     @PatchMapping("/{bookingId}/complete")
-    @PreAuthorize("hasAuthority('STAFF')")
+    //@PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> completeService(
             @PathVariable Long bookingId,
             @RequestParam(required = false) Integer laneId) {
@@ -67,7 +67,7 @@ public class QueueController {
      * @return {@code 200 OK} với {@link QueueBoardResponse} — board mới sau khi hủy
      */
     @PatchMapping("/{bookingId}/cancel-guest-left")
-    @PreAuthorize("hasAuthority('STAFF')")
+    //@PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> cancelGuestLeft(
             @PathVariable Long bookingId,
             @AuthenticationPrincipal UserCustomerDetails principal) {
@@ -85,7 +85,7 @@ public class QueueController {
      * @return {@code 200 OK} với {@link QueueBoardResponse} — board mới sau khi xe vào làn
      */
     @PatchMapping("/{bookingId}/start")
-    @PreAuthorize("hasAuthority('STAFF')")
+    //@PreAuthorize("hasAuthority('STAFF')")
     public ResponseEntity<ApiResponse<QueueBoardResponse>> startService(
             @PathVariable Long bookingId,
             @RequestParam(required = false) Integer laneId) {

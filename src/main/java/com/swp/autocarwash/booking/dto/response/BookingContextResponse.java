@@ -146,5 +146,7 @@ public class BookingContextResponse {
         private String voucherCode;
         private Integer discountPercentage;
         private BigDecimal minOrderValue;
+
+        private Boolean isSelectable; //THÊM TRƯỜNG NÀY: true = cho bấm, false = khóa lại (disable) -> cho logic hiển thị voucher tại config 1 -> apply auto nhưng vẫn hiển thị cho xem
     }
 }
