@@ -363,14 +363,14 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         if (customer != null) {
 
             Optional<FamilyMember> familyMemberOpt =
-                    familyMemberRepository.findByCustomerAndIsDeletedFalse(customer);
+                    familyMemberRepository.findByCustomer(customer);
 
             if (familyMemberOpt.isPresent()) {
 
                 FamilyGroup familyGroup = familyMemberOpt.get().getFamilyGroup();
 
                 int slotsUsed = (int) familyMemberRepository
-                        .countByFamilyGroupAndIsDeletedFalse(familyGroup);
+                        .countByFamilyGroup(familyGroup);
 
                 FamilySubscriptionPlansResponse.SubscriptionInfo subscriptionInfo = null;
 
