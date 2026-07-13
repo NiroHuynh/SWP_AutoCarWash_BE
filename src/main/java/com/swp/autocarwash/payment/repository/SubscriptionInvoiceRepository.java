@@ -50,4 +50,5 @@ public interface SubscriptionInvoiceRepository extends JpaRepository<Subscriptio
      */
     java.util.Optional<SubscriptionInvoice> findFirstByUnlimitSubscription_Vehicle_IdAndStatusOrderByCreatedAtDesc(
             Long vehicleId, String status);
+
 }

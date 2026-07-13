@@ -1,28 +1,36 @@
 package com.swp.autocarwash.subscription.service.impl;
 
+import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.entity.FamilyGroup;
+import com.swp.autocarwash.customer.entity.FamilyMember;
+import com.swp.autocarwash.customer.repository.FamilyGroupRepository;
+import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
 import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import com.swp.autocarwash.servicepackage.entity.enums.ServicePackageStatus;
+import com.swp.autocarwash.servicepackage.repository.PackageAddonMappingRepository;
 import com.swp.autocarwash.servicepackage.repository.ServicePackageRepository;
 import com.swp.autocarwash.subscription.dto.request.CreateSubscriptionPlanRequest;
 import com.swp.autocarwash.subscription.dto.request.UpdateSubscriptionPlanRequest;
-import com.swp.autocarwash.subscription.dto.response.CreateSubscriptionPlanResponse;
-import com.swp.autocarwash.subscription.dto.response.CustomerSubscriptionPlanResponse;
-import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanDetailResponse;
-import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanResponse;
+import com.swp.autocarwash.subscription.dto.response.*;
 
+import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionPlanStatus;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.SubscriptionPlanRepository;
 import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +39,11 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final ServicePackageRepository servicePackageRepository;
+    private final PackageAddonMappingRepository packageAddonMappingRepository;
+    private final FamilyGroupRepository familyGroupRepository;
+    private final FamilyMemberRepository familyMemberRepository;
+    private final FamilySubscriptionRepository familySubscriptionRepository;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional(readOnly = true)
@@ -310,6 +323,89 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .servicePackageName(subscriptionPlan.getServicePackage().getName())
                 .maxVehicleCount(subscriptionPlan.getMaxVehicleCount())
                 .description(subscriptionPlan.getDescription())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FamilySubscriptionPlansResponse getFamilySubscriptionPlans() {
+
+        List<SubscriptionPlan> plans = subscriptionPlanRepository.findAllFamilyPlans();
+
+        List<FamilySubscriptionPlansResponse.FamilyPlanInfo> familyPlans = plans.stream()
+                .map(plan -> {
+
+                    Integer servicePackageId = plan.getServicePackage() != null
+                            ? plan.getServicePackage().getId()
+                            : null;
+
+                    List<Integer> addonIds = servicePackageId == null
+                            ? Collections.emptyList()
+                            : packageAddonMappingRepository.findAddonIds(servicePackageId);
+
+                    return FamilySubscriptionPlansResponse.FamilyPlanInfo.builder()
+                            .id(plan.getId())
+                            .planName(plan.getPlanName())
+                            .description(plan.getDescription())
+                            .price(plan.getPrice())
+                            .durationDays(plan.getDurationDays())
+                            .maxVehicleCount(plan.getMaxVehicleCount())
+                            .servicePackageId(servicePackageId)
+                            .addonIds(addonIds)
+                            .build();
+                })
+                .toList();
+
+        Customer customer = securityUtils.getCustomer();
+
+        FamilySubscriptionPlansResponse.CurrentGroupInfo currentGroup = null;
+
+        if (customer != null) {
+
+            Optional<FamilyMember> familyMemberOpt =
+                    familyMemberRepository.findByCustomerAndIsDeletedFalse(customer);
+
+            if (familyMemberOpt.isPresent()) {
+
+                FamilyGroup familyGroup = familyMemberOpt.get().getFamilyGroup();
+
+                int slotsUsed = (int) familyMemberRepository
+                        .countByFamilyGroupAndIsDeletedFalse(familyGroup);
+
+                FamilySubscriptionPlansResponse.SubscriptionInfo subscriptionInfo = null;
+
+                Optional<FamilySubscription> subscriptionOpt =
+                        familySubscriptionRepository.findFirstByFamilyGroupOrderByIdDesc(familyGroup);
+
+                if (subscriptionOpt.isPresent()) {
+
+                    FamilySubscription subscription = subscriptionOpt.get();
+
+                    if ("ACTIVE".equalsIgnoreCase(subscription.getStatus())) {
+
+                        subscriptionInfo = FamilySubscriptionPlansResponse.SubscriptionInfo.builder()
+                                .familySubscriptionId(subscription.getId())
+                                .subscriptionPlanId(subscription.getSubscriptionPlan().getId())
+                                .planName(subscription.getSubscriptionPlan().getPlanName())
+                                .status(subscription.getStatus())
+                                .startDate(subscription.getStartDate())
+                                .endDate(subscription.getEndDate())
+                                .build();
+                    }
+                }
+
+                currentGroup = FamilySubscriptionPlansResponse.CurrentGroupInfo.builder()
+                        .familyGroupId(familyGroup.getId())
+                        .groupName(familyGroup.getGroupName())
+                        .slotsUsed(slotsUsed)
+                        .subscription(subscriptionInfo)
+                        .build();
+            }
+        }
+
+        return FamilySubscriptionPlansResponse.builder()
+                .currentGroup(currentGroup)
+                .familyPlans(familyPlans)
                 .build();
     }
 }

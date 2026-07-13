@@ -8,16 +8,21 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
+import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.ActiveSubscriptionResponse;
+import com.swp.autocarwash.subscription.dto.response.FamilySubscriptionPlansResponse;
+import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
+import com.swp.autocarwash.subscription.entity.FamilySubscription;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
+import com.swp.autocarwash.subscription.service.FamilySubscriptionService;
+import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import com.swp.autocarwash.subscription.service.SubscriptionQueryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Chức năng: Controller cho khách hàng tự tra cứu thông tin gói subscription
@@ -36,6 +41,7 @@ public class SubscriptionController {
     private final SubscriptionQueryService subscriptionQueryService;
     private final CustomerRepository customerRepository;
     private final SubscriptionPaymentService subscriptionPaymentService;
+
 
     /**
      * Chức năng: Lấy gói subscription đang hoạt động (ACTIVE, còn hạn) của
