@@ -3,6 +3,7 @@ package com.swp.autocarwash.loyalty.event.listener;
 
 import com.swp.autocarwash.booking.event.BookingCompletedEvent;
 import com.swp.autocarwash.loyalty.service.impl.LoyaltyServiceImpl;
+import com.swp.autocarwash.payment.event.SubscriptionInvoicePaidEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -16,5 +17,11 @@ public class LoyaltyEnventListener {
     @EventListener
     public void handle(BookingCompletedEvent event){
         loyaltyService.earnPoint(event);
+    }
+
+
+    @EventListener
+    public void handlePaymentSubscription(SubscriptionInvoicePaidEvent event){
+        loyaltyService.earnPointForSubscription(event);
     }
 }
