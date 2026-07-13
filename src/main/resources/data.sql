@@ -390,19 +390,26 @@ VALUES
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted, status)
 VALUES
-    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMIT', 1, 'Rua xe khong gioi han trong 1 thang',              false, 'ACTIVE'),
-    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false, 'ACTIVE'),
-    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 3 thang',              false, 'ACTIVE'),
-    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false, 'ACTIVE'),
-    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false, 'ACTIVE'),
-    (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang',   false, 'ACTIVE'),
-    (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang',          false, 'ACTIVE'),
-    (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang',   false, 'ACTIVE'),
-    (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang',          false, 'ACTIVE'),
-    (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang',          false, 'ACTIVE'),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 6 thang',              false, 'ACTIVE'),
-    (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang',   false, 'ACTIVE'),
-    (13, 1, 3, 'Unlimited Basic 1 Month (Discontinued)', 30, 500000, 'UNLIMIT', 1, 'Goi cu da ngung ban, chi de test an plan', true, 'INACTIVE');
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMIT', 1, 'Unlimited car wash for 1 month',                          false, 'ACTIVE'),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMIT', 1, 'Unlimited premium car wash for 1 month',                  false, 'ACTIVE'),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMIT', 1, 'Unlimited car wash for 3 months',                         false, 'ACTIVE'),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMIT', 1, 'Unlimited premium car wash for 3 months',                 false, 'ACTIVE'),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMIT', 1, 'Unlimited premium car wash for 6 months',                 false, 'ACTIVE'),
+    (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 1 month',        false, 'ACTIVE'),
+    (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Premium car wash for the whole family, 1 month',          false, 'ACTIVE'),
+    (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Unlimited car wash for the whole family, 3 months',       false, 'ACTIVE'),
+    (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Premium car wash for the whole family, 3 months',         false, 'ACTIVE'),
+    (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Premium car wash for the whole family, 6 months',         false, 'ACTIVE'),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMIT', 1, 'Unlimited car wash for 6 months',                         false, 'ACTIVE'),
+    (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 6 months',       false, 'ACTIVE'),
+    (13, 1, 3, 'Unlimited Basic 1 Month (Discontinued)', 30, 500000, 'UNLIMIT', 1, 'Discontinued plan, kept only for testing hidden-plan filtering', true, 'INACTIVE'),
+
+    (14, 2, 3, 'Unlimited Medium 1 Month',    30,  700000,   'UNLIMIT', 1, 'Unlimited medium-tier car wash for 1 month',              false, 'ACTIVE'),
+    (15, 2, 3, 'Unlimited Medium 3 Months',   90,  1875000,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 3 months',             false, 'ACTIVE'),
+    (16, 2, 3, 'Unlimited Medium 6 Months',   180, 3750000,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 6 months',             false, 'ACTIVE'),
+    (17, 2, 3, 'Family Medium 1 Month',       30,  1600000,  'FAMILY',    3, 'Medium-tier car wash for the whole family, 1 month',      false, 'ACTIVE'),
+    (18, 2, 3, 'Family Medium 3 Months',      90,  4300000,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 3 months',      false, 'ACTIVE'),
+    (19, 2, 3, 'Family Medium 6 Months',      180, 8650000,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 6 months',      false, 'ACTIVE');
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
