@@ -39,7 +39,7 @@ public class AddonServiceController {
      * AC-15.1.1: trả về object vừa tạo để FE append vào list
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AddonServiceResponse> createAddonService(
             @RequestBody CreateAddonServiceRequest request
     ) {
@@ -58,7 +58,7 @@ public class AddonServiceController {
      * AC-15.2.1: trả về object đã cập nhật để FE replace trong list
      */
     @PutMapping("/{addonServiceId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AddonServiceResponse> updateAddonService(
             @PathVariable Integer addonServiceId,
             @RequestBody UpdateAddonServiceRequest request
@@ -78,7 +78,7 @@ public class AddonServiceController {
      * Nếu đang được service_package active sử dụng → 409 SERVICE_003
      */
     @DeleteMapping("/{addonServiceId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteAddonService(
             @PathVariable Integer addonServiceId
     ) {

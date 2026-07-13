@@ -72,7 +72,7 @@ public class CustomerController {
      * @param provinceId lọc theo tỉnh/thành (khách có ít nhất 1 booking đã CHECK_OUT tại chi nhánh nào đó thuộc tỉnh/thành này), bỏ trống = không lọc
      */
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<CustomerListPageResponse>> getCustomerList(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(defaultValue = "0") int page,
@@ -100,7 +100,7 @@ public class CustomerController {
      * Staff chỉ xem được khách có ít nhất 1 booking CHECK_OUT tại đúng station của mình.
      */
     @GetMapping("/{customerId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<CustomerDetailResponse>> getCustomerDetail(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @PathVariable Long customerId) {
@@ -128,7 +128,7 @@ public class CustomerController {
      * @param month             lọc theo tháng đặt lịch (1-12), bỏ trống = không lọc
      */
     @GetMapping("/{customerId}/bookings")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<CustomerBookingHistoryPageResponse>> getCustomerBookingHistory(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @PathVariable Long customerId,
@@ -158,7 +158,7 @@ public class CustomerController {
      * khác CANCELED/CHECK_OUT (FE-US-09-03 AC3/AC4).
      */
     @DeleteMapping("/{customerId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long customerId) {
         List<String> blockingPlates = customerService.deleteCustomer(customerId);
         if (!blockingPlates.isEmpty()) {

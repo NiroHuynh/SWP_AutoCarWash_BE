@@ -60,7 +60,7 @@ public class RefundController {
      * bấm "Xác nhận hủy" (không tạo Refund, không đổi status booking).
      */
     @GetMapping("/deposit-amount")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<DepositAmountResponse>> getDepositAmount() {
         DepositAmountResponse result = refundService.getDepositAmount();
         return ResponseEntity.ok(ApiResponse.success("Lấy số tiền cọc thành công", result));
@@ -70,7 +70,7 @@ public class RefundController {
      * Danh sách ngân hàng (bin + tên hiển thị) để FE dựng dropdown chọn ngân hàng nhận hoàn tiền (AC2).
      */
     @GetMapping("/banks")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<BankOptionResponse>>> listBanks() {
         List<BankOptionResponse> banks = Arrays.stream(BankEnum.values())
                 .map(bank -> BankOptionResponse.builder()
@@ -86,7 +86,7 @@ public class RefundController {
      * Tra cứu tên chủ tài khoản qua VietQR Lookup (AC2.1).
      */
     @GetMapping("/account-lookup")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<AccountLookupResponse>> lookupAccount(
             @RequestParam String bin,
             @RequestParam String accountNumber) {
@@ -98,7 +98,7 @@ public class RefundController {
      * Customer xác nhận hủy booking và tạo yêu cầu hoàn tiền (AC3).
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<RefundResponse>> createRefund(
             @Valid @RequestBody CreateRefundRequest request,
             @AuthenticationPrincipal UserCustomerDetails principal) {
@@ -110,7 +110,7 @@ public class RefundController {
      * Danh sách yêu cầu hoàn tiền cho Admin, có filter + search (US-05 AC1, AC6-AC10).
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RefundListPageResponse>> listRefunds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -129,7 +129,7 @@ public class RefundController {
      * Chi tiết 1 yêu cầu hoàn tiền cho Admin, kèm ảnh QR VietQR nếu chưa xử lý (US-05 AC2, AC2b, AC2c).
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RefundDetailResponse>> getRefundDetail(@PathVariable Long id) {
         RefundDetailResponse result = refundService.getRefundDetail(id);
         return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết hoàn tiền thành công", result));
@@ -139,7 +139,7 @@ public class RefundController {
      * Admin xác nhận đã chuyển khoản hoàn tiền xong (US-05 AC3, AC4, AC5).
      */
     @PostMapping("/{id}/confirm")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RefundDetailResponse>> confirmRefund(
             @PathVariable Long id,
             @Valid @RequestBody ConfirmRefundRequest request,
