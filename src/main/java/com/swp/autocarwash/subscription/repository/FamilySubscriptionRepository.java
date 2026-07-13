@@ -106,5 +106,7 @@ public interface FamilySubscriptionRepository extends JpaRepository<FamilySubscr
             String status
     );
 
-    
+    // 2. Tìm gói cước mới nhất của nhóm (Dùng để lấy dữ liệu hiển thị trạng thái ACTIVE hoặc EXPIRED lên giao diện)
+    @Query("SELECT fs FROM FamilySubscription fs WHERE fs.familyGroup.id = :groupId ORDER BY fs.endDate DESC LIMIT 1")
+    Optional<FamilySubscription> findLatestSubscriptionByGroupId(@Param("groupId") Long groupId);
 }

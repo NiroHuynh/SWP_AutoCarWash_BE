@@ -286,7 +286,8 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
         boolean isOwner = false;
 
         //Định vị nhóm
-        Optional<FamilyGroup> ownedGroupOpt = familyGroupRepository.findByOwnerCustomerId(currentCustomerId);
+        //Optional<FamilyGroup> ownedGroupOpt = familyGroupRepository.findByOwnerCustomerId(currentCustomerId);
+        Optional<FamilyGroup> ownedGroupOpt = familyGroupRepository.findByOwnerCustomerIdAndIsDeletedFalse(currentCustomerId);
         if (ownedGroupOpt.isPresent()) {
             targetGroup = ownedGroupOpt.get();
             isOwner = true;
@@ -308,14 +309,32 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
         GroupSubscriptionDto subscriptionDto = null;
         int maxVehicleCount = 0;
 
-        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
-        if (activeSubOpt.isPresent()) {
-            FamilySubscription sub = activeSubOpt.get();
-            maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
+        //Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
+        Optional<FamilySubscription> latestSubOpt = familySubscriptionRepository.findLatestSubscriptionByGroupId(targetGroup.getId());
+//        if (activeSubOpt.isPresent()) {
+//            FamilySubscription sub = activeSubOpt.get();
+//            maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
+//
+//            subscriptionDto = GroupSubscriptionDto.builder()
+//                    .planName(sub.getSubscriptionPlan().getPlanName())
+//                    .status(sub.getStatus())
+//                    .endDate(sub.getEndDate())
+//                    .build();
+//        }
+
+        if (latestSubOpt.isPresent()) {
+            FamilySubscription sub = latestSubOpt.get();
+
+            // Nếu gói thực tế đang ACTIVE dưới DB thì lấy hạn mức, nếu đã thành EXPIRED thì hạn mức đưa về 0
+            //if ("ACTIVE".equalsIgnoreCase(sub.getStatus())) {
+                maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
+            //} else {
+             //   maxVehicleCount = 0;
+            //}
 
             subscriptionDto = GroupSubscriptionDto.builder()
                     .planName(sub.getSubscriptionPlan().getPlanName())
-                    .status(sub.getStatus())
+                    .status(sub.getStatus()) //Trả thẳng chữ ACTIVE / EXPIRED chuẩn bài từ DB ra cho FE
                     .endDate(sub.getEndDate())
                     .build();
         }
@@ -495,15 +514,35 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
         }
 
         // 4. VÔ HIỆU HÓA GÓI CƯỚC (Hủy gói liên kết của nhóm)
-        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
+//        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
+//        String subStatus = "NO_SUBSCRIPTION";
+//        if (activeSubOpt.isPresent()) {
+//            FamilySubscription subscription = activeSubOpt.get();
+//            subscription.setStatus("CANCELED");
+//            subscription.setCanceledAt(LocalDateTime.now());
+//            familySubscriptionRepository.save(subscription);
+//            subStatus = "CANCELED";
+//        }
+        Optional<FamilySubscription> latestSubOpt = familySubscriptionRepository.findLatestSubscriptionByGroupId(targetGroup.getId());
         String subStatus = "NO_SUBSCRIPTION";
-        if (activeSubOpt.isPresent()) {
-            FamilySubscription subscription = activeSubOpt.get();
-            subscription.setStatus("CANCELED");
-            subscription.setCanceledAt(LocalDateTime.now());
-            familySubscriptionRepository.save(subscription);
-            subStatus = "CANCELED";
+        if (latestSubOpt.isPresent()) {
+            FamilySubscription subscription = latestSubOpt.get();
+
+            // Nếu gói dưới DB vốn dĩ đã hết hạn (EXPIRED) từ trước do Cron Job quét
+            if ("EXPIRED".equalsIgnoreCase(subscription.getStatus())) {
+                subStatus = "EXPIRED"; // Giữ nguyên trạng thái hiển thị, không thay đổi DB nữa
+            }
+            else if ("ACTIVE".equalsIgnoreCase(subscription.getStatus())) {
+                // Gói thực sự đang còn hạn sử dụng -> Tiến hành cập nhật CANCELED (Hủy gói) xuống DB
+                subscription.setStatus("CANCELED");
+                subscription.setCanceledAt(LocalDateTime.now());
+                familySubscriptionRepository.save(subscription);
+                subStatus = "CANCELED";
+            }
         }
+
+
+
 
         // 5. HARD DELETE (AC04): Xóa cứng toàn bộ thành viên + Owner ra khỏi bảng family_member
         int kickedCount = allMembers.size();
