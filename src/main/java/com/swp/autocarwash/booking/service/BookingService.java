@@ -4,8 +4,11 @@ import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.dto.request.CreateBookingRequest;
 import com.swp.autocarwash.booking.dto.response.CreateBookingResponse;
+import com.swp.autocarwash.booking.dto.response.StationBookingListPageResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -108,4 +111,20 @@ public interface BookingService {
      * @version 1.0
      */
     CreateBookingResponse createBooking(CreateBookingRequest request);
+
+    /**
+     * Chức năng: Staff/Admin xem danh sách toàn bộ booking của 1 chi nhánh cụ
+     * thể, filter theo trạng thái/khoảng ngày/từ khóa (tên khách, SĐT, biển số).
+     *
+     * @param stationId chi nhánh cần xem (staff bị pin cứng về station của mình)
+     * @param status    giá trị thô của BookingStatus, bỏ trống = không lọc
+     * @param fromDate  lọc appointmentDate từ ngày này trở đi, bỏ trống = không giới hạn
+     * @param toDate    lọc appointmentDate đến ngày này, bỏ trống = không giới hạn
+     * @param keyword   tìm theo tên khách/SĐT/biển số, bỏ trống = không lọc
+     * @author Ngân
+     * @version 1.0
+     */
+    StationBookingListPageResponse getStationBookingList(
+            Integer stationId, String status, LocalDate fromDate, LocalDate toDate,
+            String keyword, Pageable pageable);
 }

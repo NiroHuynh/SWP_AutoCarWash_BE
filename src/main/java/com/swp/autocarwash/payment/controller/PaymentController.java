@@ -19,6 +19,7 @@ import com.swp.autocarwash.payment.dto.response.InvoiceDetailResponse;
 import com.swp.autocarwash.payment.dto.response.WebhookLogResponse;
 import com.swp.autocarwash.payment.service.PaymentService;
 import com.swp.autocarwash.payment.service.SePayWebhookService;
+import com.swp.autocarwash.staff.util.StaffScopeResolver;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final SePayWebhookService sePayWebhookService;
     private final CustomerRepository customerRepository;
+    private final StaffScopeResolver staffScopeResolver;
 
     /**
      * Chức năng: Thu tiền mặt cho một booking đã COMPLETED — tạo/cập nhật hoá
@@ -155,13 +157,16 @@ public class PaymentController {
      * @param toDate        lọc paidAt đến ngày này, bỏ trống = không giới hạn
      * @param bookingId     tra nhanh theo 1 Booking ID cụ thể, bỏ trống = không lọc
      * @param transactionId tra nhanh theo 1 Transaction ID cụ thể, bỏ trống = không lọc
-     * @param stationId     lọc theo chi nhánh, chỉ áp dụng cho giao dịch booking
+     * @param stationId     lọc theo chi nhánh cụ thể, chỉ áp dụng cho giao dịch booking
+     * @param communeId     lọc theo xã/phường, chỉ áp dụng cho giao dịch booking
+     * @param provinceId    lọc theo tỉnh/thành, chỉ áp dụng cho giao dịch booking
      * @param phone         tìm gần đúng theo SĐT khách hàng (cả booking lẫn subscription), bỏ trống = không lọc
      * @return {@code 200 OK} với {@link PaymentTransactionHistoryResponse}
      */
     @GetMapping("/transactions")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<PaymentTransactionHistoryResponse>> getTransactionHistory(
+            @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) String method,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String type,
@@ -170,10 +175,18 @@ public class PaymentController {
             @RequestParam(required = false) Long bookingId,
             @RequestParam(required = false) Long transactionId,
             @RequestParam(required = false) Integer stationId,
+            @RequestParam(required = false) Integer communeId,
+            @RequestParam(required = false) Integer provinceId,
             @RequestParam(required = false) String phone) {
 
+        boolean isStaff = staffScopeResolver.isStaff(principal);
+        Integer effStationId = isStaff ? staffScopeResolver.staffStationId(principal) : stationId;
+        Integer effCommuneId = isStaff ? null : communeId;
+        Integer effProvinceId = isStaff ? null : provinceId;
+
         PaymentTransactionHistoryResponse result = paymentService.getTransactionHistory(
-                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, phone);
+                method, status, type, fromDate, toDate, bookingId, transactionId, effStationId, effCommuneId,
+                effProvinceId, phone);
 
         return ResponseEntity.ok(
                 ApiResponse.success("Lịch sử giao dịch thanh toán", result)
