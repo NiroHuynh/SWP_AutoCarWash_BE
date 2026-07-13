@@ -33,4 +33,7 @@ public interface FamilyGroupRepository extends JpaRepository<FamilyGroup,Long> {
     Optional<FamilyGroup> findByOwnerCustomerAndIsDeletedFalse(Customer owner);
 
     Optional<FamilyGroup> findByIdAndIsDeletedFalse(Long id);
+
+    //Chỉ lấy nhóm đang hoạt động, bỏ qua các nhóm cũ đã bị soft delete
+    Optional<FamilyGroup> findByOwnerCustomerIdAndIsDeletedFalse(Long ownerCustomerId);
 }
