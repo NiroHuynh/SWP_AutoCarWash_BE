@@ -215,6 +215,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECK_IN', 'WASHING')")
     boolean hasActiveBooking(@Param("vehicleId") Long vehicleId);
 
+    // Kiểm tra xe có booking dở dang hay không
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id = :vehicleId AND b.status IN :statuses")
+    boolean existsByVehicleIdAndStatusIn(@Param("vehicleId") Long vehicleId, @Param("statuses") List<String> statuses);
+
+    // Kiểm tra xem danh sách xe truyền vào có chiếc nào dính booking dở dang không
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id IN :vehicleIds AND b.status IN :statuses")
+    boolean existsByVehicleIdInAndStatusIn(@Param("vehicleIds") List<Long> vehicleIds, @Param("statuses") List<String> statuses);
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.customer.id = :customerId AND b.status = 'NO_SHOW'")
     long countNoShowByCustomerId(@Param("customerId") Long customerId);
 

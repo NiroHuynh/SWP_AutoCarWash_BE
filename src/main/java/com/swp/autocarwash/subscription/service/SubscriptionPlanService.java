@@ -2,10 +2,7 @@ package com.swp.autocarwash.subscription.service;
 
 import com.swp.autocarwash.subscription.dto.request.CreateSubscriptionPlanRequest;
 import com.swp.autocarwash.subscription.dto.request.UpdateSubscriptionPlanRequest;
-import com.swp.autocarwash.subscription.dto.response.CreateSubscriptionPlanResponse;
-import com.swp.autocarwash.subscription.dto.response.CustomerSubscriptionPlanResponse;
-import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanDetailResponse;
-import com.swp.autocarwash.subscription.dto.response.SubscriptionPlanResponse;
+import com.swp.autocarwash.subscription.dto.response.*;
 
 import java.util.List;
 
@@ -25,4 +22,6 @@ public interface SubscriptionPlanService {
     void deleteSubscriptionPlan(Integer id);
 
     List<CustomerSubscriptionPlanResponse> getActiveSubscriptionPlans();
+
+    FamilySubscriptionPlansResponse getFamilySubscriptionPlans();
 }

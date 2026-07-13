@@ -8,5 +8,9 @@ public enum BookingStatus {
     NO_SHOW,
     WASHING,
     COMPLETED,
-    CHECK_OUT
+    CHECK_OUT,
+    /** Booking đã hủy hợp lệ, đang chờ Admin chuyển khoản hoàn cọc (có bản ghi Refund). */
+    REFUND_PENDING,
+    /** Đã hoàn tiền cọc xong (Refund.refundedAt khác NULL). */
+    REFUNDED
 }

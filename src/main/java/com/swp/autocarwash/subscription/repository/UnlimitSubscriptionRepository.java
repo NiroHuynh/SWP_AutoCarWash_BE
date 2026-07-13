@@ -106,6 +106,15 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
             "AND :today BETWEEN u.startDate AND u.endDate")
     boolean hasActiveSubscription(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
 
+    // AC06: Quét kiểm tra xem xe này có gói Unlimited nào đang ACTIVE và còn hạn không
+    // Thao tác trực tiếp trên bảng unlimit_subscription thông qua Entity UnlimitSubscription
+    @Query("SELECT COUNT(us) > 0 FROM UnlimitSubscription us " +
+            "WHERE us.vehicle.id = :vehicleId " +
+            "AND us.status = 'ACTIVE' " +
+            "AND us.endDate >= :currentDate")
+    boolean hasActivePersonalSubscription(@Param("vehicleId") Long vehicleId,
+                                          @Param("currentDate") LocalDate currentDate);
+
     boolean existsByVehicleIdAndStatus(
             Long vehicleId,
             SubscriptionStatus status
