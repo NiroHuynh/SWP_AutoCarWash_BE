@@ -5,9 +5,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- =====================================================================
 INSERT IGNORE INTO role (id, name)
 VALUES
-    (1, 'ADMIN'),
-    (2, 'STAFF'),
-    (3, 'CUSTOMER');
+    (1, 'ROLE_ADMIN'),
+    (2, 'ROLE_STAFF'),
+    (3, 'ROLE_CUSTOMER');
 
 
 -- =====================================================================
@@ -43,6 +43,24 @@ VALUES
     (25, 'khanh@gmail.com', '0900002010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY)),
     (26, 'trang@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY));
+
+-- =====================================================================
+-- USER (extra, 10) — khách hàng "sạch", chưa đăng ký gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO user
+(id, email, phone, password_hash, role_id, is_active, created_at)
+VALUES
+    (301, 'member01@gmail.com', '0900003001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (302, 'member02@gmail.com', '0900003002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (303, 'member03@gmail.com', '0900003003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (304, 'member04@gmail.com', '0900003004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (305, 'member05@gmail.com', '0900003005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (306, 'member06@gmail.com', '0900003006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (307, 'member07@gmail.com', '0900003007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (308, 'member08@gmail.com', '0900003008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (309, 'member09@gmail.com', '0900003009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (310, 'member10@gmail.com', '0900003010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW());
 
 
 -- =====================================================================
@@ -94,16 +112,19 @@ VALUES
 INSERT IGNORE INTO station
 (id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
 VALUES
-    (9,  'AutoWash My Tho',         '123 Ap Bac, My Tho',              1,  true, 1, false),
-    (2,  'AutoWash HCM Thu Duc',    '456 Vo Van Ngan, Thu Duc, HCM',   2,  true, 3, false),
-    (3,  'AutoWash Ha Noi',         '12 Cau Giay, Ha Noi',             3,  true, 2, false),
-    (4,  'AutoWash Da Nang',        '78 Nguyen Van Linh, Da Nang',     4,  true, 1, false),
-    (5,  'AutoWash Can Tho',        '34 Mau Than, Ninh Kieu, Can Tho', 5,  true, 1, false),
-    (6,  'AutoWash HCM Thu Duc 2',  '12 Kha Van Can, Thu Duc, HCM',    2,  true, 3, false),
-    (7,  'AutoWash HCM Go Vap',     '34 Quang Trung, Go Vap, HCM',     11, true, 2, false),
-    (8,  'AutoWash Ha Noi Ba Dinh', '7 Doi Can, Ba Dinh, Ha Noi',      12, true, 1, false),
+    (9,  'AutoWash My Tho',         '123 Ap Bac, My Tho',              1,  true, 20, false),
+    (99,  'AutoWash HCM Thu Duc',    '456 Vo Van Ngan, Thu Duc, HCM',   2,  true, 30, false),
+    (100,  'AutoWash Ha Noi',         '12 Cau Giay, Ha Noi',             3,  true, 25, false),
+    (4,  'AutoWash Da Nang',        '78 Nguyen Van Linh, Da Nang',     4,  true, 20, false),
+    (5,  'AutoWash Can Tho',        '34 Mau Than, Ninh Kieu, Can Tho', 5,  true, 18, false),
+    (6,  'AutoWash HCM Thu Duc 2',  '12 Kha Van Can, Thu Duc, HCM',    2,  true, 22, false),
+    (7,  'AutoWash HCM Go Vap',     '34 Quang Trung, Go Vap, HCM',     11, true, 20, false),
+    (8,  'AutoWash Ha Noi Ba Dinh', '7 Doi Can, Ba Dinh, Ha Noi',      12, true, 18, false),
 
-    (1, 'AutoWash Chi nhánh Q9', 'Lê Văn Việt', 2, true, 2, false);
+    (101, 'AutoWash Chi nhánh Q9', 'Lê Văn Việt', TRUE, true,3, false),
+(1, 'HCM - Quận 1', '123 Nguyễn Huệ', 10, true, 5, false),
+(2, 'HCM - Quận 7', '456 Nguyễn Thị Thập', 20, true, 8, false),
+(3, 'HCM - Thủ Đức', '789 Võ Văn Ngân', 30, true, 4, false);
 
 -- =====================================================================
 -- WASH LANE (15)
@@ -195,6 +216,24 @@ VALUES
     (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
 
 -- =====================================================================
+-- CUSTOMER (extra, 10) — đi kèm USER 301-310, chưa có gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO customer
+(id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
+VALUES
+    (301, 301, 'Member', 'Test01', '2000-01-01', 1, 0, NULL),
+    (302, 302, 'Member', 'Test02', '2000-01-01', 1, 0, NULL),
+    (303, 303, 'Member', 'Test03', '2000-01-01', 1, 0, NULL),
+    (304, 304, 'Member', 'Test04', '2000-01-01', 1, 0, NULL),
+    (305, 305, 'Member', 'Test05', '2000-01-01', 1, 0, NULL),
+    (306, 306, 'Member', 'Test06', '2000-01-01', 1, 0, NULL),
+    (307, 307, 'Member', 'Test07', '2000-01-01', 1, 0, NULL),
+    (308, 308, 'Member', 'Test08', '2000-01-01', 1, 0, NULL),
+    (309, 309, 'Member', 'Test09', '2000-01-01', 1, 0, NULL),
+    (310, 310, 'Member', 'Test10', '2000-01-01', 1, 0, NULL);
+
+-- =====================================================================
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
 -- guest with no registered account (FE shows "Guest" badge for this).
 -- =====================================================================
@@ -226,6 +265,24 @@ VALUES
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
 
 #     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false);
+
+-- =====================================================================
+-- VEHICLE (extra, 10) — đi kèm CUSTOMER 301-310, chưa có gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO vehicle
+(id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
+VALUES
+    (301, 301, '99A-30001', 'Toyota', 'White', 0, NULL, false),
+    (302, 302, '99A-30002', 'Toyota', 'White', 0, NULL, false),
+    (303, 303, '99A-30003', 'Toyota', 'White', 0, NULL, false),
+    (304, 304, '99A-30004', 'Toyota', 'White', 0, NULL, false),
+    (305, 305, '99A-30005', 'Toyota', 'White', 0, NULL, false),
+    (306, 306, '99A-30006', 'Toyota', 'White', 0, NULL, false),
+    (307, 307, '99A-30007', 'Toyota', 'White', 0, NULL, false),
+    (308, 308, '99A-30008', 'Toyota', 'White', 0, NULL, false),
+    (309, 309, '99A-30009', 'Toyota', 'White', 0, NULL, false),
+    (310, 310, '99A-30010', 'Toyota', 'White', 0, NULL, false);
 
 -- =====================================================================
 -- FAMILY GROUP (10)
@@ -369,17 +426,17 @@ VALUES
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted)
 VALUES
-    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMITED', 1, 'Rua xe khong gioi han trong 1 thang',              false),
-    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false),
-    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 3 thang',              false),
-    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false),
-    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMITED', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false),
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMIT', 1, 'Rua xe khong gioi han trong 1 thang',              false),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 1 thang',      false),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 3 thang',              false),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 3 thang',      false),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMIT', 1, 'Rua xe cao cap khong gioi han trong 6 thang',      false),
     (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 1 thang',   false),
     (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Rua xe cao cap cho ca gia dinh, 1 thang',          false),
     (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Rua xe khong gioi han cho ca gia dinh, 3 thang',   false),
     (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Rua xe cao cap cho ca gia dinh, 3 thang',          false),
     (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Rua xe cao cap cho ca gia dinh, 6 thang',          false),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMITED', 1, 'Rua xe khong gioi han trong 6 thang',              false),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMIT', 1, 'Rua xe khong gioi han trong 6 thang',              false),
     (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Rua xe khong gioi han cho ca gia dinh, 6 thang',   false);
 
 -- =====================================================================
@@ -452,7 +509,10 @@ VALUES
     (7,  'Black Friday',                       'Sale lon nhat nam', DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY)),
     (8,  'Tich diem gap doi',                  'Nhan diem x2 cho moi luot rua xe', DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY)),
     (9,  'Uu dai mua mua',                     'Khuyen mai mua mua', DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY)),
-    (10, 'Combo gia dinh',                     'Uu dai cho goi gia dinh', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY));
+    (11, 'Combo gia dinh',                     'Uu dai cho goi gia dinh', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY)),
+       (10, 'Chiến dịch Hè Rực Rỡ 2026', 'Giảm giá cực sâu ngày hè', '2026-07-01', '2026-07-31', 'ACTIVE',DATE_SUB(NOW(), INTERVAL 1 DAY)),
+-- Chiến dịch 2: Sắp diễn ra (UPCOMING), bắt đầu từ tháng sau
+(20, 'Chiến dịch Chào Thu 2026', 'Khuyến mãi chào tháng mới', '2026-08-01', '2026-08-31', 'UPCOMING',DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- =====================================================================
 -- PROMOTION TARGET (10)
@@ -474,6 +534,12 @@ VALUES
 -- =====================================================================
 -- PROMOTION TARGET MAPPING (15)
 -- =====================================================================
+
+INSERT IGNORE INTO promotion_station_mapping (promotion_id, station_id) VALUES
+    (10, 1), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 1
+    (10, 2), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 7
+    (20, 1); -- Chiến dịch Chào Thu CHỈ áp dụng cho Quận 1
+
 INSERT IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
@@ -505,7 +571,9 @@ VALUES
     (9,  9,    'RAINY10',   30000,  50000,  120, 120, DATE_SUB(NOW(), INTERVAL 30 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), false, 10, DATE_SUB(NOW(), INTERVAL 60 DAY)),
     (10, 10,   'FAMILY5',   45000,  100000, 200, 18,  DATE_ADD(NOW(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY),  true,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY)),
     (11, NULL, 'WELCOME50', 50000,  10000,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 5, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY));
+    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+       (101, NULL, 'VOUCHER_LE_ACTIVE', 30000, 50000, 100, 0, '2026-07-31 23:59:59', 'ACTIVE', '2026-07-01 00:00:00', true, 10, '2026-07-01 00:00:00'),
+(102, NULL, 'VOUCHER_LE_UPCOMING', 40000, 60000, 150, 0, '2026-08-31 23:59:59', 'UPCOMING', '2026-08-01 00:00:00', true, 15, '2026-07-07 00:00:00');
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -629,67 +697,67 @@ INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
     -- booking 1 (station1, +3d, 1 slot)
-    (1,  1, '08:00', '08:15', 2, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 2, 'AVAILABLE'),
+    (1,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 2, 'AVAILABLE'),
     -- booking 2 (station2, +5d, 2 slots)
-    (2,  2, '08:00', '08:15', 3, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
-    (3,  2, '08:15', '08:30', 3, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
+    (2,  2, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
+    (3,  2, '08:15', '08:30', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'AVAILABLE'),
     -- booking 3 (station3, +2d, 1 slot)
-    (4,  3, '08:00', '08:15', 2, DATE_ADD(CURDATE(), INTERVAL 2 DAY), 1, 'AVAILABLE'),
+    (4,  3, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 2 DAY), 1, 'AVAILABLE'),
     -- booking 4 (station4, +7d, 1 slot)
-    (5,  4, '08:00', '08:15', 1, DATE_ADD(CURDATE(), INTERVAL 7 DAY), 1, 'AVAILABLE'),
+    (5,  4, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 7 DAY), 1, 'AVAILABLE'),
     -- booking 5 (station1, +1d, 1 slot)
-    (6,  1, '08:00', '08:15', 2, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 1, 'AVAILABLE'),
+    (6,  1, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 1, 'AVAILABLE'),
     -- booking 6 (station2, today, 2 slots)
-    (7,  2, '08:00', '08:15', 3, CURDATE(), 1, 'AVAILABLE'),
-    (8,  2, '08:15', '08:30', 3, CURDATE(), 1, 'AVAILABLE'),
+    (7,  2, '08:00', '08:15', 5, CURDATE(), 1, 'AVAILABLE'),
+    (8,  2, '08:15', '08:30', 5, CURDATE(), 1, 'AVAILABLE'),
     -- booking 7 (station1, today, 1 slot)
-    (9,  1, '08:00', '08:15', 2, CURDATE(), 1, 'AVAILABLE'),
+    (9,  1, '08:00', '08:15', 5, CURDATE(), 1, 'AVAILABLE'),
     -- booking 8 (station3, today, 2 slots)
-    (37, 3, '08:00', '08:15', 2, CURDATE(), 1, 'AVAILABLE'),
-    (38, 3, '08:15', '08:30', 2, CURDATE(), 1, 'AVAILABLE'),
+    (37, 3, '08:00', '08:15', 5, CURDATE(), 1, 'AVAILABLE'),
+    (38, 3, '08:15', '08:30', 5, CURDATE(), 1, 'AVAILABLE'),
     -- booking 9 (station1, today, 1 slot)
-    (39, 1, '08:15', '08:30', 2, CURDATE(), 1, 'AVAILABLE'),
+    (39, 1, '08:15', '08:30', 5, CURDATE(), 1, 'AVAILABLE'),
     -- booking 10 (station4, today, 1 slot)
-    (13, 4, '08:00', '08:15', 1, CURDATE(), 1, 'AVAILABLE'),
+    (13, 4, '08:00', '08:15', 5, CURDATE(), 1, 'AVAILABLE'),
     -- booking 11 (station1, -10d, 1 slot, COMPLETED)
-    (14, 1, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 1, 'COMPLETED'),
+    (14, 1, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 1, 'COMPLETED'),
     -- booking 12 (station2, -7d, 2 slots, COMPLETED)
-    (15, 2, '08:00', '08:15', 3, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 1, 'COMPLETED'),
-    (16, 2, '08:15', '08:30', 3, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 1, 'COMPLETED'),
+    (15, 2, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 1, 'COMPLETED'),
+    (16, 2, '08:15', '08:30', 5, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 1, 'COMPLETED'),
     -- booking 13 (station3, -15d, 1 slot, COMPLETED)
-    (17, 3, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 15 DAY), 1, 'COMPLETED'),
+    (17, 3, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 15 DAY), 1, 'COMPLETED'),
     -- booking 14 (station6, -20d, 2 slots, COMPLETED)
-    (18, 6, '08:00', '08:15', 3, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
-    (19, 6, '08:15', '08:30', 3, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
+    (18, 6, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
+    (19, 6, '08:15', '08:30', 5, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
     -- booking 15 (station1, -5d, 1 slot, freed by cancellation)
-    (20, 1, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 5 DAY), 0, 'AVAILABLE'),
+    (20, 1, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 5 DAY), 0, 'AVAILABLE'),
     -- booking 16 (station2, -3d, 2 slots, freed by cancellation)
-    (21, 2, '08:00', '08:15', 3, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 0, 'AVAILABLE'),
-    (22, 2, '08:15', '08:30', 3, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 0, 'AVAILABLE'),
+    (21, 2, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 0, 'AVAILABLE'),
+    (22, 2, '08:15', '08:30', 5, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 0, 'AVAILABLE'),
     -- booking 17 (station3, -2d, 1 slot, freed by cancellation)
-    (23, 3, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 0, 'AVAILABLE'),
+    (23, 3, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 0, 'AVAILABLE'),
     -- booking 18 (station1, -9d, 1 slot, NO_SHOW => COMPLETED)
-    (24, 1, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 9 DAY), 1, 'COMPLETED'),
+    (24, 1, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 9 DAY), 1, 'COMPLETED'),
     -- booking 19 (station2, -6d, 2 slots, NO_SHOW => COMPLETED)
-    (25, 2, '08:00', '08:15', 3, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 1, 'COMPLETED'),
-    (26, 2, '08:15', '08:30', 3, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 1, 'COMPLETED'),
+    (25, 2, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 1, 'COMPLETED'),
+    (26, 2, '08:15', '08:30', 5, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 1, 'COMPLETED'),
     -- booking 20 (station3, -4d, 1 slot, NO_SHOW => COMPLETED)
-    (27, 3, '08:00', '08:15', 2, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 1, 'COMPLETED'),
+    (27, 3, '08:00', '08:15', 5, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 1, 'COMPLETED'),
     -- spare unbooked AVAILABLE slots for browsing
-    (28, 5, '08:00', '08:15', 1, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
-    (29, 5, '08:15', '08:30', 1, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
-    (30, 7, '08:00', '08:15', 2, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 0, 'AVAILABLE'),
+    (28, 5, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
+    (29, 5, '08:15', '08:30', 5, DATE_ADD(CURDATE(), INTERVAL 4 DAY), 0, 'AVAILABLE'),
+    (30, 7, '08:00', '08:15', 5, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 0, 'AVAILABLE'),
     -- 3rd slot for Premium (required_slot=3) bookings 2,6,12,14,16,19
-    (31, 2, '08:30', '08:45', 3, DATE_ADD(CURDATE(), INTERVAL 5 DAY),  1, 'AVAILABLE'),
-    (32, 2, '08:30', '08:45', 3, CURDATE(),                             1, 'AVAILABLE'),
-    (33, 2, '08:30', '08:45', 3, DATE_SUB(CURDATE(), INTERVAL 7 DAY),  1, 'COMPLETED'),
-    (34, 6, '08:30', '08:45', 3, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
-    (35, 2, '08:30', '08:45', 3, DATE_SUB(CURDATE(), INTERVAL 3 DAY),  0, 'AVAILABLE'),
-    (36, 2, '08:30', '08:45', 3, DATE_SUB(CURDATE(), INTERVAL 6 DAY),  1, 'COMPLETED'),
+    (31, 2, '08:30', '08:45', 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY),  1, 'AVAILABLE'),
+    (32, 2, '08:30', '08:45', 5, CURDATE(),                             1, 'AVAILABLE'),
+    (33, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 7 DAY),  1, 'COMPLETED'),
+    (34, 6, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'COMPLETED'),
+    (35, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 3 DAY),  0, 'AVAILABLE'),
+    (36, 2, '08:30', '08:45', 5, DATE_SUB(CURDATE(), INTERVAL 6 DAY),  1, 'COMPLETED'),
 
-    (10, 1, '16:00:00', '16:15:00', 2, CURDATE(), 0, 'AVAILABLE'),
-    (11, 1, '16:15:00', '16:30:00', 2, CURDATE(), 0, 'AVAILABLE'),
-    (12, 1, '16:30:00', '16:45:00', 2, CURDATE(), 0, 'AVAILABLE');
+    (10, 1, '16:00:00', '16:15:00', 5, CURDATE(), 0, 'AVAILABLE'),
+    (11, 1, '16:15:00', '16:30:00', 5, CURDATE(), 0, 'AVAILABLE'),
+    (12, 1, '16:30:00', '16:45:00', 5, CURDATE(), 0, 'AVAILABLE');
 
 -- =====================================================================
 -- BOOKING SLOT — LICH DAY DU 29/6 -> 10/7 (12 ngay, offset 0-11 ke tu
@@ -2164,53 +2232,53 @@ VALUES
 INSERT IGNORE INTO payment
 (id, booking_invoice_id, subscription_invoice_id, payment_method, amount, transaction_code, payment_status, paid_at, received_amount, payment_type)
 VALUES
-    (1,  1,    NULL, 'CASH',  150000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 239 HOUR), 150000, 'FULL_PAYMENT'),
-    (2,  2,    NULL, 'MOMO',  430000,  'TXN-0000000002', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 166 HOUR), 430000, 'FULL_PAYMENT'),
-    (3,  3,    NULL, 'CASH',  120000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 359 HOUR), 200000, 'FULL_PAYMENT'),
-    (4,  4,    NULL, 'VNPAY', 400000,  'TXN-0000000004', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 478 HOUR), 400000, 'FULL_PAYMENT'),
+    (1,  1,    NULL, 'CASH',  150000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 239 HOUR), 150000, 'PAYMENT'),
+    (2,  2,    NULL, 'MOMO',  430000,  'TXN-0000000002', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 166 HOUR), 430000, 'PAYMENT'),
+    (3,  3,    NULL, 'CASH',  120000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 359 HOUR), 200000, 'PAYMENT'),
+    (4,  4,    NULL, 'VNPAY', 400000,  'TXN-0000000004', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 478 HOUR), 400000, 'PAYMENT'),
     (5,  10,   NULL, 'CASH',  20000,   NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 6 DAY),    20000,  'REFUND'),
-    (6,  NULL, 1,    'MOMO',  500000,  'TXN-0000000006', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   500000, 'SUBSCRIPTION'),
-    (7,  NULL, 2,    'CASH',  900000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    900000, 'SUBSCRIPTION'),
-    (8,  NULL, 3,    'VNPAY', 400000,  'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   400000, 'SUBSCRIPTION'),
-    (9,  NULL, 4,    'MOMO',  2400000, 'TXN-0000000009', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   2400000,'SUBSCRIPTION'),
-    (10, NULL, 5,    'CASH',  8500000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 100 DAY),  8500000,'SUBSCRIPTION'),
-    (11, NULL, 6,    'MOMO',  500000,  'TXN-0000000011', 'FAILED',  DATE_SUB(NOW(), INTERVAL 60 DAY),   0,      'SUBSCRIPTION'),
-    (12, NULL, 8,    'CASH',  1200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   1200000,'SUBSCRIPTION'),
-    (13, NULL, 9,    'VNPAY', 2000000, 'TXN-0000000013', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    2000000,'SUBSCRIPTION'),
-    (14, NULL, 10,   'CASH',  353500,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   353500, 'SUBSCRIPTION'),
-    (15, NULL, 11,   'MOMO',  5400000, 'TXN-0000000015', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   5400000,'SUBSCRIPTION'),
+    (6,  NULL, 1,    'MOMO',  500000,  'TXN-0000000006', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   500000, 'PAYMENT'),
+    (7,  NULL, 2,    'CASH',  900000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    900000, 'PAYMENT'),
+    (8,  NULL, 3,    'VNPAY', 400000,  'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   400000, 'PAYMENT'),
+    (9,  NULL, 4,    'MOMO',  2400000, 'TXN-0000000009', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   2400000,'PAYMENT'),
+    (10, NULL, 5,    'CASH',  8500000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 100 DAY),  8500000,'PAYMENT'),
+    (11, NULL, 6,    'MOMO',  500000,  'TXN-0000000011', 'FAILED',  DATE_SUB(NOW(), INTERVAL 60 DAY),   0,      'PAYMENT'),
+    (12, NULL, 8,    'CASH',  1200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   1200000,'PAYMENT'),
+    (13, NULL, 9,    'VNPAY', 2000000, 'TXN-0000000013', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    2000000,'PAYMENT'),
+    (14, NULL, 10,   'CASH',  353500,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   353500, 'PAYMENT'),
+    (15, NULL, 11,   'MOMO',  5400000, 'TXN-0000000015', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   5400000,'PAYMENT'),
     -- Thanh toan cho hoa don 16-32 (booking lich su 501-517 cua customer 1)
-    (16, 16, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-01-12 09:00:00', 300000, 'FULL_PAYMENT'),
-    (17, 17, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-02-14 10:30:00', 300000, 'FULL_PAYMENT'),
-    (18, 18, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-03-20 15:00:00', 200000, 'FULL_PAYMENT'),
-    (19, 19, NULL, 'CASH', 400000, NULL, 'SUCCESS', '2025-04-18 11:00:00', 400000, 'FULL_PAYMENT'),
-    (20, 20, NULL, 'CASH', 350000, NULL, 'SUCCESS', '2025-05-09 14:00:00', 350000, 'FULL_PAYMENT'),
-    (21, 21, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-06-22 16:30:00', 200000, 'FULL_PAYMENT'),
-    (22, 22, NULL, 'CASH', 500000, NULL, 'SUCCESS', '2025-07-15 09:45:00', 500000, 'FULL_PAYMENT'),
-    (23, 23, NULL, 'CASH', 600000, NULL, 'SUCCESS', '2025-08-19 13:20:00', 600000, 'FULL_PAYMENT'),
-    (24, 24, NULL, 'CASH', 250000, NULL, 'SUCCESS', '2025-10-04 10:00:00', 250000, 'FULL_PAYMENT'),
-    (25, 25, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-11-10 08:30:00', 300000, 'FULL_PAYMENT'),
-    (26, 26, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-11-30 17:00:00', 300000, 'FULL_PAYMENT'),
-    (27, 27, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-12-20 12:00:00', 200000, 'FULL_PAYMENT'),
-    (28, 28, NULL, 'CASH', 120000, NULL, 'SUCCESS', '2026-01-18 09:30:00', 120000, 'FULL_PAYMENT'),
-    (29, 29, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-02-22 14:15:00', 100000, 'FULL_PAYMENT'),
-    (30, 30, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-03-15 10:45:00', 100000, 'FULL_PAYMENT'),
-    (31, 31, NULL, 'CASH', 90000,  NULL, 'SUCCESS', '2026-04-20 16:00:00', 90000,  'FULL_PAYMENT'),
-    (32, 32, NULL, 'CASH', 110000, NULL, 'SUCCESS', '2026-05-16 11:20:00', 110000, 'FULL_PAYMENT'),
+    (16, 16, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-01-12 09:00:00', 300000, 'PAYMENT'),
+    (17, 17, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-02-14 10:30:00', 300000, 'PAYMENT'),
+    (18, 18, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-03-20 15:00:00', 200000, 'PAYMENT'),
+    (19, 19, NULL, 'CASH', 400000, NULL, 'SUCCESS', '2025-04-18 11:00:00', 400000, 'PAYMENT'),
+    (20, 20, NULL, 'CASH', 350000, NULL, 'SUCCESS', '2025-05-09 14:00:00', 350000, 'PAYMENT'),
+    (21, 21, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-06-22 16:30:00', 200000, 'PAYMENT'),
+    (22, 22, NULL, 'CASH', 500000, NULL, 'SUCCESS', '2025-07-15 09:45:00', 500000, 'PAYMENT'),
+    (23, 23, NULL, 'CASH', 600000, NULL, 'SUCCESS', '2025-08-19 13:20:00', 600000, 'PAYMENT'),
+    (24, 24, NULL, 'CASH', 250000, NULL, 'SUCCESS', '2025-10-04 10:00:00', 250000, 'PAYMENT'),
+    (25, 25, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-11-10 08:30:00', 300000, 'PAYMENT'),
+    (26, 26, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-11-30 17:00:00', 300000, 'PAYMENT'),
+    (27, 27, NULL, 'CASH', 200000, NULL, 'SUCCESS', '2025-12-20 12:00:00', 200000, 'PAYMENT'),
+    (28, 28, NULL, 'CASH', 120000, NULL, 'SUCCESS', '2026-01-18 09:30:00', 120000, 'PAYMENT'),
+    (29, 29, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-02-22 14:15:00', 100000, 'PAYMENT'),
+    (30, 30, NULL, 'CASH', 100000, NULL, 'SUCCESS', '2026-03-15 10:45:00', 100000, 'PAYMENT'),
+    (31, 31, NULL, 'CASH', 90000,  NULL, 'SUCCESS', '2026-04-20 16:00:00', 90000,  'PAYMENT'),
+    (32, 32, NULL, 'CASH', 110000, NULL, 'SUCCESS', '2026-05-16 11:20:00', 110000, 'PAYMENT'),
     -- Thanh toan cho hoa don 33-45 (booking CHECK_OUT moi cua customer 2-12,100,101)
-    (33, 33, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-01 08:30:00', 150000, 'FULL_PAYMENT'),
-    (34, 34, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-05 09:30:00', 150000, 'FULL_PAYMENT'),
-    (35, 35, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-10 10:30:00', 300000, 'FULL_PAYMENT'),
-    (36, 36, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-15 11:30:00', 150000, 'FULL_PAYMENT'),
-    (37, 37, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-20 08:30:00', 300000, 'FULL_PAYMENT'),
-    (38, 38, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-25 09:30:00', 150000, 'FULL_PAYMENT'),
-    (39, 39, NULL, 'CASH', 500000, NULL, 'SUCCESS', '2025-07-01 10:30:00', 500000, 'FULL_PAYMENT'),
-    (40, 40, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-05 11:30:00', 150000, 'FULL_PAYMENT'),
-    (41, 41, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-10 08:30:00', 300000, 'FULL_PAYMENT'),
-    (42, 42, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-15 09:30:00', 150000, 'FULL_PAYMENT'),
-    (43, 43, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-20 10:30:00', 300000, 'FULL_PAYMENT'),
-    (44, 44, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-01 08:30:00', 150000, 'FULL_PAYMENT'),
-    (45, 45, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-10 09:30:00', 150000, 'FULL_PAYMENT');
+    (33, 33, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-01 08:30:00', 150000, 'PAYMENT'),
+    (34, 34, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-05 09:30:00', 150000, 'PAYMENT'),
+    (35, 35, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-10 10:30:00', 300000, 'PAYMENT'),
+    (36, 36, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-15 11:30:00', 150000, 'PAYMENT'),
+    (37, 37, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-06-20 08:30:00', 300000, 'PAYMENT'),
+    (38, 38, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-06-25 09:30:00', 150000, 'PAYMENT'),
+    (39, 39, NULL, 'CASH', 500000, NULL, 'SUCCESS', '2025-07-01 10:30:00', 500000, 'PAYMENT'),
+    (40, 40, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-05 11:30:00', 150000, 'PAYMENT'),
+    (41, 41, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-10 08:30:00', 300000, 'PAYMENT'),
+    (42, 42, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2025-07-15 09:30:00', 150000, 'PAYMENT'),
+    (43, 43, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-07-20 10:30:00', 300000, 'PAYMENT'),
+    (44, 44, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-01 08:30:00', 150000, 'PAYMENT'),
+    (45, 45, NULL, 'CASH', 150000, NULL, 'SUCCESS', '2026-06-10 09:30:00', 150000, 'PAYMENT');
 
 -- =====================================================================
 -- REVIEW (12)

@@ -3,9 +3,8 @@ package com.swp.autocarwash.promotion.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
 
 import java.io.Serializable;
 
@@ -13,6 +12,9 @@ import java.io.Serializable;
 @Setter
 @EqualsAndHashCode
 @Embeddable
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PromotionTargetMappingId implements Serializable {
     private static final long serialVersionUID = 3732419156193724817L;
     @NotNull

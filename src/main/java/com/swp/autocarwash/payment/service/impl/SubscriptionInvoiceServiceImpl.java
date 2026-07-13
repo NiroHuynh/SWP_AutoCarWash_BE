@@ -57,6 +57,13 @@ public class SubscriptionInvoiceServiceImpl implements SubscriptionInvoiceServic
                     ErrorCode.INVOICE_ALREADY_PROCESSED);
         }
 
+        // Endpoint này chỉ xử lý gia hạn gói Unlimited; hóa đơn gói FAMILY phải xác nhận qua
+        // webhook SePay hoặc SubscriptionInvoiceService.manualConfirmSubscription (đã generic).
+        if (invoice.getFamilySubscription() != null) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_RENEWAL_INVOICE);
+        }
+
         UnlimitSubscription subscription =
                 invoice.getUnlimitSubscription();
 
