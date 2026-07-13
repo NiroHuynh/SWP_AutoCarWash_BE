@@ -239,7 +239,7 @@ public class BookingController {
      * @version 1.0
      */
     @GetMapping("/station")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<StationBookingListPageResponse>> getStationBookingList(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) Integer stationId,
