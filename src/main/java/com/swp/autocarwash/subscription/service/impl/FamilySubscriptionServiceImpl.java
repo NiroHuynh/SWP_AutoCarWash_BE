@@ -8,14 +8,15 @@ import com.swp.autocarwash.customer.entity.FamilyGroup;
 import com.swp.autocarwash.customer.entity.FamilyMember;
 import com.swp.autocarwash.customer.repository.FamilyGroupRepository;
 import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
+import com.swp.autocarwash.payment.dto.request.SubscriptionPaymentInitRequest;
+import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceStatus;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
+import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.RenewFamilySubscriptionRequest;
-import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
-import com.swp.autocarwash.subscription.dto.response.RenewFamilySubscriptionResponse;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
@@ -42,6 +43,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
     private final FamilyMemberRepository familyMemberRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
+    private final SubscriptionPaymentService subscriptionPaymentService;
     private final SecurityUtils securityUtils;
 
     @Override
@@ -64,7 +66,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
     @Override
     @Transactional
-    public RegisterFamilySubscriptionResponse registerFamilySubscription(
+    public SubscriptionPaymentInitResponse registerFamilySubscription(
             RegisterFamilySubscriptionRequest request) {
 
         // ===== Get current customer =====
@@ -108,7 +110,21 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
             );
         }
 
-        // ===== Create Family Subscription =====
+        // ===== Idempotent: nhóm đã có subscription PENDING kèm invoice PENDING -> trả lại QR đó =====
+        FamilySubscription latest = familySubscriptionRepository
+                .findFirstByFamilyGroupOrderByIdDesc(familyGroup)
+                .orElse(null);
+        if (latest != null && SubscriptionStatus.PENDING.name().equals(latest.getStatus())) {
+            SubscriptionInvoice existing = subscriptionInvoiceRepository
+                    .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
+                            latest.getId(), SubscriptionInvoiceStatus.PENDING.name())
+                    .orElse(null);
+            if (existing != null) {
+                return subscriptionPaymentService.getInvoiceStatus(existing.getId(), customer.getId());
+            }
+        }
+
+        // ===== Create Family Subscription (PENDING, chưa hưởng quyền lợi tới khi thanh toán) =====
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(
                 subscriptionPlan.getDurationDays()
@@ -126,27 +142,14 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         familySubscription = familySubscriptionRepository.save(familySubscription);
 
-        // ===== Create Invoice =====
-        SubscriptionInvoice invoice = SubscriptionInvoice.builder()
-                .customer(customer)
-                .familySubscription(familySubscription)
-                .planPrice(subscriptionPlan.getPrice())
-                .status(SubscriptionInvoiceStatus.PENDING.name())
-                .type(SubscriptionInvoiceType.REGISTER)
-                .build();
-
-        invoice = subscriptionInvoiceRepository.save(invoice);
-
-        // ===== Response =====
-        return RegisterFamilySubscriptionResponse.builder()
-                .familySubscriptionId(familySubscription.getId())
-                .invoiceId(invoice.getId())
-                .planName(subscriptionPlan.getPlanName())
-                .planPrice(subscriptionPlan.getPrice())
-                .startDate(startDate)
-                .endDate(endDate)
-                .status(familySubscription.getStatus())
-                .build();
+        return subscriptionPaymentService.initiatePayment(
+                SubscriptionPaymentInitRequest.builder()
+                        .customerId(customer.getId())
+                        .planPrice(subscriptionPlan.getPrice())
+                        .planName(subscriptionPlan.getPlanName())
+                        .familySubscriptionId(familySubscription.getId())
+                        .type(SubscriptionInvoiceType.REGISTER)
+                        .build());
     }
 
 
@@ -195,7 +198,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
     @Override
     @Transactional
-    public RenewFamilySubscriptionResponse renewFamilySubscription(
+    public SubscriptionPaymentInitResponse renewFamilySubscription(
             RenewFamilySubscriptionRequest request) {
 
         Customer customer = securityUtils.getCustomer();
@@ -228,7 +231,19 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
                 .findFirstByFamilyGroupOrderByIdDesc(familyGroup)
                 .orElse(null);
 
-        LocalDate startDate = LocalDate.now();
+        // ===== Idempotent: đã có hóa đơn PENDING đang chờ trên bản ghi mới nhất -> trả lại QR đó =====
+        if (familySubscription != null
+                && SubscriptionStatus.PENDING.name().equals(familySubscription.getStatus())) {
+            SubscriptionInvoice existing = subscriptionInvoiceRepository
+                    .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
+                            familySubscription.getId(), SubscriptionInvoiceStatus.PENDING.name())
+                    .orElse(null);
+            if (existing != null) {
+                return subscriptionPaymentService.getInvoiceStatus(existing.getId(), customer.getId());
+            }
+        }
+
+        LocalDate startDate;
         LocalDate endDate;
 
         SubscriptionInvoiceType invoiceType;
@@ -274,35 +289,13 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         familySubscription = familySubscriptionRepository.save(familySubscription);
 
-        // ===== Create Invoice =====
-        SubscriptionInvoice invoice = SubscriptionInvoice.builder()
-                .customer(customer)
-                .familySubscription(familySubscription)
-                .planPrice(subscriptionPlan.getPrice())
-                .status(SubscriptionInvoiceStatus.PENDING.name())
-                .type(invoiceType)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        subscriptionInvoiceRepository.save(invoice);
-
-        long slotsUsed = familyMemberRepository
-                .countByFamilyGroup(familyGroup);
-
-        String inheritedTierName = customer.getCustomerTier() != null
-                ? customer.getCustomerTier().getTierName()
-                : null;
-
-        return RenewFamilySubscriptionResponse.builder()
-                .familySubscriptionId(familySubscription.getId())
-                .planName(subscriptionPlan.getPlanName())
-                .planDuration(subscriptionPlan.getDurationDays())
-                .status(familySubscription.getStatus())
-                .startDate(familySubscription.getStartDate())
-                .endDate(familySubscription.getEndDate())
-                .slotsUsed((int) slotsUsed)
-                .maxSlots(subscriptionPlan.getMaxVehicleCount())
-                .inheritedTierName(inheritedTierName)
-                .build();
+        return subscriptionPaymentService.initiatePayment(
+                SubscriptionPaymentInitRequest.builder()
+                        .customerId(customer.getId())
+                        .planPrice(subscriptionPlan.getPrice())
+                        .planName(subscriptionPlan.getPlanName())
+                        .familySubscriptionId(familySubscription.getId())
+                        .type(invoiceType)
+                        .build());
     }
 }

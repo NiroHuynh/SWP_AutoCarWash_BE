@@ -32,7 +32,7 @@ public class SubscriptionPurchaseController {
      * Đăng ký gói Unlimited mới — tạo gói PENDING + hóa đơn QR để khách thanh toán (AC01).
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ApiResponse<SubscriptionPaymentInitResponse> register(
             @Valid @RequestBody RegisterUnlimitedSubscriptionRequest request) {
 
@@ -46,7 +46,7 @@ public class SubscriptionPurchaseController {
      * Gia hạn gói Unlimited đang có — tạo hóa đơn gia hạn QR (FE-US-56-04).
      */
     @PostMapping("/{id}/renew")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ApiResponse<SubscriptionPaymentInitResponse> renew(@PathVariable Long id) {
 
         return ApiResponse.success(

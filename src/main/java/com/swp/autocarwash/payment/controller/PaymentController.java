@@ -199,7 +199,7 @@ public class PaymentController {
      * @return {@code 200 OK} với danh sách {@link PaymentHistoryResponse}
      */
     @GetMapping("/history")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<PaymentHistoryResponse>>> getPaymentHistory(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) String type,

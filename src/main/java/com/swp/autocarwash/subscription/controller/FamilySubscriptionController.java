@@ -2,11 +2,10 @@ package com.swp.autocarwash.subscription.controller;
 
 
 import com.swp.autocarwash.common.response.ApiResponse;
+import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.request.RenewFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.FamilySubscriptionPlansResponse;
-import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
-import com.swp.autocarwash.subscription.dto.response.RenewFamilySubscriptionResponse;
 import com.swp.autocarwash.subscription.service.FamilySubscriptionService;
 import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import jakarta.validation.Valid;
@@ -32,7 +31,7 @@ public class FamilySubscriptionController {
     }
 
     @PostMapping
-    public ApiResponse<RegisterFamilySubscriptionResponse> registerFamilySubscription(
+    public ApiResponse<SubscriptionPaymentInitResponse> registerFamilySubscription(
             @Valid @RequestBody RegisterFamilySubscriptionRequest request) {
 
         return ApiResponse.success(
@@ -53,7 +52,7 @@ public class FamilySubscriptionController {
     }
 
     @PostMapping("/renew")
-    public ApiResponse<RenewFamilySubscriptionResponse> renewFamilySubscription(
+    public ApiResponse<SubscriptionPaymentInitResponse> renewFamilySubscription(
             @Valid @RequestBody RenewFamilySubscriptionRequest request) {
 
         return ApiResponse.success(

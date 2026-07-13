@@ -51,4 +51,11 @@ public interface SubscriptionInvoiceRepository extends JpaRepository<Subscriptio
     java.util.Optional<SubscriptionInvoice> findFirstByUnlimitSubscription_Vehicle_IdAndStatusOrderByCreatedAtDesc(
             Long vehicleId, String status);
 
+    /**
+     * Hoa don moi nhat cua mot goi family theo trang thai — dung cho idempotent
+     * dang ky/gia han: nhom da co invoice PENDING dang cho thi tra lai QR do.
+     */
+    java.util.Optional<SubscriptionInvoice> findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
+            Long familySubscriptionId, String status);
+
 }
