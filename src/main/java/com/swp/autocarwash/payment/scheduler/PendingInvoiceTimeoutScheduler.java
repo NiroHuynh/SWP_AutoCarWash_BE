@@ -3,6 +3,7 @@ package com.swp.autocarwash.payment.scheduler;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.payment.service.impl.SubscriptionPaymentServiceImpl;
+import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.system.service.SystemSettingService;
@@ -52,6 +53,11 @@ public class PendingInvoiceTimeoutScheduler {
                 UnlimitSubscription sub = invoice.getUnlimitSubscription();
                 if (sub != null && sub.getStatus() == SubscriptionStatus.PENDING) {
                     sub.setStatus(SubscriptionStatus.CANCELED);
+                }
+
+                FamilySubscription familySub = invoice.getFamilySubscription();
+                if (familySub != null && SubscriptionStatus.PENDING.name().equals(familySub.getStatus())) {
+                    familySub.setStatus(SubscriptionStatus.CANCELED.name());
                 }
 
                 log.info("Hóa đơn mua gói {} quá {} phút chưa chuyển khoản -> FAILED",

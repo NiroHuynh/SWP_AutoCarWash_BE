@@ -8,14 +8,7 @@ import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
-import com.swp.autocarwash.subscription.dto.request.RegisterFamilySubscriptionRequest;
 import com.swp.autocarwash.subscription.dto.response.ActiveSubscriptionResponse;
-import com.swp.autocarwash.subscription.dto.response.FamilySubscriptionPlansResponse;
-import com.swp.autocarwash.subscription.dto.response.RegisterFamilySubscriptionResponse;
-import com.swp.autocarwash.subscription.entity.FamilySubscription;
-import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
-import com.swp.autocarwash.subscription.service.FamilySubscriptionService;
-import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import com.swp.autocarwash.subscription.service.SubscriptionQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +47,7 @@ public class SubscriptionController {
      *         {@code 204 No Content} nếu khách không có gói nào đang active
      */
     @GetMapping("/active")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<ActiveSubscriptionResponse>> getActiveSubscription(
             @AuthenticationPrincipal UserCustomerDetails principal) {
 
@@ -77,7 +70,7 @@ public class SubscriptionController {
      * <p><b>Ví dụ:</b> {@code GET /api/subscriptions/invoices/12}</p>
      */
     @GetMapping("/invoices/{invoiceId}")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<SubscriptionPaymentInitResponse>> getInvoiceStatus(
             @PathVariable Long invoiceId,
             @AuthenticationPrincipal UserCustomerDetails principal) {
