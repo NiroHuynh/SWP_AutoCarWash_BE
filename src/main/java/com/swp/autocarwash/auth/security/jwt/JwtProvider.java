@@ -37,7 +37,7 @@ public class JwtProvider {
                                     .subject(user.getId().toString())
                                     .issueTime(now)
                                     .expirationTime(expiryDate)
-                                    .claim("roles", user.getRole().getName())
+                                    .claim("roles", user.getRole().getName().replace("ROLE_",""))
                                     .claim("email", user.getEmail())
                                     .claim("customerId", customerId)    //đút id vào token
                                     .build();
