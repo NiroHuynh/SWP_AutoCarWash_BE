@@ -101,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
         registerValidator.validate(request);
 
         Role customerRole =
-                roleRepository.findByName(UserRole.CUSTOMER.name())
+                roleRepository.findByName(UserRole.ROLE_CUSTOMER.name())
                         .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
 
         CustomerTier memberTier =
@@ -181,9 +181,9 @@ public class AuthServiceImpl implements AuthService {
         String roleName = user.getRole().getName(); // Lấy chuỗi "CUSTOMER", "STAFF", "ADMIN"
         Integer finalStationId = null;
 
-        if ("ADMIN".equals(roleName)) {
-            displayName = "ADMIN";
-        } else if ("CUSTOMER".equals(roleName)) {
+        if ("ROLE_ADMIN".equals(roleName)) {
+            displayName = "ROLE_ADMIN";
+        } else if ("ROLE_CUSTOMER".equals(roleName)) {
 
             Customer customer = customerRepository.findByUserId(user.getId());
 
@@ -194,7 +194,7 @@ public class AuthServiceImpl implements AuthService {
 
                 throw new RuntimeException("Customer profile not found");
             }
-        }else if("STAFF".equals(roleName)){
+        }else if("ROLE_STAFF".equals(roleName)){
             Staff staff = staffRepository.findByUserId(user.getId());
             if (staff != null) {
                 displayName = staff.getLastName() + " " + staff.getFirstName();
