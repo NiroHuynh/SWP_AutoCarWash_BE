@@ -1,8 +1,10 @@
 package com.swp.autocarwash.subscription.listener;
 
 import com.swp.autocarwash.payment.event.SubscriptionInvoicePaidEvent;
+import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
+import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.subscription.util.SubscriptionRenewalCalculator;
 import lombok.RequiredArgsConstructor;
@@ -38,21 +40,25 @@ import java.time.LocalDate;
 public class SubscriptionRenewalListener {
 
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
+    private final FamilySubscriptionRepository familySubscriptionRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onSubscriptionInvoicePaid(SubscriptionInvoicePaidEvent event) {
-        // Gói FAMILY xử lý riêng, ngoài phạm vi US này
-        if (event.getUnlimitSubscriptionId() == null) {
-            return;
+        if (event.getUnlimitSubscriptionId() != null) {
+            activateUnlimitedSubscription(event.getUnlimitSubscriptionId());
+        } else if (event.getFamilySubscriptionId() != null) {
+            activateFamilySubscription(event.getFamilySubscriptionId());
         }
+    }
 
+    private void activateUnlimitedSubscription(Long unlimitSubscriptionId) {
         UnlimitSubscription sub = unlimitSubscriptionRepository
-                .findById(event.getUnlimitSubscriptionId())
+                .findById(unlimitSubscriptionId)
                 .orElse(null);
         if (sub == null) {
             log.warn("Nhận event thanh toán gói nhưng không tìm thấy UnlimitSubscription {}",
-                    event.getUnlimitSubscriptionId());
+                    unlimitSubscriptionId);
             return;
         }
 
@@ -67,6 +73,34 @@ public class SubscriptionRenewalListener {
 
         unlimitSubscriptionRepository.save(sub);
         log.info("Kích hoạt/gia hạn gói {} thành công, endDate mới = {}",
+                sub.getId(), sub.getEndDate());
+    }
+
+    /**
+     * Kích hoạt gói FAMILY khi hóa đơn thanh toán thành công. Khác Unlimited: startDate/endDate
+     * và subscriptionPlan của gói FAMILY đã được {@code FamilySubscriptionServiceImpl} tính sẵn
+     * (cộng dồn cùng gói hoặc reset khi đổi gói) ngay lúc tạo hóa đơn PENDING, nên ở đây chỉ cần
+     * chuyển trạng thái PENDING -> ACTIVE, không tính lại ngày.
+     */
+    private void activateFamilySubscription(Long familySubscriptionId) {
+        FamilySubscription sub = familySubscriptionRepository
+                .findById(familySubscriptionId)
+                .orElse(null);
+        if (sub == null) {
+            log.warn("Nhận event thanh toán gói nhưng không tìm thấy FamilySubscription {}",
+                    familySubscriptionId);
+            return;
+        }
+
+        if (!SubscriptionStatus.PENDING.name().equals(sub.getStatus())) {
+            log.warn("FamilySubscription {} không ở trạng thái PENDING (hiện tại: {}), bỏ qua kích hoạt",
+                    sub.getId(), sub.getStatus());
+            return;
+        }
+
+        sub.setStatus(SubscriptionStatus.ACTIVE.name());
+        familySubscriptionRepository.save(sub);
+        log.info("Kích hoạt/gia hạn gói family {} thành công, endDate = {}",
                 sub.getId(), sub.getEndDate());
     }
 }

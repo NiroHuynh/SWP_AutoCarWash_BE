@@ -44,6 +44,24 @@ VALUES
     (26, 'trang@gmail.com', '0900002011', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 20 DAY)),
     (27, 'hung@gmail.com', '0900002012', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 10 DAY));
 
+-- =====================================================================
+-- USER (extra, 10) — khách hàng "sạch", chưa đăng ký gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO user
+(id, email, phone, password_hash, role_id, is_active, created_at)
+VALUES
+    (301, 'member01@gmail.com', '0900003001', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (302, 'member02@gmail.com', '0900003002', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (303, 'member03@gmail.com', '0900003003', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (304, 'member04@gmail.com', '0900003004', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (305, 'member05@gmail.com', '0900003005', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (306, 'member06@gmail.com', '0900003006', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (307, 'member07@gmail.com', '0900003007', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (308, 'member08@gmail.com', '0900003008', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (309, 'member09@gmail.com', '0900003009', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW()),
+    (310, 'member10@gmail.com', '0900003010', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, NOW());
+
 
 -- =====================================================================
 -- REFRESH TOKEN (10)
@@ -195,6 +213,24 @@ VALUES
     (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
 
 -- =====================================================================
+-- CUSTOMER (extra, 10) — đi kèm USER 301-310, chưa có gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO customer
+(id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
+VALUES
+    (301, 301, 'Member', 'Test01', '2000-01-01', 1, 0, NULL),
+    (302, 302, 'Member', 'Test02', '2000-01-01', 1, 0, NULL),
+    (303, 303, 'Member', 'Test03', '2000-01-01', 1, 0, NULL),
+    (304, 304, 'Member', 'Test04', '2000-01-01', 1, 0, NULL),
+    (305, 305, 'Member', 'Test05', '2000-01-01', 1, 0, NULL),
+    (306, 306, 'Member', 'Test06', '2000-01-01', 1, 0, NULL),
+    (307, 307, 'Member', 'Test07', '2000-01-01', 1, 0, NULL),
+    (308, 308, 'Member', 'Test08', '2000-01-01', 1, 0, NULL),
+    (309, 309, 'Member', 'Test09', '2000-01-01', 1, 0, NULL),
+    (310, 310, 'Member', 'Test10', '2000-01-01', 1, 0, NULL);
+
+-- =====================================================================
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
 -- guest with no registered account (FE shows "Guest" badge for this).
 -- =====================================================================
@@ -226,6 +262,24 @@ VALUES
 # (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
 
 #     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false);
+
+-- =====================================================================
+-- VEHICLE (extra, 10) — đi kèm CUSTOMER 301-310, chưa có gói Unlimited/Family
+-- nào, dùng để test tính năng thêm thành viên (add-member).
+-- =====================================================================
+INSERT IGNORE INTO vehicle
+(id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
+VALUES
+    (301, 301, '99A-30001', 'Toyota', 'White', 0, NULL, false),
+    (302, 302, '99A-30002', 'Toyota', 'White', 0, NULL, false),
+    (303, 303, '99A-30003', 'Toyota', 'White', 0, NULL, false),
+    (304, 304, '99A-30004', 'Toyota', 'White', 0, NULL, false),
+    (305, 305, '99A-30005', 'Toyota', 'White', 0, NULL, false),
+    (306, 306, '99A-30006', 'Toyota', 'White', 0, NULL, false),
+    (307, 307, '99A-30007', 'Toyota', 'White', 0, NULL, false),
+    (308, 308, '99A-30008', 'Toyota', 'White', 0, NULL, false),
+    (309, 309, '99A-30009', 'Toyota', 'White', 0, NULL, false),
+    (310, 310, '99A-30010', 'Toyota', 'White', 0, NULL, false);
 
 -- =====================================================================
 -- FAMILY GROUP (10)
