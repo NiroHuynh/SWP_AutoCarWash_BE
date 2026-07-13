@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -151,4 +152,22 @@ public class BookingDetailResponse {
 
     /** Số điểm đã dùng cho booking này (số dương). {@code null} nếu booking chưa CHECK_OUT. */
     private Integer pointsRedeemed;
+
+    // ── Hoàn tiền (chỉ có giá trị khi status là REFUND_PENDING/REFUNDED) ───────
+
+    /** Tên ngân hàng nhận hoàn tiền. {@code null} nếu chưa có yêu cầu hoàn tiền. */
+    private String refundBankName;
+
+    /** Số tài khoản nhận hoàn tiền. {@code null} nếu chưa có yêu cầu hoàn tiền. */
+    private String refundAccountNumber;
+
+    /** Số tiền hoàn — snapshot tiền cọc tại thời điểm hủy. {@code null} nếu chưa có yêu cầu hoàn tiền. */
+    private BigDecimal refundAmount;
+
+    /**
+     * Thời điểm Admin xác nhận đã hoàn tiền xong. {@code null} nếu đang chờ hoàn
+     * (status REFUND_PENDING) hoặc chưa có yêu cầu hoàn tiền — dựa vào {@code status}
+     * của booking để phân biệt 2 trường hợp này, không cần field trạng thái riêng.
+     */
+    private Instant refundedAt;
 }
