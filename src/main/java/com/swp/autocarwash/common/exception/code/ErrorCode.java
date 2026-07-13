@@ -947,7 +947,35 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "REFUND_014",
             "Vui lòng nhập mã giao dịch"
-    );
+    ),
+    FAMILY_GROUP_NOT_OWNED(
+            HttpStatus.FORBIDDEN,
+            "FAMILY_003",
+            "You are not the owner of this family group."
+    ),
+    FAMILY_SUBSCRIPTION_ALREADY_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_004",
+            "This family group already has an active Family subscription."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "FAMILY_002",
+            "Family subscription not found."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_011",
+            "Family subscription is not active."
+    ),
+
+    FAMILY_SUBSCRIPTION_STILL_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_012",
+            "Family subscription is still active."
+    ),;
 
 
 

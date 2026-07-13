@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -23,11 +24,11 @@ public class FamilyMember {
     @JoinColumn(name = "family_group_id")
     private FamilyGroup familyGroup;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
@@ -37,5 +38,8 @@ public class FamilyMember {
     @Column(name = "vehicle_change_window_start")
     private LocalDateTime vehicleChangeWindowStart;
 
+    @ColumnDefault("0")
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 
 }
