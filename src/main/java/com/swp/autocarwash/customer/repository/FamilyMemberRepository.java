@@ -31,9 +31,9 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
             "AND :today BETWEEN fs.startDate AND fs.endDate")
     boolean existsActiveFamilyByVehicleId(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
 
-    long countByFamilyGroupAndIsDeletedFalse(FamilyGroup familyGroup);
+    long countByFamilyGroup(FamilyGroup familyGroup);
 
-    Optional<FamilyMember> findByCustomerAndIsDeletedFalse(Customer customer);
+    Optional<FamilyMember> findByCustomer(Customer customer);
 
 
 

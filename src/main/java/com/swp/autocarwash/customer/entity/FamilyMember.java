@@ -38,8 +38,4 @@ public class FamilyMember {
     @Column(name = "vehicle_change_window_start")
     private LocalDateTime vehicleChangeWindowStart;
 
-    @ColumnDefault("0")
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
-
 }
