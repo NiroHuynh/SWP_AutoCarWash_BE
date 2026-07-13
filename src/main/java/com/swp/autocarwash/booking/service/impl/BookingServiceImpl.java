@@ -3,6 +3,8 @@ package com.swp.autocarwash.booking.service.impl;
 import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.booking.dto.response.BookingCardResponse;
 import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
+import com.swp.autocarwash.booking.dto.response.StationBookingListItemResponse;
+import com.swp.autocarwash.booking.dto.response.StationBookingListPageResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.*;
@@ -62,6 +64,8 @@ import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.servicepackage.entity.ServicePackage;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -643,6 +647,9 @@ public class BookingServiceImpl implements BookingService {
 //        tính giá service package
         BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
+        // Lượt rửa được subscription miễn phí (packagePrice = 0) -> không cần đặt cọc
+        boolean isFreeUnderSubscription = packagePrice.compareTo(BigDecimal.ZERO) == 0;
+
 //        tính giá addon service
         BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
 
@@ -773,7 +780,8 @@ public class BookingServiceImpl implements BookingService {
                 .status(BookingStatus.CONFIRMED.toString())
                 .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
                 //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
-                .status(BookingStatus.PENDING.toString())
+                //(trừ khi lượt rửa được subscription miễn phí -> CONFIRMED ngay, không cần cọc)
+                .status(isFreeUnderSubscription ? BookingStatus.CONFIRMED.toString() : BookingStatus.PENDING.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
                 .totalAddonAmount(addonPrice)
@@ -800,16 +808,18 @@ public class BookingServiceImpl implements BookingService {
         Booking saved = bookingRepository.save(booking);
         bookingInvoicePort.createInvoice(booking);
 
-        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn
-        String transferContent = "BK" + saved.getId();
+        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn — bỏ qua nếu miễn cọc
+        String transferContent = isFreeUnderSubscription ? null : "BK" + saved.getId();
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
                 .status(saved.getStatus())
                 .totalAmount(subTotal)
                 .slotIds(request.getSlotIds())
-                .depositAmount(DEFAULT_DEPOSIT_AMOUNT)
+                .depositAmount(isFreeUnderSubscription ? BigDecimal.ZERO : DEFAULT_DEPOSIT_AMOUNT)
                 .transferContent(transferContent)
-                .qrImageUrl(paymentQrPort.buildQrImageUrl(DEFAULT_DEPOSIT_AMOUNT, transferContent))
+                .qrImageUrl(isFreeUnderSubscription
+                        ? null
+                        : paymentQrPort.buildQrImageUrl(DEFAULT_DEPOSIT_AMOUNT, transferContent))
                 .build();
     }
 
@@ -1047,5 +1057,48 @@ public class BookingServiceImpl implements BookingService {
     private Long getCurrentUserId() {
         return securityUtils.getCurrentUserId();
 //        return 1L;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public StationBookingListPageResponse getStationBookingList(
+            Integer stationId, String status, LocalDate fromDate, LocalDate toDate,
+            String keyword, Pageable pageable) {
+        if (status != null) {
+            try {
+                BookingStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            }
+        }
+
+        Page<Booking> page = bookingRepository.findBookingsByStation(
+                stationId, status, fromDate, toDate, keyword, pageable);
+
+        List<StationBookingListItemResponse> content = page.getContent().stream()
+                .map(b -> StationBookingListItemResponse.builder()
+                        .bookingId(b.getId())
+                        .appointmentDate(b.getAppointmentDate())
+                        .customerName(b.getCustomer().getFullName())
+                        .phone(b.getCustomer().getUser().getPhone())
+                        .serviceCategoryName(b.getServicePackage().getServiceCategory().getCategoryName())
+                        .licensePlate(b.getVehicle().getLicensePlate())
+                        .brandName(b.getVehicle().getBrandName())
+                        .status(b.getStatus())
+                        .totalAmount(b.getTotalAmount())
+                        .staffName(b.getCheckInEmployee() != null ? b.getCheckInEmployee().getFullName() : null)
+                        .build())
+                .toList();
+
+        return StationBookingListPageResponse.builder()
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .build();
     }
 }

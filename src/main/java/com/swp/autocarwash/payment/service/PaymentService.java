@@ -54,15 +54,18 @@ public interface PaymentService {
      * @param toDate        lọc paidAt đến ngày này, null = không giới hạn
      * @param bookingId     lọc đúng 1 booking, null = không lọc
      * @param transactionId lọc đúng 1 giao dịch, null = không lọc
-     * @param stationId     lọc theo chi nhánh — chỉ áp dụng cho giao dịch booking,
+     * @param stationId     lọc theo chi nhánh cụ thể — chỉ áp dụng cho giao dịch booking,
      *                      giao dịch subscription không thuộc station nào nên sẽ
      *                      bị loại khỏi kết quả nếu truyền param này
+     * @param communeId     lọc theo xã/phường — cùng lưu ý như stationId ở trên
+     * @param provinceId    lọc theo tỉnh/thành — cùng lưu ý như stationId ở trên
      * @param phone         tìm gần đúng theo SĐT khách hàng (booking lẫn subscription), null = không lọc
      * @return summary + danh sách giao dịch, mới nhất trước
      */
     PaymentTransactionHistoryResponse getTransactionHistory(
             String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
-            Long bookingId, Long transactionId, Integer stationId, String phone);
+            Long bookingId, Long transactionId, Integer stationId, Integer communeId, Integer provinceId,
+            String phone);
 
     /**
      * Chức năng: Staff xem chi tiết hóa đơn sau khi checkout (FE-63-US-01 AC02).
