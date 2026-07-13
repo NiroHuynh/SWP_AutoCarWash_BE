@@ -158,7 +158,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         // Tìm FamilyGroup thông qua FamilyMember
         FamilyMember familyMember = familyMemberRepository
-                .findByCustomerAndIsDeletedFalse(customer)
+                .findByCustomer(customer)
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.FAMILY_GROUP_NOT_FOUND));
 
@@ -202,7 +202,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         // ===== Find Family Group =====
         FamilyMember familyMember = familyMemberRepository
-                .findByCustomerAndIsDeletedFalse(customer)
+                .findByCustomer(customer)
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.FAMILY_GROUP_NOT_FOUND));
 
@@ -287,7 +287,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
         subscriptionInvoiceRepository.save(invoice);
 
         long slotsUsed = familyMemberRepository
-                .countByFamilyGroupAndIsDeletedFalse(familyGroup);
+                .countByFamilyGroup(familyGroup);
 
         String inheritedTierName = customer.getCustomerTier() != null
                 ? customer.getCustomerTier().getTierName()
