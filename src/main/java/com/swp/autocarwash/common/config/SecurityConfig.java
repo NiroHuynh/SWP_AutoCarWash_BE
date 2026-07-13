@@ -62,6 +62,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                    //MỞ THÊM: Cho phép cả Admin lẫn Khách hàng đều có thể gọi API xem danh sách Dashboard
+                    // và lấy context thông tin chi nhánh (vì ai cũng cần nhìn thấy thông tin để thao tác)
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/promotions/dashboard/**").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/bookings/context/**").permitAll()
                 // SePay xác thực bằng API key riêng trong header (không phải JWT) - xem SePayWebhookController
                 .requestMatchers("/api/webhooks/sepay").permitAll()
                 //mở toang cửa cho cụm API login
