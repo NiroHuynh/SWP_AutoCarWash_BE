@@ -1,5 +1,7 @@
 package com.swp.autocarwash.customer.repository;
 
+import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.entity.FamilyGroup;
 import com.swp.autocarwash.customer.entity.FamilyMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,6 +30,12 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
             "AND fs.status = 'ACTIVE' " +
             "AND :today BETWEEN fs.startDate AND fs.endDate")
     boolean existsActiveFamilyByVehicleId(@Param("vehicleId") Long vehicleId, @Param("today") LocalDate today);
+
+    long countByFamilyGroupAndIsDeletedFalse(FamilyGroup familyGroup);
+
+    Optional<FamilyMember> findByCustomerAndIsDeletedFalse(Customer customer);
+
+
 
     // AC03: Kiểm tra khách hàng đã đi làm thành viên của nhóm nào khác chưa
     boolean existsByCustomerId(Long customerId);
