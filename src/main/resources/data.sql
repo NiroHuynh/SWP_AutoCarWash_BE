@@ -207,9 +207,9 @@ VALUES
     (11, 26, 'Trang', 'Ngo',   '1994-04-27', 2,  0, NULL),
     (12, 27, 'Hung',  'Ly',    '1997-10-11', 3,  0, NULL),
 
-    (100, 10, 'Nguyen Van', 'A', '2005-10-11', 3,  0, NULL),
+    (100, 10, 'Nguyen Van', 'Anh', '2005-10-11', 3,  0, NULL),
 
-    (101, 11, 'Nguyen Van', 'B', '2005-10-12', 3,  0, NULL);
+    (101, 11, 'Nguyen Van', 'Minh', '2005-10-12', 3,  0, NULL);
 
 -- =====================================================================
 -- VEHICLE (16) — vehicle 16 has no customer_id: anonymous walk-in
@@ -253,13 +253,8 @@ VALUES
     (1,  'Gia dinh Huynh', 1,  DATE_SUB(NOW(), INTERVAL 100 DAY), false),
     (2,  'Gia dinh Tran',  2,  DATE_SUB(NOW(), INTERVAL 95 DAY),  false),
     (3,  'Gia dinh Le',    3,  DATE_SUB(NOW(), INTERVAL 90 DAY),  false),
-    (4,  'Gia dinh Nguyen',4,  DATE_SUB(NOW(), INTERVAL 85 DAY),  false),
     (5,  'Gia dinh Pham',  5,  DATE_SUB(NOW(), INTERVAL 80 DAY),  false),
-    (6,  'Gia dinh Vo',    6,  DATE_SUB(NOW(), INTERVAL 75 DAY),  false),
-    (7,  'Gia dinh Dang',  7,  DATE_SUB(NOW(), INTERVAL 70 DAY),  false),
-    (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false),
-    (9,  'Gia dinh Do',    9,  DATE_SUB(NOW(), INTERVAL 60 DAY),  false),
-    (10, 'Gia dinh Ho',    10, DATE_SUB(NOW(), INTERVAL 55 DAY),  false);
+    (8,  'Gia dinh Bui',   8,  DATE_SUB(NOW(), INTERVAL 65 DAY),  false);
 
 -- =====================================================================
 -- FAMILY MEMBER (12)
@@ -270,13 +265,8 @@ VALUES
     (1,  1,  1,  1,  0, NULL),
     (2,  2,  2,  2,  1, DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (3,  3,  3,  3,  0, NULL),
-    (4,  4,  4,  4,  0, NULL),
     (5,  5,  5,  5,  2, DATE_SUB(NOW(), INTERVAL 15 DAY)),
-    (6,  6,  6,  6,  0, NULL),
-    (7,  7,  7,  7,  0, NULL),
     (8,  8,  8,  8,  0, NULL),
-    (9,  9,  9,  9,  0, NULL),
-    (10, 10, 10, 10, 0, NULL),
     (11, 1,  11, 11, 0, NULL),
     (12, 2,  12, 12, 0, NULL);
 
@@ -390,26 +380,26 @@ VALUES
 INSERT IGNORE INTO subscription_plan
 (id, service_package_id, service_category_id, plan_name, duration_days, price, plan_type, max_vehicle_count, description, is_deleted, status)
 VALUES
-    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  500000,   'UNLIMIT', 1, 'Unlimited car wash for 1 month',                          false, 'ACTIVE'),
-    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  900000,   'UNLIMIT', 1, 'Unlimited premium car wash for 1 month',                  false, 'ACTIVE'),
-    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  1350000,  'UNLIMIT', 1, 'Unlimited car wash for 3 months',                         false, 'ACTIVE'),
-    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  2400000,  'UNLIMIT', 1, 'Unlimited premium car wash for 3 months',                 false, 'ACTIVE'),
-    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 4800000,  'UNLIMIT', 1, 'Unlimited premium car wash for 6 months',                 false, 'ACTIVE'),
-    (6,  1, 3, 'Family Basic 1 Month',        30,  1200000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 1 month',        false, 'ACTIVE'),
-    (7,  3, 3, 'Family Premium 1 Month',      30,  2000000,  'FAMILY',    3, 'Premium car wash for the whole family, 1 month',          false, 'ACTIVE'),
-    (8,  1, 3, 'Family Basic 3 Months',       90,  3200000,  'FAMILY',    4, 'Unlimited car wash for the whole family, 3 months',       false, 'ACTIVE'),
-    (9,  3, 3, 'Family Premium 3 Months',     90,  5400000,  'FAMILY',    4, 'Premium car wash for the whole family, 3 months',         false, 'ACTIVE'),
-    (10, 3, 3, 'Family Premium 6 Months',     180, 10800000, 'FAMILY',    5, 'Premium car wash for the whole family, 6 months',         false, 'ACTIVE'),
-    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 2700000,  'UNLIMIT', 1, 'Unlimited car wash for 6 months',                         false, 'ACTIVE'),
-    (12, 1, 3, 'Family Basic 6 Months',       180, 6500000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 6 months',       false, 'ACTIVE'),
-    (13, 1, 3, 'Unlimited Basic 1 Month (Discontinued)', 30, 500000, 'UNLIMIT', 1, 'Discontinued plan, kept only for testing hidden-plan filtering', true, 'INACTIVE'),
+    (1,  1, 3, 'Unlimited Basic 1 Month',     30,  5000,   'UNLIMIT', 1, 'Unlimited car wash for 1 month',                          false, 'ACTIVE'),
+    (2,  3, 3, 'Unlimited Premium 1 Month',   30,  9000,   'UNLIMIT', 1, 'Unlimited premium car wash for 1 month',                  false, 'ACTIVE'),
+    (3,  1, 3, 'Unlimited Basic 3 Months',    90,  13000,  'UNLIMIT', 1, 'Unlimited car wash for 3 months',                         false, 'ACTIVE'),
+    (4,  3, 3, 'Unlimited Premium 3 Months',  90,  24000,  'UNLIMIT', 1, 'Unlimited premium car wash for 3 months',                 false, 'ACTIVE'),
+    (5,  3, 3, 'Unlimited Premium 6 Months',  180, 48000,  'UNLIMIT', 1, 'Unlimited premium car wash for 6 months',                 false, 'ACTIVE'),
+    (6,  1, 3, 'Family Basic 1 Month',        30,  12000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 1 month',        false, 'ACTIVE'),
+    (7,  3, 3, 'Family Premium 1 Month',      30,  20000,  'FAMILY',    3, 'Premium car wash for the whole family, 1 month',          false, 'ACTIVE'),
+    (8,  1, 3, 'Family Basic 3 Months',       90,  32000,  'FAMILY',    4, 'Unlimited car wash for the whole family, 3 months',       false, 'ACTIVE'),
+    (9,  3, 3, 'Family Premium 3 Months',     90,  54000,  'FAMILY',    4, 'Premium car wash for the whole family, 3 months',         false, 'ACTIVE'),
+    (10, 3, 3, 'Family Premium 6 Months',     180, 108000, 'FAMILY',    5, 'Premium car wash for the whole family, 6 months',         false, 'ACTIVE'),
+    (11, 1, 3, 'Unlimited Basic 6 Months',    180, 27000,  'UNLIMIT', 1, 'Unlimited car wash for 6 months',                         false, 'ACTIVE'),
+    (12, 1, 3, 'Family Basic 6 Months',       180, 65000,  'FAMILY',    3, 'Unlimited car wash for the whole family, 6 months',       false, 'ACTIVE'),
+    (13, 1, 3, 'Unlimited Basic 1 Month (Discontinued)', 30, 50000, 'UNLIMIT', 1, 'Discontinued plan, kept only for testing hidden-plan filtering', true, 'INACTIVE'),
 
-    (14, 2, 3, 'Unlimited Medium 1 Month',    30,  700000,   'UNLIMIT', 1, 'Unlimited medium-tier car wash for 1 month',              false, 'ACTIVE'),
-    (15, 2, 3, 'Unlimited Medium 3 Months',   90,  1875000,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 3 months',             false, 'ACTIVE'),
-    (16, 2, 3, 'Unlimited Medium 6 Months',   180, 3750000,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 6 months',             false, 'ACTIVE'),
-    (17, 2, 3, 'Family Medium 1 Month',       30,  1600000,  'FAMILY',    3, 'Medium-tier car wash for the whole family, 1 month',      false, 'ACTIVE'),
-    (18, 2, 3, 'Family Medium 3 Months',      90,  4300000,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 3 months',      false, 'ACTIVE'),
-    (19, 2, 3, 'Family Medium 6 Months',      180, 8650000,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 6 months',      false, 'ACTIVE');
+    (14, 2, 3, 'Unlimited Medium 1 Month',    30,  70000,   'UNLIMIT', 1, 'Unlimited medium-tier car wash for 1 month',              false, 'ACTIVE'),
+    (15, 2, 3, 'Unlimited Medium 3 Months',   90,  18750,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 3 months',             false, 'ACTIVE'),
+    (16, 2, 3, 'Unlimited Medium 6 Months',   180, 37500,  'UNLIMIT', 1, 'Unlimited medium-tier car wash for 6 months',             false, 'ACTIVE'),
+    (17, 2, 3, 'Family Medium 1 Month',       30,  16000,  'FAMILY',    3, 'Medium-tier car wash for the whole family, 1 month',      false, 'ACTIVE'),
+    (18, 2, 3, 'Family Medium 3 Months',      90,  43000,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 3 months',      false, 'ACTIVE'),
+    (19, 2, 3, 'Family Medium 6 Months',      180, 86500,  'FAMILY',    4, 'Medium-tier car wash for the whole family, 6 months',      false, 'ACTIVE');
 
 -- =====================================================================
 -- UNLIMIT SUBSCRIPTION (10)
@@ -418,15 +408,10 @@ INSERT IGNORE INTO unlimit_subscription
 (id, customer_id, vehicle_id, subscription_plan_id, last_vehicle_change_at, start_date, end_date, status, canceled_at)
 VALUES
     (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
-    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY),  'ACTIVE',    NULL),
+    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 65 DAY),  DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
     (3,  3,  3,  3, DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY),  DATE_ADD(CURDATE(), INTERVAL 70 DAY),  'ACTIVE',    NULL),
-    (4,  4,  4,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 75 DAY),  'ACTIVE',    NULL),
-    (5,  5,  5,  5, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_ADD(CURDATE(), INTERVAL 265 DAY), 'ACTIVE',    NULL),
-    (6,  6,  6,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED',   NULL),
-    (7,  7,  7,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
-    (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
-    (9,  9,  9,  4, NULL, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, 5, NULL, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
+    (5,  5,  5,  5, NULL, DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 100 DAY), 'EXPIRED',   NULL),
+    (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));
 
 -- =====================================================================
 -- FAMILY SUBSCRIPTION (10)
@@ -434,16 +419,11 @@ VALUES
 INSERT IGNORE INTO family_subscription
 (id, family_group_id, subscription_plan_id, start_date, end_date, status, canceled_at)
 VALUES
-    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
+    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 70 DAY),  DATE_SUB(CURDATE(), INTERVAL 40 DAY),  'EXPIRED',   NULL),
     (2,  2,  7,  DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY),  'ACTIVE',    NULL),
-    (3,  3,  8,  DATE_SUB(CURDATE(), INTERVAL 20 DAY),  DATE_ADD(CURDATE(), INTERVAL 70 DAY),  'ACTIVE',    NULL),
-    (4,  4,  9,  DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 75 DAY),  'ACTIVE',    NULL),
+    (3,  3,  8,  DATE_SUB(CURDATE(), INTERVAL 110 DAY), DATE_SUB(CURDATE(), INTERVAL 50 DAY),  'EXPIRED',   NULL),
     (5,  5,  10, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_ADD(CURDATE(), INTERVAL 265 DAY), 'ACTIVE',    NULL),
-    (6,  6,  6,  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED',   NULL),
-    (7,  7,  7,  DATE_SUB(CURDATE(), INTERVAL 90 DAY),  DATE_SUB(CURDATE(), INTERVAL 60 DAY),  'EXPIRED',   NULL),
-    (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY)),
-    (9,  9,  9,  DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 50 DAY)),
-    (10, 10, 10, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL);
+    (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));
 
 -- =====================================================================
 -- SUBSCRIPTION INVOICE (12)
@@ -456,14 +436,11 @@ VALUES
     -- Sua tu 1.350.000 xuong 400.000: cung subscription_invoice(10) tao tong chi tieu 2026
     -- cua customer 3 = 873.500d, khop accumulated_points=1310 theo calculatePoint(amount,1.5) GOLD
     (3,  3,  3,    NULL, 400000,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY),0),
-    (4,  4,  4,    NULL, 2400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY),0),
     (5,  5,  5,    NULL, 8500000,  'PAID',    DATE_SUB(NOW(), INTERVAL 100 DAY), DATE_SUB(NOW(), INTERVAL 100 DAY),0),
-    (6,  6,  6,    NULL, 500000,   'PAID',    DATE_SUB(NOW(), INTERVAL 60 DAY),  DATE_SUB(NOW(), INTERVAL 60 DAY),0),
     (7,  8,  8,    NULL, 1350000,  'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL,0),
     (8,  1,  NULL, 1,    1200000,  'PAID',    DATE_SUB(NOW(), INTERVAL 10 DAY),  DATE_SUB(NOW(), INTERVAL 10 DAY),0),
     (9,  2,  NULL, 2,    2000000,  'PAID',    DATE_SUB(NOW(), INTERVAL 5 DAY),   DATE_SUB(NOW(), INTERVAL 5 DAY),0),
     (10, 3,  NULL, 3,    353500,   'PAID',    DATE_SUB(NOW(), INTERVAL 20 DAY),  DATE_SUB(NOW(), INTERVAL 20 DAY),0),
-    (11, 4,  NULL, 4,    5400000,  'PAID',    DATE_SUB(NOW(), INTERVAL 15 DAY),  DATE_SUB(NOW(), INTERVAL 15 DAY),0),
     (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL,0);
 
 -- =====================================================================
@@ -1806,13 +1783,10 @@ VALUES
     (6,  NULL, 1,    'MOMO',  500000,  'TXN-0000000006', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   500000, 'PAYMENT'),
     (7,  NULL, 2,    'CASH',  900000,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    900000, 'PAYMENT'),
     (8,  NULL, 3,    'VNPAY', 400000,  'TXN-0000000008', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   400000, 'PAYMENT'),
-    (9,  NULL, 4,    'MOMO',  2400000, 'TXN-0000000009', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   2400000,'PAYMENT'),
     (10, NULL, 5,    'CASH',  8500000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 100 DAY),  8500000,'PAYMENT'),
-    (11, NULL, 6,    'MOMO',  500000,  'TXN-0000000011', 'FAILED',  DATE_SUB(NOW(), INTERVAL 60 DAY),   0,      'PAYMENT'),
     (12, NULL, 8,    'CASH',  1200000, NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 10 DAY),   1200000,'PAYMENT'),
     (13, NULL, 9,    'VNPAY', 2000000, 'TXN-0000000013', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 5 DAY),    2000000,'PAYMENT'),
     (14, NULL, 10,   'CASH',  353500,  NULL,            'SUCCESS', DATE_SUB(NOW(), INTERVAL 20 DAY),   353500, 'PAYMENT'),
-    (15, NULL, 11,   'MOMO',  5400000, 'TXN-0000000015', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 15 DAY),   5400000,'PAYMENT'),
     -- Thanh toan cho hoa don 16-32 (booking lich su 501-517 cua customer 1)
     (16, 16, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-01-12 09:00:00', 300000, 'PAYMENT'),
     (17, 17, NULL, 'CASH', 300000, NULL, 'SUCCESS', '2025-02-14 10:30:00', 300000, 'PAYMENT'),
