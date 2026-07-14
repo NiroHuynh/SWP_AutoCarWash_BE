@@ -1,6 +1,7 @@
 package com.swp.autocarwash.subscription.repository;
 
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionPlanStatus;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -83,7 +84,7 @@ public interface UnlimitSubscriptionRepository extends JpaRepository<UnlimitSubs
     boolean hasActiveSubscription(@Param("customerId") Long customerId,
                                   @Param("vehicleId") Long vehicleId,
                                   @Param("servicePackageId") Integer servicePackageId,
-                                  @Param("status") String status,
+                                  @Param("status") SubscriptionStatus status,
                                   @Param("currentDate") LocalDate currentDate);
 
     @Query("SELECT us FROM UnlimitSubscription us JOIN FETCH us.subscriptionPlan sp " +
