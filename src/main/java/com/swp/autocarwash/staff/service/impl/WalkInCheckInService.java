@@ -176,7 +176,7 @@ public class WalkInCheckInService {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
         if(request.getCustomerId() != null && vehicleOpt.isPresent()&& request.getServicePackageId() != null){
             boolean hasPackage = unlimitSubscriptionRepository.hasActiveSubscription(
-                    request.getCustomerId(), vehicleOpt.get().getId(),request.getServicePackageId() , SubscriptionStatus.ACTIVE.toString(),LocalDate.now()
+                    request.getCustomerId(), vehicleOpt.get().getId(),request.getServicePackageId() , SubscriptionStatus.ACTIVE,LocalDate.now()
             );
             if(hasPackage){
                 //Nếu khớp gói đã mua, lấy đúng giá của gói dịch vụ trừ đi tiền được giảm
@@ -414,7 +414,7 @@ public class WalkInCheckInService {
                     request.getCustomerId(),
                     vehicleOpt.get().getId(),
                     request.getServicePackageId(),
-                    SubscriptionStatus.ACTIVE.toString(),
+                    SubscriptionStatus.ACTIVE,
                     LocalDate.now()
             );
 
