@@ -63,7 +63,7 @@ public class PaymentController {
      * @return {@code 200 OK} với {@link CashPaymentResponse}
      */
     @PostMapping("/cash")
-    @PreAuthorize("hasAuthority('STAFF')")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<ApiResponse<CashPaymentResponse>> processCashPayment(
             @Valid @RequestBody CashPaymentRequest request) {
 
@@ -85,7 +85,7 @@ public class PaymentController {
      * @return {@code 200 OK} với {@link DepositConfirmResponse}
      */
     @PostMapping("/deposit/manual-confirm")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<DepositConfirmResponse>> manualConfirmDeposit(
             @Valid @RequestBody ManualDepositConfirmRequest request) {
 
@@ -107,7 +107,7 @@ public class PaymentController {
      * @return {@code 200 OK} với trạng thái hóa đơn sau xác nhận
      */
     @PostMapping("/subscription/manual-confirm")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<SubscriptionPaymentInitResponse>> manualConfirmSubscription(
             @Valid @RequestBody ManualSubscriptionConfirmRequest request) {
 
@@ -128,7 +128,7 @@ public class PaymentController {
      * @return {@code 200 OK} với danh sách {@link WebhookLogResponse}
      */
     @GetMapping("/webhook-logs")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<List<WebhookLogResponse>>> getWebhookLogs(
             @RequestParam(required = false) String status) {
 
@@ -164,7 +164,7 @@ public class PaymentController {
      * @return {@code 200 OK} với {@link PaymentTransactionHistoryResponse}
      */
     @GetMapping("/transactions")
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<PaymentTransactionHistoryResponse>> getTransactionHistory(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) String method,
@@ -262,7 +262,7 @@ public class PaymentController {
      * @return {@code 200 OK} với {@link InvoiceDetailResponse}
      */
     @GetMapping("/invoices/{invoiceId}")
-    @PreAuthorize("hasAnyAuthority('STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<ApiResponse<InvoiceDetailResponse>> getInvoiceDetail(@PathVariable Long invoiceId) {
         InvoiceDetailResponse data = paymentService.getInvoiceDetail(invoiceId);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết hóa đơn", data));
