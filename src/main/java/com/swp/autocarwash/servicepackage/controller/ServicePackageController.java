@@ -19,7 +19,7 @@ public class ServicePackageController {
 
     private final ServicePackageService servicePackageService;
 
-    @GetMapping("/api/admin/service-packages/active")
+    @GetMapping("/admin/active")
     public ApiResponse<List<ServicePackageResponse>> getActiveServicePackages() {
 
         return ApiResponse.<List<ServicePackageResponse>>builder()
