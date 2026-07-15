@@ -203,7 +203,36 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         Customer customer = securityUtils.getCustomer();
 
-        // ===== Find Family Group =====
+        FamilyGroup familyGroup = getOwnerFamilyGroup(customer);
+
+        SubscriptionPlan subscriptionPlan = validateSubscriptionPlan(
+                request.getSubscriptionPlanId());
+
+        FamilySubscription currentSubscription =
+                getLatestFamilySubscription(familyGroup);
+
+        SubscriptionPaymentInitResponse checkPendingInvoice = checkPendingInvoice(currentSubscription, customer);
+
+        if(checkPendingInvoice!=null) return checkPendingInvoice;
+
+        if (isSamePlan(currentSubscription, subscriptionPlan)) {
+            return renewSamePlan(
+                    customer,
+                    currentSubscription,
+                    subscriptionPlan
+            );
+        }
+
+        return switchSubscriptionPlan(
+                customer,
+                familyGroup,
+                currentSubscription,
+                subscriptionPlan
+        );
+    }
+
+    private FamilyGroup getOwnerFamilyGroup(Customer customer) {
+
         FamilyMember familyMember = familyMemberRepository
                 .findByCustomer(customer)
                 .orElseThrow(() ->
@@ -211,74 +240,104 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
 
         FamilyGroup familyGroup = familyMember.getFamilyGroup();
 
-        // ===== Validate Owner =====
         if (!familyGroup.getOwnerCustomer().getId().equals(customer.getId())) {
             throw new BusinessException(ErrorCode.FAMILY_GROUP_NOT_OWNED);
         }
 
-        // ===== Validate Subscription Plan =====
-        SubscriptionPlan subscriptionPlan = subscriptionPlanRepository
-                .findByIdAndIsDeletedFalse(request.getSubscriptionPlanId())
-                .orElseThrow(() ->
-                        new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN));
+        return familyGroup;
+    }
+
+    private SubscriptionPlan validateSubscriptionPlan(Integer planId) {
+
+        SubscriptionPlan subscriptionPlan =
+                subscriptionPlanRepository
+                        .findByIdAndIsDeletedFalse(planId)
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        ErrorCode.INVALID_SUBSCRIPTION_PLAN));
 
         if (!PlanType.FAMILY.name().equals(subscriptionPlan.getPlanType())
                 || subscriptionPlan.getStatus() != SubscriptionPlanStatus.ACTIVE) {
-            throw new BusinessException(ErrorCode.INVALID_SUBSCRIPTION_PLAN);
+
+            throw new BusinessException(
+                    ErrorCode.INVALID_SUBSCRIPTION_PLAN);
         }
 
-        FamilySubscription familySubscription = familySubscriptionRepository
+        return subscriptionPlan;
+    }
+
+
+    private FamilySubscription getLatestFamilySubscription(
+            FamilyGroup familyGroup) {
+
+        return familySubscriptionRepository
                 .findFirstByFamilyGroupOrderByIdDesc(familyGroup)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.FAMILY_SUBSCRIPTION_NOT_FOUND));
+    }
+
+    private SubscriptionPaymentInitResponse checkPendingInvoice(
+            FamilySubscription familySubscription,
+            Customer customer) {
+        // ===== Idempotent: đã có hóa đơn PENDING đang chờ trên bản ghi mới nhất -> trả lại QR đó =====
+        SubscriptionInvoice existing = subscriptionInvoiceRepository
+                .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
+                        familySubscription.getId(), SubscriptionInvoiceStatus.PENDING.name())
                 .orElse(null);
 
-        // ===== Idempotent: đã có hóa đơn PENDING đang chờ trên bản ghi mới nhất -> trả lại QR đó =====
-        if (familySubscription != null) {
-            SubscriptionInvoice existing = subscriptionInvoiceRepository
-                    .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
-                            familySubscription.getId(), SubscriptionInvoiceStatus.PENDING.name())
-                    .orElse(null);
-            if (existing != null) {
-                return subscriptionPaymentService.getInvoiceStatus(existing.getId(), customer.getId());
-            }
+        if (existing != null) {
+            return subscriptionPaymentService.getInvoiceStatus(existing.getId(), customer.getId());
         }
+        return null;
+    }
 
-        SubscriptionInvoiceType invoiceType;
+    private boolean isSamePlan(
+            FamilySubscription subscription,
+            SubscriptionPlan plan) {
 
-        if (familySubscription == null) {
+        return subscription.getSubscriptionPlan()
+                .getId()
+                .equals(plan.getId());
+    }
 
-            // ===== Đăng ký lần đầu: tạo bản ghi mới PENDING, chưa hưởng quyền lợi tới khi thanh toán =====
-            LocalDate startDate = LocalDate.now();
-            LocalDate endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
+    private SubscriptionPaymentInitResponse renewSamePlan(
+            Customer customer,
+            FamilySubscription subscription,
+            SubscriptionPlan subscriptionPlan) {
 
-            familySubscription = new FamilySubscription();
-            familySubscription.setFamilyGroup(familyGroup);
-            familySubscription.setSubscriptionPlan(subscriptionPlan);
-            familySubscription.setStartDate(startDate);
-            familySubscription.setEndDate(endDate);
-            familySubscription.setStatus(SubscriptionStatus.PENDING.name());
-
-            familySubscription = familySubscriptionRepository.save(familySubscription);
-
-            invoiceType = SubscriptionInvoiceType.REGISTER;
-
-        } else {
-
-            // ===== Gia hạn (cùng gói hoặc đổi gói): KHÔNG đụng status/plan/ngày hết hạn ở đây.
-            // Gói hiện tại phải giữ nguyên ACTIVE trong lúc chờ thanh toán và nếu thanh toán
-            // fail/timeout thì không mất ngày còn lại. Việc đổi gói + tính lại endDate (cộng dồn
-            // từ ngày hết hạn cũ nếu gói chưa hết hạn) chỉ áp dụng khi thanh toán thành công, xem
-            // SubscriptionRenewalListener.activateFamilySubscription. =====
-            invoiceType = SubscriptionInvoiceType.RENEW;
-        }
-
+        // KHÔNG đụng status/endDate ở đây — gói hiện tại phải giữ nguyên ACTIVE trong lúc chờ
+        // thanh toán, và nếu thanh toán fail/timeout thì không mất ngày còn lại. endDate chỉ
+        // được cộng dồn từ ngày hết hạn cũ sau khi thanh toán thành công, xem
+        // SubscriptionRenewalListener.activateFamilySubscription.
         return subscriptionPaymentService.initiatePayment(
                 SubscriptionPaymentInitRequest.builder()
                         .customerId(customer.getId())
+                        .familySubscriptionId(subscription.getId())
+                        .subscriptionPlanId(subscriptionPlan.getId())
                         .planPrice(subscriptionPlan.getPrice())
                         .planName(subscriptionPlan.getPlanName())
-                        .familySubscriptionId(familySubscription.getId())
-                        .subscriptionPlanId(subscriptionPlan.getId())
-                        .type(invoiceType)
+                        .type(SubscriptionInvoiceType.RENEW)
+                        .build());
+    }
+
+    private SubscriptionPaymentInitResponse switchSubscriptionPlan(
+            Customer customer,
+            FamilyGroup familyGroup,
+            FamilySubscription currentSubscription,
+            SubscriptionPlan newPlan) {
+
+        // KHÔNG cancel gói cũ / tạo bản ghi mới ở đây — dùng lại đúng subscription hiện tại,
+        // chỉ đổi gói + tính lại endDate (cộng dồn từ ngày hết hạn cũ nếu chưa hết hạn) sau khi
+        // thanh toán thành công, xem SubscriptionRenewalListener.activateFamilySubscription.
+        return subscriptionPaymentService.initiatePayment(
+                SubscriptionPaymentInitRequest.builder()
+                        .customerId(customer.getId())
+                        .familySubscriptionId(currentSubscription.getId())
+                        .subscriptionPlanId(newPlan.getId())
+                        .planPrice(newPlan.getPrice())
+                        .planName(newPlan.getPlanName())
+                        .type(SubscriptionInvoiceType.RENEW)
                         .build());
     }
 }

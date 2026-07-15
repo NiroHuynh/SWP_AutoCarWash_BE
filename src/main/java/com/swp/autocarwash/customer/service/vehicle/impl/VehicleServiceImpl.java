@@ -24,6 +24,7 @@ import com.swp.autocarwash.customer.mapper.VehicleMapper;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.system.entity.SystemSetting;
@@ -125,15 +126,42 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional
     public CreateVehicleResponse createVehicle(Long userId, CreateVehicleRequest request) {
 
+        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
 
         String licensePlate = request.getLicensePlate().trim().toUpperCase();
 
-// Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
-        vehicleValidator.validateCreate(licensePlate);
+        Optional<Vehicle> vehicleOpt =
+                vehicleRepository.findByLicensePlateIgnoreCase(licensePlate);
 
-        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
+        Vehicle vehicle;
 
-        Vehicle vehicle = Vehicle.builder()
+        if (vehicleOpt.isPresent()) {
+
+            vehicle = vehicleOpt.get();
+
+            // Xe đang được sử dụng bởi customer khác
+            if (Boolean.FALSE.equals(vehicle.getIsDeleted())
+                    && vehicle.getCustomer() != null) {
+
+                throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
+            }
+
+            // Xe tồn tại nhưng chưa có chủ -> gán customer
+            if (Boolean.FALSE.equals(vehicle.getIsDeleted())
+                    && vehicle.getCustomer() == null) {
+
+                vehicle.setCustomer(customer);
+                vehicle.setBrandName(request.getBrandName());
+                vehicle.setColor(request.getColor());
+
+                vehicle = vehicleRepository.save(vehicle);
+
+                return vehicleMapper.toResponse(vehicle);
+            }
+        }
+
+
+         vehicle = Vehicle.builder()
                 .customer(customer)
                 .licensePlate(licensePlate)   // dùng bản đã normalize
                 .brandName(request.getBrandName())
@@ -230,7 +258,7 @@ public class VehicleServiceImpl implements VehicleService {
         }
         //Quét xem xe này đang thuộc gói nào
         Optional<UnlimitSubscription> unlimitOpt = unlimitSubscriptionRepository.findByVehicleIdAndStatus(request.getSourceVehicleId(),
-                "ACTIVE");
+                SubscriptionStatus.ACTIVE);
         Optional<FamilyMember> familyMemberOpt = familyMemberRepository.findActiveFamilyMemberByVehicleId(request.getSourceVehicleId(), LocalDate.now());
 
         if(unlimitOpt.isEmpty() && familyMemberOpt.isEmpty()){
