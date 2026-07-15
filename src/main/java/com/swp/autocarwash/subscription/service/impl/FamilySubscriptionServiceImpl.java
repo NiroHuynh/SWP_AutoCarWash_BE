@@ -232,8 +232,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
                 .orElse(null);
 
         // ===== Idempotent: đã có hóa đơn PENDING đang chờ trên bản ghi mới nhất -> trả lại QR đó =====
-        if (familySubscription != null
-                && SubscriptionStatus.PENDING.name().equals(familySubscription.getStatus())) {
+        if (familySubscription != null) {
             SubscriptionInvoice existing = subscriptionInvoiceRepository
                     .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
                             familySubscription.getId(), SubscriptionInvoiceStatus.PENDING.name())
@@ -243,51 +242,34 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
             }
         }
 
-        LocalDate startDate;
-        LocalDate endDate;
-
         SubscriptionInvoiceType invoiceType;
 
         if (familySubscription == null) {
 
-            // ===== Đăng ký lần đầu =====
+            // ===== Đăng ký lần đầu: tạo bản ghi mới PENDING, chưa hưởng quyền lợi tới khi thanh toán =====
+            LocalDate startDate = LocalDate.now();
+            LocalDate endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
+
             familySubscription = new FamilySubscription();
             familySubscription.setFamilyGroup(familyGroup);
+            familySubscription.setSubscriptionPlan(subscriptionPlan);
+            familySubscription.setStartDate(startDate);
+            familySubscription.setEndDate(endDate);
+            familySubscription.setStatus(SubscriptionStatus.PENDING.name());
 
-            startDate = LocalDate.now();
-            endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
+            familySubscription = familySubscriptionRepository.save(familySubscription);
 
             invoiceType = SubscriptionInvoiceType.REGISTER;
 
         } else {
 
-            // ===== Gia hạn =====
+            // ===== Gia hạn (cùng gói hoặc đổi gói): KHÔNG đụng status/plan/ngày hết hạn ở đây.
+            // Gói hiện tại phải giữ nguyên ACTIVE trong lúc chờ thanh toán và nếu thanh toán
+            // fail/timeout thì không mất ngày còn lại. Việc đổi gói + tính lại endDate (cộng dồn
+            // từ ngày hết hạn cũ nếu gói chưa hết hạn) chỉ áp dụng khi thanh toán thành công, xem
+            // SubscriptionRenewalListener.activateFamilySubscription. =====
             invoiceType = SubscriptionInvoiceType.RENEW;
-
-            if (SubscriptionStatus.ACTIVE.name().equals(familySubscription.getStatus())
-                    && familySubscription.getSubscriptionPlan().getId()
-                    .equals(subscriptionPlan.getId())) {
-
-                // Gia hạn cùng gói -> cộng thêm thời gian
-                startDate = familySubscription.getStartDate();
-                endDate = familySubscription.getEndDate()
-                        .plusDays(subscriptionPlan.getDurationDays());
-
-            } else {
-
-                // Đổi gói hoặc gói đã hết hạn
-                startDate = LocalDate.now();
-                endDate = startDate.plusDays(subscriptionPlan.getDurationDays());
-            }
         }
-
-        familySubscription.setSubscriptionPlan(subscriptionPlan);
-        familySubscription.setStatus(SubscriptionStatus.PENDING.name());
-        familySubscription.setStartDate(startDate);
-        familySubscription.setEndDate(endDate);
-        familySubscription.setCanceledAt(null);
-
-        familySubscription = familySubscriptionRepository.save(familySubscription);
 
         return subscriptionPaymentService.initiatePayment(
                 SubscriptionPaymentInitRequest.builder()
@@ -295,6 +277,7 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
                         .planPrice(subscriptionPlan.getPrice())
                         .planName(subscriptionPlan.getPlanName())
                         .familySubscriptionId(familySubscription.getId())
+                        .subscriptionPlanId(subscriptionPlan.getId())
                         .type(invoiceType)
                         .build());
     }

@@ -3,6 +3,7 @@ package com.swp.autocarwash.payment.entity;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.payment.entity.enums.SubscriptionInvoiceType;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
+import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -40,6 +41,11 @@ public class SubscriptionInvoice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "family_subscription_id")
     private FamilySubscription familySubscription;
+
+    /** Gói đích của lần thanh toán này (dùng khi renew Family đổi sang gói khác); null với các case khác. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_plan_id")
+    private SubscriptionPlan subscriptionPlan;
 
     @NotNull
     @Column(name = "plan_price", nullable = false, precision = 12, scale = 2)
