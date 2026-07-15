@@ -125,15 +125,42 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional
     public CreateVehicleResponse createVehicle(Long userId, CreateVehicleRequest request) {
 
+        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
 
         String licensePlate = request.getLicensePlate().trim().toUpperCase();
 
-// Validate qua validator: cho phép nếu xe cùng biển đã bị xóa mềm
-        vehicleValidator.validateCreate(licensePlate);
+        Optional<Vehicle> vehicleOpt =
+                vehicleRepository.findByLicensePlateIgnoreCase(licensePlate);
 
-        Customer customer = customerPort.getCustomerReferenceByUserId(userId);
+        Vehicle vehicle;
 
-        Vehicle vehicle = Vehicle.builder()
+        if (vehicleOpt.isPresent()) {
+
+            vehicle = vehicleOpt.get();
+
+            // Xe đang được sử dụng bởi customer khác
+            if (Boolean.FALSE.equals(vehicle.getIsDeleted())
+                    && vehicle.getCustomer() != null) {
+
+                throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
+            }
+
+            // Xe tồn tại nhưng chưa có chủ -> gán customer
+            if (Boolean.FALSE.equals(vehicle.getIsDeleted())
+                    && vehicle.getCustomer() == null) {
+
+                vehicle.setCustomer(customer);
+                vehicle.setBrandName(request.getBrandName());
+                vehicle.setColor(request.getColor());
+
+                vehicle = vehicleRepository.save(vehicle);
+
+                return vehicleMapper.toResponse(vehicle);
+            }
+        }
+
+
+         vehicle = Vehicle.builder()
                 .customer(customer)
                 .licensePlate(licensePlate)   // dùng bản đã normalize
                 .brandName(request.getBrandName())
