@@ -152,11 +152,6 @@ public class BookingServiceImpl implements BookingService {
     private static final long CANCEL_THRESHOLD_MINUTES = 120;
 
     /**
-     * Số tiền đặt cọc cố định theo BL-BK-00 (không lưu theo từng booking).
-     */
-    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
-
-    /**
      * Múi giờ hệ thống.
      * Múi giờ Việt Nam (UTC+7) — dùng thay cho LocalDateTime.now() để đảm bảo
      * đúng giờ VN khi deploy lên server nước ngoài (thường chạy UTC)
@@ -383,7 +378,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Bước 6: Tính số tiền còn lại = tổng tiền - tiền cọc
         BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
-                ? DEFAULT_DEPOSIT_AMOUNT
+                ? systemSettingPort.getDepositAmount("DEFAULT_DEPOSIT_AMOUNT")
                 : BigDecimal.ZERO;
 
         BigDecimal remainingAmount = booking.getTotalAmount().subtract(deposit);
@@ -810,16 +805,19 @@ public class BookingServiceImpl implements BookingService {
 
         //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn — bỏ qua nếu miễn cọc
         String transferContent = isFreeUnderSubscription ? null : "BK" + saved.getId();
+        BigDecimal depositAmount = isFreeUnderSubscription
+                ? BigDecimal.ZERO
+                : systemSettingPort.getDepositAmount("DEFAULT_DEPOSIT_AMOUNT");
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
                 .status(saved.getStatus())
                 .totalAmount(subTotal)
                 .slotIds(request.getSlotIds())
-                .depositAmount(isFreeUnderSubscription ? BigDecimal.ZERO : DEFAULT_DEPOSIT_AMOUNT)
+                .depositAmount(depositAmount)
                 .transferContent(transferContent)
                 .qrImageUrl(isFreeUnderSubscription
                         ? null
-                        : paymentQrPort.buildQrImageUrl(DEFAULT_DEPOSIT_AMOUNT, transferContent))
+                        : paymentQrPort.buildQrImageUrl(depositAmount, transferContent))
                 .build();
     }
 
