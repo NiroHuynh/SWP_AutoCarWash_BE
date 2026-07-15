@@ -24,6 +24,7 @@ import com.swp.autocarwash.customer.mapper.VehicleMapper;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.vehicle.VehicleService;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
+import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.system.entity.SystemSetting;
@@ -230,7 +231,7 @@ public class VehicleServiceImpl implements VehicleService {
         }
         //Quét xem xe này đang thuộc gói nào
         Optional<UnlimitSubscription> unlimitOpt = unlimitSubscriptionRepository.findByVehicleIdAndStatus(request.getSourceVehicleId(),
-                "ACTIVE");
+                SubscriptionStatus.ACTIVE);
         Optional<FamilyMember> familyMemberOpt = familyMemberRepository.findActiveFamilyMemberByVehicleId(request.getSourceVehicleId(), LocalDate.now());
 
         if(unlimitOpt.isEmpty() && familyMemberOpt.isEmpty()){
