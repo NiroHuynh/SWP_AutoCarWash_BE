@@ -975,7 +975,17 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "FAMILY_012",
             "Family subscription is still active."
-    ),;
+    ),
+    VOUCHER_STATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The voucher is not valid for the selected station."
+    ),
+    VOUCHER_OUT_OF_STOCK(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The voucher is out of stock."
+    );
 
 
 
