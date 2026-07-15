@@ -60,12 +60,6 @@ import static java.lang.Math.min;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
-    /**
-     * Số tiền đặt cọc cố định theo BL-BK-00 (khớp với BookingServiceImpl) —
-     * dùng để trừ vào totalAmount khi tính số tiền còn phải thu tại quầy.
-     */
-    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
-
     private final BookingRepository bookingRepository;
     private final BookingInvoiceRepository bookingInvoiceRepository;
     private final PaymentRepository paymentRepository;
@@ -101,7 +95,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Bước 1: Tính số tiền còn phải thu = tổng tiền - tiền cọc đã trả - điểm sử dụng (nếu có)
         BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
-                ? DEFAULT_DEPOSIT_AMOUNT
+                ? systemSettingService.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT)
                 : BigDecimal.ZERO;
         BigDecimal amountBeforeRedeem = booking.getTotalAmount().subtract(deposit);
         RedeemResult redeem = calculateRedeemAmount(

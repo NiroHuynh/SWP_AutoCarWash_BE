@@ -5,6 +5,7 @@ import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.entity.enums.SubscriptionStatus;
 import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
+import com.swp.autocarwash.subscription.repository.SubscriptionPlanRepository;
 import com.swp.autocarwash.subscription.repository.UnlimitSubscriptionRepository;
 import com.swp.autocarwash.subscription.util.SubscriptionRenewalCalculator;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class SubscriptionRenewalListener {
 
     private final UnlimitSubscriptionRepository unlimitSubscriptionRepository;
     private final FamilySubscriptionRepository familySubscriptionRepository;
+    private final SubscriptionPlanRepository subscriptionPlanRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -48,7 +50,7 @@ public class SubscriptionRenewalListener {
         if (event.getUnlimitSubscriptionId() != null) {
             activateUnlimitedSubscription(event.getUnlimitSubscriptionId());
         } else if (event.getFamilySubscriptionId() != null) {
-            activateFamilySubscription(event.getFamilySubscriptionId());
+            activateFamilySubscription(event.getFamilySubscriptionId(), event.getSubscriptionPlanId());
         }
     }
 
@@ -77,12 +79,16 @@ public class SubscriptionRenewalListener {
     }
 
     /**
-     * Kích hoạt gói FAMILY khi hóa đơn thanh toán thành công. Khác Unlimited: startDate/endDate
-     * và subscriptionPlan của gói FAMILY đã được {@code FamilySubscriptionServiceImpl} tính sẵn
-     * (cộng dồn cùng gói hoặc reset khi đổi gói) ngay lúc tạo hóa đơn PENDING, nên ở đây chỉ cần
-     * chuyển trạng thái PENDING -> ACTIVE, không tính lại ngày.
+     * Kích hoạt/gia hạn gói FAMILY khi hóa đơn thanh toán thành công. Bản ghi FamilySubscription
+     * được giữ nguyên (status ACTIVE, ngày cũ) suốt lúc chờ thanh toán — mọi thay đổi (đổi gói,
+     * tính lại endDate) chỉ áp dụng ở đây, sau khi thanh toán thành công, để nếu payment fail/
+     * timeout thì gói hiện tại không bị mất ngày còn lại hay đổi gói ngoài ý muốn.
+     *
+     * <p>Quy tắc tính ngày giống Unlimited: gói đang ACTIVE và chưa hết hạn (renew sớm) thì cộng
+     * dồn nối tiếp từ endDate cũ (dù đổi gói khác); ngược lại (đăng ký lần đầu đang PENDING, hoặc
+     * gói đã hết hạn) thì tính lại từ hôm nay.</p>
      */
-    private void activateFamilySubscription(Long familySubscriptionId) {
+    private void activateFamilySubscription(Long familySubscriptionId, Integer targetPlanId) {
         FamilySubscription sub = familySubscriptionRepository
                 .findById(familySubscriptionId)
                 .orElse(null);
@@ -92,15 +98,23 @@ public class SubscriptionRenewalListener {
             return;
         }
 
-        if (!SubscriptionStatus.PENDING.name().equals(sub.getStatus())) {
-            log.warn("FamilySubscription {} không ở trạng thái PENDING (hiện tại: {}), bỏ qua kích hoạt",
-                    sub.getId(), sub.getStatus());
-            return;
+        if (targetPlanId != null
+                && (sub.getSubscriptionPlan() == null || !targetPlanId.equals(sub.getSubscriptionPlan().getId()))) {
+            subscriptionPlanRepository.findById(targetPlanId).ifPresent(sub::setSubscriptionPlan);
         }
 
+        LocalDate today = LocalDate.now();
+        boolean cumulative = SubscriptionStatus.ACTIVE.name().equals(sub.getStatus())
+                && !sub.getEndDate().isBefore(today);
+        int durationDays = sub.getSubscriptionPlan().getDurationDays();
+
+        sub.setStartDate(cumulative ? sub.getStartDate() : today);
+        sub.setEndDate(cumulative ? sub.getEndDate().plusDays(durationDays) : today.plusDays(durationDays));
         sub.setStatus(SubscriptionStatus.ACTIVE.name());
+        sub.setCanceledAt(null);
+
         familySubscriptionRepository.save(sub);
-        log.info("Kích hoạt/gia hạn gói family {} thành công, endDate = {}",
+        log.info("Kích hoạt/gia hạn gói family {} thành công, endDate mới = {}",
                 sub.getId(), sub.getEndDate());
     }
 }
