@@ -1,7 +1,11 @@
 package com.swp.autocarwash.customer.repository;
 
+import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +24,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     /**
      *
      * Chức năng: Lấy danh sách vehicle đang hoạt động thuộc về một customer.
-     *
+     * <p>
      * Quy trình:
      * - Nhận customerId cần tìm vehicle.
      * - Truy vấn các vehicle có customerId tương ứng.
@@ -28,9 +32,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      * - Trả về danh sách vehicle hợp lệ.
      *
      * @param customerId id của customer cần lấy danh sách vehicle
-     *
      * @return danh sách Vehicle thuộc customer và chưa bị xóa
-     *
      * @author Phong
      * @version 1.0
      */
@@ -39,18 +41,16 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     /**
      *
      * Chức năng: Kiểm tra vehicle có tồn tại và thuộc quyền sở hữu của customer hay không.
-     *
+     * <p>
      * Quy trình:
      * - Nhận vehicleId và customerId cần kiểm tra.
      * - Tìm kiếm vehicle theo id.
      * - Kiểm tra customer sở hữu vehicle.
      * - Trả về kết quả xác thực.
      *
-     * @param vehicleId id của vehicle cần kiểm tra
+     * @param vehicleId  id của vehicle cần kiểm tra
      * @param customerId id của customer cần xác nhận quyền sở hữu
-     *
      * @return true nếu vehicle tồn tại và thuộc customer, false nếu không hợp lệ
-     *
      * @author Phong
      * @version 1.0
      */
@@ -103,6 +103,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     );
 
 
+    @Query("""
+                SELECT COUNT(v) > 0
+                FROM Vehicle v
+                WHERE UPPER(v.licensePlate) = UPPER(:licensePlate)
+                  AND v.isDeleted = false
+                  AND v.customer IS NOT NULL
+            """)
+    boolean existsActiveVehicleByLicensePlate(@Param("licensePlate") String licensePlate);
 
-    boolean existsByLicensePlateAndIsDeletedFalse(String licensePlate);
+    Optional<Vehicle> findByLicensePlateIgnoreCase(String licensePlate);
 }
