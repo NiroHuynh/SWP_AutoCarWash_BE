@@ -67,6 +67,10 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
             invoice.setFamilySubscription(
                     entityManager.getReference(FamilySubscription.class, request.getFamilySubscriptionId()));
         }
+        if (request.getSubscriptionPlanId() != null) {
+            invoice.setSubscriptionPlan(
+                    entityManager.getReference(SubscriptionPlan.class, request.getSubscriptionPlanId()));
+        }
         invoice.setPlanPrice(request.getPlanPrice());
         invoice.setStatus(INVOICE_PENDING);
         // Gap-fix vs source: source không set type, khiến invoice tạo ra không khớp
