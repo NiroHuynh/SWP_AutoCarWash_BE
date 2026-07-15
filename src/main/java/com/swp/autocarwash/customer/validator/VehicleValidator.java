@@ -32,7 +32,7 @@ public class VehicleValidator {
      */
     public void validateCreate(String licensePlate) {
         boolean plateInUse =
-                vehicleRepository.existsByLicensePlateAndIsDeletedFalse(licensePlate);
+                vehicleRepository.existsActiveVehicleByLicensePlate(licensePlate);
 
         if (plateInUse) {
             throw new BusinessException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
