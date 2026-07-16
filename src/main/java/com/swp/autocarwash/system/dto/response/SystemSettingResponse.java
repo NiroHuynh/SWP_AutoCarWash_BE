@@ -18,7 +18,7 @@ public class SystemSettingResponse {
 
     @JsonProperty("setting_value")
     private String settingValue;
-
+    
     private String category;
 
     @JsonProperty("data_type")
