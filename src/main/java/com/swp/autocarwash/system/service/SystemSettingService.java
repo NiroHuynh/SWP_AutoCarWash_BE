@@ -26,4 +26,10 @@ public interface SystemSettingService {
      * truoc khi bi job tu dong huy (key PENDING_PAYMENT_TIMEOUT_MINUTES).
      */
     Integer getPendingPaymentTimeoutMinutes();
+
+    /**
+     * Diem uu tien cong them cho queue_ticket duoc tao tu booking (key QUEUE_PRIORITY_BOOKING_WEIGHT),
+     * dung de xep vé booking uu tien hon vé khach vang lai trong hang cho.
+     */
+    Integer getQueuePriorityBookingWeight();
 }
