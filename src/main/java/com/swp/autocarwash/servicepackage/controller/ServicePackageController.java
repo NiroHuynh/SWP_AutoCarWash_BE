@@ -19,7 +19,7 @@ public class ServicePackageController {
 
     private final ServicePackageService servicePackageService;
 
-    @GetMapping("/api/admin/service-packages/active")
+    @GetMapping("/admin/active")
     public ApiResponse<List<ServicePackageResponse>> getActiveServicePackages() {
 
         return ApiResponse.<List<ServicePackageResponse>>builder()
@@ -51,7 +51,7 @@ public class ServicePackageController {
      * AC-14.1.1: trả về object vừa tạo kèm durationMinutes
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ServicePackageResponse> createServicePackage(
             @RequestBody CreateServicePackageRequest request
     ) {
@@ -66,7 +66,7 @@ public class ServicePackageController {
     }
 
     @PutMapping("/{servicePackageId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ServicePackageResponse> updateServicePackage(
             @PathVariable Integer servicePackageId,
             @Valid @RequestBody UpdateServicePackageRequest request) {
@@ -78,7 +78,7 @@ public class ServicePackageController {
     }
 
     @DeleteMapping("/{servicePackageId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteServicePackage(
             @PathVariable Integer servicePackageId) {
 

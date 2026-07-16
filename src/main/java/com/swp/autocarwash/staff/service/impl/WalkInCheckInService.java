@@ -176,7 +176,7 @@ public class WalkInCheckInService {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
         if(request.getCustomerId() != null && vehicleOpt.isPresent()&& request.getServicePackageId() != null){
             boolean hasPackage = unlimitSubscriptionRepository.hasActiveSubscription(
-                    request.getCustomerId(), vehicleOpt.get().getId(),request.getServicePackageId() , SubscriptionStatus.ACTIVE.toString(),LocalDate.now()
+                    request.getCustomerId(), vehicleOpt.get().getId(),request.getServicePackageId() , SubscriptionStatus.ACTIVE,LocalDate.now()
             );
             if(hasPackage){
                 //Nếu khớp gói đã mua, lấy đúng giá của gói dịch vụ trừ đi tiền được giảm
@@ -414,7 +414,7 @@ public class WalkInCheckInService {
                     request.getCustomerId(),
                     vehicleOpt.get().getId(),
                     request.getServicePackageId(),
-                    SubscriptionStatus.ACTIVE.toString(),
+                    SubscriptionStatus.ACTIVE,
                     LocalDate.now()
             );
 
@@ -582,7 +582,7 @@ public class WalkInCheckInService {
                     //Trạng thái và Phân loại
                     .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé (status - NOT NULL)
                     .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
-                    .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
+                    .priorityScore(queueTicketService.computePriorityScore(savedBooking.getCustomer(), false)) // Tier weight (mặc định MEMBER nếu khách vãng lai chưa có tài khoản)
                     //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
                     // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
                     .build();

@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,6 +37,5 @@ public class FamilyMember {
 
     @Column(name = "vehicle_change_window_start")
     private LocalDateTime vehicleChangeWindowStart;
-
 
 }

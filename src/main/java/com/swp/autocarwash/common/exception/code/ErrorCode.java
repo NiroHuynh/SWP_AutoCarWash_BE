@@ -174,17 +174,17 @@ public enum ErrorCode {
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "COMMON_003",
-            "Validation failed"
+                    "Validation failed"
     ),
     EMAIL_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_001",
-            "Email already exists"
+                    "Email already exists"
     ),
     PHONE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_002",
-            "Phone already exists"
+                    "Phone already exists"
     ),
     INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
@@ -892,6 +892,114 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_SETTING_VALUE",
             "The setting key does not exist in the system. Please check the key and try again."
+    ),
+    REFUND_NOT_ELIGIBLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_001",
+            "Booking chưa trả cọc nên không phát sinh hoàn tiền."
+    ),
+    BOOKING_NOT_CANCELABLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_002",
+            "Booking không ở trạng thái có thể hủy để hoàn tiền."
+    ),
+    BOOKING_CANCEL_WINDOW_PASSED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_003",
+            "Đã quá thời hạn hủy (phải hủy trước giờ hẹn ít nhất 2 giờ)."
+    ),
+    REFUND_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "REFUND_004",
+            "Booking này đã có yêu cầu hoàn tiền."
+    ),
+    REFUND_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "REFUND_005",
+            "Booking không thuộc về khách hàng đang đăng nhập."
+    ),
+    REFUND_ACCOUNT_LOOKUP_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_006",
+            "Không tìm thấy tài khoản, vui lòng kiểm tra lại Số tài khoản."
+    ),
+    INVALID_BANK(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_007",
+            "Ngân hàng không hợp lệ."
+    ),
+    REFUND_BOOKING_ID_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_008",
+            "Booking là bắt buộc"
+    ),
+    REFUND_BANK_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_009",
+            "Ngân hàng là bắt buộc"
+    ),
+    REFUND_ACCOUNT_NUMBER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_010",
+            "Số tài khoản là bắt buộc"
+    ),
+    REFUND_ACCOUNT_HOLDER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_011",
+            "Tên chủ tài khoản là bắt buộc"
+    ),
+    REFUND_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "REFUND_012",
+            "Không tìm thấy yêu cầu hoàn tiền."
+    ),
+    REFUND_ALREADY_PROCESSED(
+            HttpStatus.CONFLICT,
+            "REFUND_013",
+            "Yêu cầu hoàn tiền này đã được xử lý."
+    ),
+    REFUND_TRANSACTION_CODE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_014",
+            "Vui lòng nhập mã giao dịch"
+    ),
+    FAMILY_GROUP_NOT_OWNED(
+            HttpStatus.FORBIDDEN,
+            "FAMILY_003",
+            "You are not the owner of this family group."
+    ),
+    FAMILY_SUBSCRIPTION_ALREADY_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_004",
+            "This family group already has an active Family subscription."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "FAMILY_002",
+            "Family subscription not found."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_011",
+            "Family subscription is not active."
+    ),
+
+    FAMILY_SUBSCRIPTION_STILL_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_012",
+            "Family subscription is still active."
+    ),
+    VOUCHER_STATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The voucher is not valid for the selected station."
+    ),
+    VOUCHER_OUT_OF_STOCK(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The voucher is out of stock."
     );
 
 

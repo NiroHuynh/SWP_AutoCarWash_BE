@@ -3,6 +3,7 @@ package com.swp.autocarwash.payment.service.impl;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
 import com.swp.autocarwash.payment.dto.request.SubscriptionPaymentInitRequest;
 import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
@@ -12,6 +13,7 @@ import com.swp.autocarwash.payment.repository.SubscriptionInvoiceRepository;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.payment.util.SePayQrBuilder;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
+import com.swp.autocarwash.subscription.entity.SubscriptionPlan;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
 import com.swp.autocarwash.subscription.util.SubscriptionRenewalCalculator;
 import com.swp.autocarwash.system.service.SystemSettingService;
@@ -49,6 +51,7 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
     private final SePayQrBuilder sePayQrBuilder;
     private final SystemSettingService systemSettingService;
     private final SePayBankProperties sePayBankProperties;
+    private final FamilyMemberRepository familyMemberRepository;
 
     /** {@inheritDoc} */
     @Override
@@ -63,6 +66,10 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
         if (request.getFamilySubscriptionId() != null) {
             invoice.setFamilySubscription(
                     entityManager.getReference(FamilySubscription.class, request.getFamilySubscriptionId()));
+        }
+        if (request.getSubscriptionPlanId() != null) {
+            invoice.setSubscriptionPlan(
+                    entityManager.getReference(SubscriptionPlan.class, request.getSubscriptionPlanId()));
         }
         invoice.setPlanPrice(request.getPlanPrice());
         invoice.setStatus(INVOICE_PENDING);
@@ -91,6 +98,9 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
         if (invoice.getUnlimitSubscription() != null
                 && invoice.getUnlimitSubscription().getSubscriptionPlan() != null) {
             planName = invoice.getUnlimitSubscription().getSubscriptionPlan().getPlanName();
+        } else if (invoice.getFamilySubscription() != null
+                && invoice.getFamilySubscription().getSubscriptionPlan() != null) {
+            planName = invoice.getFamilySubscription().getSubscriptionPlan().getPlanName();
         }
         return buildResponse(invoice, planName);
     }
@@ -106,12 +116,37 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
         boolean pending = INVOICE_PENDING.equals(invoice.getStatus());
 
         UnlimitSubscription unlimitSubscription = invoice.getUnlimitSubscription();
+        FamilySubscription familySubscription = invoice.getFamilySubscription();
+
+        Integer durationDays = null;
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+        Integer slotsUsed = null;
+        Integer maxSlots = null;
+        String inheritedTierName = null;
+
+        if (unlimitSubscription != null) {
+            durationDays = unlimitSubscription.getSubscriptionPlan().getDurationDays();
+            startDate = SubscriptionRenewalCalculator.calculateDisplayPeriodStart(unlimitSubscription, LocalDate.now());
+            endDate = SubscriptionRenewalCalculator.calculateEndDate(unlimitSubscription, LocalDate.now());
+        } else if (familySubscription != null) {
+            // startDate/endDate đã được FamilySubscriptionServiceImpl tính sẵn (cộng dồn hoặc
+            // reset theo plan) ngay lúc tạo invoice PENDING, nên đọc trực tiếp từ entity.
+            SubscriptionPlan plan = familySubscription.getSubscriptionPlan();
+            durationDays = plan.getDurationDays();
+            startDate = familySubscription.getStartDate();
+            endDate = familySubscription.getEndDate();
+            maxSlots = plan.getMaxVehicleCount();
+            slotsUsed = (int) familyMemberRepository.countByFamilyGroup(familySubscription.getFamilyGroup());
+            inheritedTierName = invoice.getCustomer() != null && invoice.getCustomer().getCustomerTier() != null
+                    ? invoice.getCustomer().getCustomerTier().getTierName()
+                    : null;
+        }
 
         return SubscriptionPaymentInitResponse.builder()
                 .invoiceId(invoice.getId())
                 .planName(planName)
-                .durationDays(unlimitSubscription != null
-                        ? unlimitSubscription.getSubscriptionPlan().getDurationDays() : null)
+                .durationDays(durationDays)
                 .transferContent(transferContent)
                 .amount(invoice.getPlanPrice())
                 .invoiceStatus(invoice.getStatus())
@@ -127,12 +162,11 @@ public class SubscriptionPaymentServiceImpl implements SubscriptionPaymentServic
                 .customerName(invoice.getCustomer() != null ? invoice.getCustomer().getFullName() : null)
                 .vehicleLicensePlate(unlimitSubscription != null
                         ? unlimitSubscription.getVehicle().getLicensePlate() : null)
-                .startDate(unlimitSubscription != null
-                        ? SubscriptionRenewalCalculator.calculateDisplayPeriodStart(unlimitSubscription, LocalDate.now())
-                        : null)
-                .endDate(unlimitSubscription != null
-                        ? SubscriptionRenewalCalculator.calculateEndDate(unlimitSubscription, LocalDate.now())
-                        : null)
+                .startDate(startDate)
+                .endDate(endDate)
+                .slotsUsed(slotsUsed)
+                .maxSlots(maxSlots)
+                .inheritedTierName(inheritedTierName)
                 .build();
     }
 }

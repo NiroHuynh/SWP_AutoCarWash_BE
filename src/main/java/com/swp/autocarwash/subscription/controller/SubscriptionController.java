@@ -10,14 +10,12 @@ import com.swp.autocarwash.payment.dto.response.SubscriptionPaymentInitResponse;
 import com.swp.autocarwash.payment.service.SubscriptionPaymentService;
 import com.swp.autocarwash.subscription.dto.response.ActiveSubscriptionResponse;
 import com.swp.autocarwash.subscription.service.SubscriptionQueryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Chức năng: Controller cho khách hàng tự tra cứu thông tin gói subscription
@@ -37,6 +35,7 @@ public class SubscriptionController {
     private final CustomerRepository customerRepository;
     private final SubscriptionPaymentService subscriptionPaymentService;
 
+
     /**
      * Chức năng: Lấy gói subscription đang hoạt động (ACTIVE, còn hạn) của
      * khách hàng đang đăng nhập — tên gói, ngày hết hạn, số ngày còn lại.
@@ -48,7 +47,7 @@ public class SubscriptionController {
      *         {@code 204 No Content} nếu khách không có gói nào đang active
      */
     @GetMapping("/active")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<ActiveSubscriptionResponse>> getActiveSubscription(
             @AuthenticationPrincipal UserCustomerDetails principal) {
 
@@ -71,7 +70,7 @@ public class SubscriptionController {
      * <p><b>Ví dụ:</b> {@code GET /api/subscriptions/invoices/12}</p>
      */
     @GetMapping("/invoices/{invoiceId}")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<SubscriptionPaymentInitResponse>> getInvoiceStatus(
             @PathVariable Long invoiceId,
             @AuthenticationPrincipal UserCustomerDetails principal) {

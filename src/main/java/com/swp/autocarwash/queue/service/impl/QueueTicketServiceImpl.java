@@ -1,7 +1,13 @@
 package com.swp.autocarwash.queue.service.impl;
 
+import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.loyalty.entity.CustomerTier;
+import com.swp.autocarwash.loyalty.repository.CustomerTierRepository;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueTicketService;
+import com.swp.autocarwash.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +21,11 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 public class QueueTicketServiceImpl implements QueueTicketService {
 
+    private static final String DEFAULT_TIER_NAME = "MEMBER";
+
     private final QueueTicketRepository queueTicketRepository;
+    private final CustomerTierRepository customerTierRepository;
+    private final SystemSettingService systemSettingService;
     /**
      * Hàm sinh số vé hàng đợi đồng bộ theo từng chi nhánh và loại khách hàng (AC05)
      */
@@ -37,5 +47,18 @@ public class QueueTicketServiceImpl implements QueueTicketService {
 
         // Trả về định dạng chuỗi: Ví dụ W001, B002
         return prefix + String.format("%03d", nextNumber);
+    }
+
+    @Override
+    public Integer computePriorityScore(Customer customer, boolean isBooking) {
+        CustomerTier tier = (customer != null && customer.getCustomerTier() != null)
+                ? customer.getCustomerTier()
+                : customerTierRepository.findByTierName(DEFAULT_TIER_NAME)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TIER_NOT_FOUND));
+
+        int tierWeight = tier.getQueuePriorityWeight() != null ? tier.getQueuePriorityWeight() : 0;
+        int bookingWeight = isBooking ? systemSettingService.getQueuePriorityBookingWeight() : 0;
+
+        return tierWeight + bookingWeight;
     }
 }

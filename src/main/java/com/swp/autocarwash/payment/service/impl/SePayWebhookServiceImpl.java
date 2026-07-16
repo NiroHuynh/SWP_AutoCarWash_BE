@@ -309,6 +309,7 @@ public class SePayWebhookServiceImpl implements SePayWebhookService {
                 invoice.getPlanPrice(),
                 invoice.getUnlimitSubscription() != null ? invoice.getUnlimitSubscription().getId() : null,
                 invoice.getFamilySubscription() != null ? invoice.getFamilySubscription().getId() : null,
+                invoice.getSubscriptionPlan() != null ? invoice.getSubscriptionPlan().getId() : null,
                 paymentMethod.name()));
     }
 
