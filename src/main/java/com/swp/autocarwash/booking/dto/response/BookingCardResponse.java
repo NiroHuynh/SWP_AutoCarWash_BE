@@ -3,6 +3,8 @@ package com.swp.autocarwash.booking.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -74,4 +76,15 @@ public class BookingCardResponse {
      * Danh sách hành động được phép thực hiện trên booking card này.
      */
     private List<String> allowedActions;
+
+    // ── Hoàn tiền (chỉ có giá trị khi status là REFUND_PENDING/REFUNDED) ───────
+
+    /** Số tiền hoàn (vd hiển thị "Đã hoàn 20.000đ"). {@code null} nếu chưa có yêu cầu hoàn tiền. */
+    private BigDecimal refundAmount;
+
+    /** Số tài khoản nhận hoàn tiền (vd "TK •••4567" — FE tự format/mask). {@code null} nếu chưa có yêu cầu hoàn tiền. */
+    private String refundAccountNumber;
+
+    /** Thời điểm Admin xác nhận đã hoàn tiền. {@code null} nếu đang REFUND_PENDING (chưa hoàn) hoặc chưa có refund. */
+    private Instant refundedAt;
 }

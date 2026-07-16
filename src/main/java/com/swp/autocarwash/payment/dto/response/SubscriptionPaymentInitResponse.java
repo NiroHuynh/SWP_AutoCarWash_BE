@@ -64,4 +64,13 @@ public class SubscriptionPaymentInitResponse {
 
     /** Ngày gói hết hạn. */
     private LocalDate endDate;
+
+    /** Số xe đã dùng trong nhóm gia đình — chỉ áp dụng cho gói FAMILY. */
+    private Integer slotsUsed;
+
+    /** Số xe tối đa gói FAMILY cho phép — chỉ áp dụng cho gói FAMILY. */
+    private Integer maxSlots;
+
+    /** Tên hạng khách hàng được kế thừa cho các thành viên — chỉ áp dụng cho gói FAMILY. */
+    private String inheritedTierName;
 }

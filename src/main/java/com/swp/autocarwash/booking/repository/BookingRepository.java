@@ -232,6 +232,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     LocalDateTime findLastCheckOutByCustomerId(@Param("customerId") Long customerId);
 
     /**
+     * Kiểm tra khách hàng có ít nhất 1 booking đã CHECK_OUT tại đúng station
+     * chỉ định — dùng để giới hạn staff chỉ xem được khách của chi nhánh mình.
+     */
+    @Query("""
+            SELECT COUNT(b) > 0 FROM Booking b
+            LEFT JOIN b.slotAllocations bsa LEFT JOIN bsa.bookingSlot bst
+            WHERE b.customer.id = :customerId AND b.status = 'CHECK_OUT' AND bst.station.id = :stationId
+            """)
+    boolean existsCheckedOutBookingAtStation(
+            @Param("customerId") Long customerId, @Param("stationId") Integer stationId);
+
+    /**
      * Lịch sử đặt lịch của một khách hàng trên mọi chi nhánh, có filter theo
      * từ khóa phương tiện (biển số/hãng xe), loại dịch vụ, trạng thái booking
      * (giá trị thô của {@link BookingStatus}), chi nhánh, năm/tháng đặt lịch,
@@ -246,6 +258,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LEFT JOIN b.slotAllocations bsa
             LEFT JOIN bsa.bookingSlot bs
             LEFT JOIN bs.station st
+            LEFT JOIN st.commune cm
+            LEFT JOIN cm.province pv
             WHERE b.customer.id = :customerId
               AND (:vehicleKeyword IS NULL
                    OR v.licensePlate LIKE CONCAT('%', :vehicleKeyword, '%')
@@ -253,6 +267,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND (:serviceCategoryId IS NULL OR sc.id = :serviceCategoryId)
               AND (:status IS NULL OR b.status = :status)
               AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:communeId IS NULL OR cm.id = :communeId)
+              AND (:provinceId IS NULL OR pv.id = :provinceId)
               AND (:year IS NULL OR YEAR(b.appointmentDate) = :year)
               AND (:month IS NULL OR MONTH(b.appointmentDate) = :month)
             ORDER BY b.appointmentDate DESC, b.id DESC
@@ -261,6 +277,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             SELECT COUNT(DISTINCT b) FROM Booking b
             JOIN b.vehicle v JOIN b.servicePackage sp JOIN sp.serviceCategory sc
             LEFT JOIN b.slotAllocations bsa LEFT JOIN bsa.bookingSlot bs LEFT JOIN bs.station st
+            LEFT JOIN st.commune cm LEFT JOIN cm.province pv
             WHERE b.customer.id = :customerId
               AND (:vehicleKeyword IS NULL
                    OR v.licensePlate LIKE CONCAT('%', :vehicleKeyword, '%')
@@ -268,6 +285,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND (:serviceCategoryId IS NULL OR sc.id = :serviceCategoryId)
               AND (:status IS NULL OR b.status = :status)
               AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:communeId IS NULL OR cm.id = :communeId)
+              AND (:provinceId IS NULL OR pv.id = :provinceId)
               AND (:year IS NULL OR YEAR(b.appointmentDate) = :year)
               AND (:month IS NULL OR MONTH(b.appointmentDate) = :month)
             """)
@@ -277,8 +296,53 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("serviceCategoryId") Integer serviceCategoryId,
             @Param("status") String status,
             @Param("stationId") Integer stationId,
+            @Param("communeId") Integer communeId,
+            @Param("provinceId") Integer provinceId,
             @Param("year") Integer year,
             @Param("month") Integer month,
+            Pageable pageable);
+
+    /**
+     * Danh sách toàn bộ booking của 1 chi nhánh cụ thể — dùng cho Staff/Admin
+     * xem danh sách booking của station, filter theo trạng thái/khoảng ngày/
+     * từ khóa (tên khách, SĐT, biển số), mặc định sort mới nhất trước.
+     */
+    @Query(value = """
+            SELECT DISTINCT b FROM Booking b
+            JOIN FETCH b.customer c JOIN FETCH c.user cu
+            JOIN FETCH b.vehicle v
+            JOIN FETCH b.servicePackage sp JOIN FETCH sp.serviceCategory sc
+            LEFT JOIN FETCH b.checkInEmployee ce
+            JOIN b.slotAllocations bsa JOIN bsa.bookingSlot bs
+            WHERE bs.station.id = :stationId
+              AND (:status IS NULL OR b.status = :status)
+              AND (:fromDate IS NULL OR b.appointmentDate >= :fromDate)
+              AND (:toDate IS NULL OR b.appointmentDate <= :toDate)
+              AND (:keyword IS NULL
+                   OR CONCAT(c.firstName, ' ', c.lastName) LIKE CONCAT('%', :keyword, '%')
+                   OR cu.phone LIKE CONCAT('%', :keyword, '%')
+                   OR v.licensePlate LIKE CONCAT('%', :keyword, '%'))
+            ORDER BY b.appointmentDate DESC, b.id DESC
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT b) FROM Booking b
+            JOIN b.customer c JOIN c.user cu JOIN b.vehicle v
+            JOIN b.slotAllocations bsa JOIN bsa.bookingSlot bs
+            WHERE bs.station.id = :stationId
+              AND (:status IS NULL OR b.status = :status)
+              AND (:fromDate IS NULL OR b.appointmentDate >= :fromDate)
+              AND (:toDate IS NULL OR b.appointmentDate <= :toDate)
+              AND (:keyword IS NULL
+                   OR CONCAT(c.firstName, ' ', c.lastName) LIKE CONCAT('%', :keyword, '%')
+                   OR cu.phone LIKE CONCAT('%', :keyword, '%')
+                   OR v.licensePlate LIKE CONCAT('%', :keyword, '%'))
+            """)
+    Page<Booking> findBookingsByStation(
+            @Param("stationId") Integer stationId,
+            @Param("status") String status,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("keyword") String keyword,
             Pageable pageable);
 
 }

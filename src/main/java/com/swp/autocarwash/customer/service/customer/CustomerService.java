@@ -76,10 +76,11 @@ public interface CustomerService {
     /**
      * Chức năng: Danh sách khách hàng cho Admin (FE-US-09) — 3 thẻ KPI +
      * bảng phân trang toàn bộ khách hàng, lọc theo keyword/năm-tháng đăng ký/
-     * rank/trạng thái tài khoản.
+     * rank/trạng thái tài khoản/chi nhánh (station/commune/province).
      */
     CustomerListPageResponse getCustomerList(
-            String keyword, Integer year, Integer month, String tier, Boolean active, Pageable pageable);
+            String keyword, Integer year, Integer month, String tier, Boolean active, Integer stationId,
+            Integer communeId, Integer provinceId, Pageable pageable);
 
     /**
      * Chức năng: Overlay chi tiết khách hàng cho Admin (FE-US-09-03 AC1/AC2).
@@ -100,5 +101,6 @@ public interface CustomerService {
      */
     CustomerBookingHistoryPageResponse getCustomerBookingHistory(
             Long customerId, String vehicleKeyword, Integer serviceCategoryId,
-            String status, Integer stationId, Integer year, Integer month, Pageable pageable);
+            String status, Integer stationId, Integer communeId, Integer provinceId,
+            Integer year, Integer month, Pageable pageable);
 }
