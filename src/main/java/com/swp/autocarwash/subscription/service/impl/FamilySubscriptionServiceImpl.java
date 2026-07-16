@@ -327,9 +327,9 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
             FamilySubscription currentSubscription,
             SubscriptionPlan newPlan) {
 
-        // KHÔNG cancel gói cũ / tạo bản ghi mới ở đây — dùng lại đúng subscription hiện tại,
-        // chỉ đổi gói + tính lại endDate (cộng dồn từ ngày hết hạn cũ nếu chưa hết hạn) sau khi
-        // thanh toán thành công, xem SubscriptionRenewalListener.activateFamilySubscription.
+        // Chưa cancel gói cũ / tạo bản ghi mới ở đây — chỉ initiate payment với subscription hiện tại.
+        // Việc tạo bản ghi FamilySubscription mới (ACTIVE) + cancel bản ghi cũ chỉ thực hiện SAU KHI
+        // thanh toán thành công, xem SubscriptionRenewalListener.activateFamilyPlanSwitch.
         return subscriptionPaymentService.initiatePayment(
                 SubscriptionPaymentInitRequest.builder()
                         .customerId(customer.getId())
