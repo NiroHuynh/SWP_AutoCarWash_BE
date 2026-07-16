@@ -2239,3 +2239,19 @@ VALUES
     (600, 9600), (601, 9601), (602, 9602), (603, 9603), (604, 9604), (605, 9605),
     (606, 9606), (607, 9607), (608, 9608), (609, 9609), (610, 9610), (611, 9611), (612, 9612);
 
+INSERT IGNORE INTO system_setting (
+    setting_key,
+    setting_value,
+    category,
+    description,
+    data_type,
+    is_active
+)
+VALUES (
+           'SUBSCRIPTION_TRANSFER_LOCK_DAYS',
+           '14',
+           'Subscription',
+           'Minimum number of days required before transferring a subscription to another vehicle.',
+           'NUMBER',
+           TRUE
+       );
