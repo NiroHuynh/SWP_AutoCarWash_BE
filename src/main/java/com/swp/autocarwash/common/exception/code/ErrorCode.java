@@ -165,6 +165,11 @@ public enum ErrorCode {
             "EMPLOYEE_007",
             "Status is required"
     ),
+    EMPLOYEE_PASSWORD_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_008",
+            "Password is required and must have at least 6 characters"
+    ),
     CUSTOMER_TIER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "CUSTOMER_003",
