@@ -126,6 +126,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // list lẫn detail.
         User user = staff.getUser();
         user.setIsDeleted(true);
+        user.setIsActive(false);
         userRepository.save(user);
     }
 
