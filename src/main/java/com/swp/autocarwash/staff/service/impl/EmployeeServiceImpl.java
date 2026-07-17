@@ -1,10 +1,14 @@
 package com.swp.autocarwash.staff.service.impl;
 
+import com.swp.autocarwash.auth.entity.Role;
 import com.swp.autocarwash.auth.entity.User;
+import com.swp.autocarwash.auth.entity.enums.UserRole;
+import com.swp.autocarwash.auth.repository.RoleRepository;
 import com.swp.autocarwash.auth.repository.UserRepository;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.ResourceNotFoundException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
+import com.swp.autocarwash.staff.dto.request.CreateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.request.UpdateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.response.EmployeeDetailResponse;
 import com.swp.autocarwash.staff.dto.response.EmployeeListItemResponse;
@@ -19,6 +23,7 @@ import com.swp.autocarwash.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +38,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final StaffRepository staffRepository;
     private final UserRepository userRepository;
     private final StationRepository stationRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,6 +86,46 @@ public class EmployeeServiceImpl implements EmployeeService {
         Staff staff = staffRepository.findEmployeeDetailById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EMPLOYEE_NOT_FOUND));
 
+        return toDetailResponse(staff);
+    }
+
+    @Override
+    @Transactional
+    public EmployeeDetailResponse createEmployee(CreateEmployeeRequest request) {
+        // Chưa có id để loại trừ nên dùng existsByEmail/existsByPhone như luồng register,
+        // không phải bản ...AndIdNot của update.
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new BusinessException(ErrorCode.PHONE_ALREADY_EXISTS);
+        }
+
+        Role staffRole = roleRepository.findByName(UserRole.ROLE_STAFF.name())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
+
+        Station station = stationRepository.findByIdAndIsDeletedFalse(request.getStationId())
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.STATION_NOT_FOUND));
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(staffRole)
+                .isActive(request.getActive())
+                .createdAt(LocalDateTime.now())
+                .build();
+        user = userRepository.save(user);
+
+        // Staff không có @Builder -> new + setter, giống cách register dựng Customer.
+        Staff staff = new Staff();
+        staff.setUser(user);
+        staff.setStation(station);
+        staff.setFirstName(request.getFirstName());
+        staff.setLastName(request.getLastName());
+        staffRepository.save(staff);
+
+        // employeeCode suy ra từ staff.id ("EMP-%05d") nên phải save xong mới map được.
         return toDetailResponse(staff);
     }
 
