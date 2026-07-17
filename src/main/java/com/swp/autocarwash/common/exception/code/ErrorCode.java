@@ -130,6 +130,46 @@ public enum ErrorCode {
             "CUSTOMER_002",
             "Customer not found"
     ),
+    EMPLOYEE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "EMPLOYEE_001",
+            "Employee not found"
+    ),
+    EMPLOYEE_FIRST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_002",
+            "First name is required"
+    ),
+    EMPLOYEE_LAST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_003",
+            "Last name is required"
+    ),
+    EMPLOYEE_EMAIL_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_004",
+            "Email is required or format is invalid"
+    ),
+    EMPLOYEE_PHONE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_005",
+            "Phone is required or format is invalid"
+    ),
+    EMPLOYEE_BRANCH_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_006",
+            "Branch is required"
+    ),
+    EMPLOYEE_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_007",
+            "Status is required"
+    ),
+    EMPLOYEE_PASSWORD_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_008",
+            "Password is required and must have at least 6 characters"
+    ),
     CUSTOMER_TIER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "CUSTOMER_003",

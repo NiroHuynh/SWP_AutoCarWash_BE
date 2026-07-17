@@ -55,6 +55,28 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 
     /**
+     * Check email đã thuộc về user KHÁC hay chưa. Bản existsByEmail ở trên dùng cho
+     * luồng register nên không loại trừ được chính mình - khi update, user giữ nguyên
+     * email cũ của chính họ sẽ bị báo trùng oan.
+     *
+     * @param email email cần kiểm tra
+     * @param id    id của user đang được cập nhật (loại trừ khỏi phép kiểm tra)
+     * @return true nếu email đã được user khác dùng
+     */
+    boolean existsByEmailAndIdNot(String email, Long id);
+
+
+    /**
+     * Check phone đã thuộc về user KHÁC hay chưa (xem existsByEmailAndIdNot).
+     *
+     * @param phone phone cần kiểm tra
+     * @param id    id của user đang được cập nhật (loại trừ khỏi phép kiểm tra)
+     * @return true nếu phone đã được user khác dùng
+     */
+    boolean existsByPhoneAndIdNot(String phone, Long id);
+
+
+    /**
      * Find user by email
      *
      * @param email user email
