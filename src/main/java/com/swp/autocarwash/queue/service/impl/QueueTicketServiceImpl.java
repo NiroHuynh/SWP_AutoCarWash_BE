@@ -49,14 +49,17 @@ public class QueueTicketServiceImpl implements QueueTicketService {
         return prefix + String.format("%03d", nextNumber);
     }
 
+    // Tính logic sắp xếp
     @Override
     public Integer computePriorityScore(Customer customer, boolean isBooking) {
+        //1. Lấy rank
         CustomerTier tier = (customer != null && customer.getCustomerTier() != null)
                 ? customer.getCustomerTier()
                 : customerTierRepository.findByTierName(DEFAULT_TIER_NAME)
                         .orElseThrow(() -> new BusinessException(ErrorCode.TIER_NOT_FOUND));
-
-        int tierWeight = tier.getQueuePriorityWeight() != null ? tier.getQueuePriorityWeight() : 0;
+        //2. Lấy hệ số của rank ( MEMBER=0, SILVER=1, GOLD=2, PLATINUM=3 )
+        int tierWeight = tier.getQueuePriorityWeight() != null ? tier.getQueuePriorityWeight() : 0; // 0 là dành cho mấy đứa vãng lai, không có rank thì mặc định nó là 0
+        //3. điểm ưu tiên nếu khách đã đặt lịch trước (booking). Khách vãng lai chưa có tài khoản hoặc không booking trước  → mặc định = 0
         int bookingWeight = isBooking ? systemSettingService.getQueuePriorityBookingWeight() : 0;
 
         return tierWeight + bookingWeight;
