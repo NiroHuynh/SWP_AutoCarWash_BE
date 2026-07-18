@@ -986,11 +986,15 @@ public class BookingServiceImpl implements BookingService {
                 hasSubscription(vehicleId, servicePackageId);
 
 
-        boolean isVehicleBookedOnDate =
-                isVehicleBookedOnDate(vehicleId, appointmentDate);
+//        boolean hasUsedSubscriptionToday =
+//                hasUsedSubscriptionToday(
+//                        vehicleId,
+//                        servicePackageId,
+//                        appointmentDate);
 
 
-        return hasSubscription && !isVehicleBookedOnDate;
+//        return hasSubscription && !hasUsedSubscriptionToday;
+        return false;
     }
 
     /**

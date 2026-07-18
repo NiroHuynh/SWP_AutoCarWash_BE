@@ -1,11 +1,13 @@
 package com.swp.autocarwash.subscription.service.impl;
 
+import com.swp.autocarwash.auth.security.principal.UserCustomerDetails;
 import com.swp.autocarwash.auth.util.SecurityUtils;
 import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.entity.FamilyGroup;
 import com.swp.autocarwash.customer.entity.FamilyMember;
+import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.FamilyGroupRepository;
 import com.swp.autocarwash.customer.repository.FamilyMemberRepository;
 import com.swp.autocarwash.servicepackage.entity.ServiceCategory;
@@ -25,6 +27,8 @@ import com.swp.autocarwash.subscription.repository.FamilySubscriptionRepository;
 import com.swp.autocarwash.subscription.repository.SubscriptionPlanRepository;
 import com.swp.autocarwash.subscription.service.SubscriptionPlanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +47,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     private final FamilyGroupRepository familyGroupRepository;
     private final FamilyMemberRepository familyMemberRepository;
     private final FamilySubscriptionRepository familySubscriptionRepository;
+    private final CustomerRepository customerRepository;
     private final SecurityUtils securityUtils;
 
     @Override
@@ -356,7 +361,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 })
                 .toList();
 
-        Customer customer = securityUtils.getCustomer();
+        Customer customer = getCustomer();
 
         FamilySubscriptionPlansResponse.CurrentGroupInfo currentGroup = null;
 
@@ -407,5 +412,20 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                 .currentGroup(currentGroup)
                 .familyPlans(familyPlans)
                 .build();
+    }
+
+
+    private Customer getCustomer(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        UserCustomerDetails userCustomerDetails =
+                auth != null && auth.getPrincipal() instanceof UserCustomerDetails user
+                        ? user
+                        : null;
+
+
+        return userCustomerDetails == null
+                ? null
+                : customerRepository.findByUserId(userCustomerDetails.getUser().getId());
     }
 }
