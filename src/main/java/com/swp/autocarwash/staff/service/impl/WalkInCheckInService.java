@@ -582,7 +582,7 @@ public class WalkInCheckInService {
                     //Trạng thái và Phân loại
                     .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé (status - NOT NULL)
                     .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
-                    .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
+                    .priorityScore(queueTicketService.computePriorityScore(savedBooking.getCustomer(), false)) // Tier weight (mặc định MEMBER nếu khách vãng lai chưa có tài khoản)
                     //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
                     // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
                     .build();

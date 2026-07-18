@@ -33,6 +33,7 @@ public class LoyaltyMapper {
                 .bookingId(booking == null ? null : booking.getId())
                 .bookingCheckOutAt(booking == null ? null : booking.getCheckOutAt())
                 .servicePackageName(booking == null ? null : booking.getServicePackage().getName())
+                .description(txn.getSourceType() == null ? null : txn.getSourceType().name())
                 .createdAt(txn.getCreatedAt() == null ? null : txn.getCreatedAt().atZone(ZONE).toInstant())
                 .build();
     }

@@ -263,8 +263,13 @@ public class PaymentController {
      */
     @GetMapping("/invoices/{invoiceId}")
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
-    public ResponseEntity<ApiResponse<InvoiceDetailResponse>> getInvoiceDetail(@PathVariable Long invoiceId) {
-        InvoiceDetailResponse data = paymentService.getInvoiceDetail(invoiceId);
+    public ResponseEntity<ApiResponse<InvoiceDetailResponse>> getInvoiceDetail(
+            @AuthenticationPrincipal UserCustomerDetails principal,
+            @PathVariable Long invoiceId) {
+        Integer staffStationId = staffScopeResolver.isStaff(principal)
+                ? staffScopeResolver.staffStationId(principal)
+                : null;
+        InvoiceDetailResponse data = paymentService.getInvoiceDetail(invoiceId, staffStationId);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết hóa đơn", data));
     }
 }

@@ -168,12 +168,12 @@ VALUES
 -- CUSTOMER TIER (4)
 -- =====================================================================
 INSERT IGNORE INTO customer_tier
-(id, tier_name, min_points, booking_window_days, point_multiple, retention_target_amount)
+(id, tier_name, min_points, booking_window_days, point_multiple, retention_target_amount, queue_priority_weight)
 VALUES
-    (1,  'MEMBER',    0,     7,  1.0, 0),
-    (2,  'SILVER',    500,   10, 1.2, 1500000),
-    (3,  'GOLD',      1000,  12, 1.5, 3000000),
-    (4,  'PLATINUM',  2000,  14, 1.8, 5000000);
+    (1,  'MEMBER',    0,     7,  1.0, 0,       0),
+    (2,  'SILVER',    500,   10, 1.2, 1500000, 1),
+    (3,  'GOLD',      1000,  12, 1.5, 3000000, 2),
+    (4,  'PLATINUM',  2000,  14, 1.8, 5000000, 3);
 
 -- =====================================================================
 -- TIER BENEFIT (6)
@@ -181,12 +181,12 @@ VALUES
 INSERT IGNORE INTO tier_benefit
 (id, customer_tier_id, benefit_description)
 VALUES
-    (1,  1,  'Tich diem co ban x1 moi luot rua xe'),
-    (2,  2,  'Uu tien dat lich truoc 10 ngay'),
-    (3,  3,  'Giam 5% phi dich vu addon'),
-    (4,  3,  'Tich diem x1.5 moi luot'),
-    (5,  4,  'Mien phi 1 luot danh bong moi quy'),
-    (12, 2,  'Email thong bao khuyen mai som');
+    (1,  1,  'Basic points x1 per wash'),
+    (2,  2,  'Priority booking up to 10 days in advance'),
+    (3,  3,  '5% discount on add-on service fees'),
+    (4,  3,  'Earn points x1.5 per wash'),
+    (5,  4,  'One free polishing service per quarter'),
+    (12, 2,  'Early promotional email notifications');
 
 -- =====================================================================
 -- CUSTOMER (12)
@@ -226,7 +226,7 @@ VALUES
     (6,  6,  '43A-66666', 'Hyundai',  'Grey',   0, NULL, false),
     (7,  7,  '43B-77777', 'VinFast',  'White',  0, NULL, false),
     (8,  8,  '92A-88888', 'Suzuki',   'Blue',   0, NULL, false),
-    (9,  9,  '92B-99999', 'Mitsubishi','Black', 0, NULL, false),
+    (9,  9,  '92B-99999', 'Mitsubishi','Black', 0, NULL, true),
     (10, 10, '65A-10101', 'Nissan',   'Red',    0, NULL, false),
     (11, 11, '15A-11211', 'Audi',     'Black',  0, NULL, false),
     (12, 12, '16A-12121', 'Mercedes', 'White',  0, NULL, false),
@@ -331,9 +331,9 @@ SET c.customer_tier_id = (
 INSERT IGNORE INTO service_category
 (id, category_name, description)
 VALUES
-    (1, 'Add-on',            'Dich vu bo sung them cho goi rua xe'),
-    (2, 'Service Package',   'Goi dich vu rua xe theo lan (Basic/Medium/Premium)'),
-    (3, 'Subscription Plan', 'Goi dang ky thanh vien (Unlimited va Family)');
+    (1, 'Add-on',            'Additional services to supplement wash packages'),
+    (2, 'Service Package',   'Per-visit wash service packages (Basic/Medium/Premium)'),
+    (3, 'Subscription Plan', 'Membership subscription plans (Unlimited and Family)');
 
 -- =====================================================================
 -- ADDON SERVICE (8) — service_category_id = 1 (Add-on)
@@ -356,9 +356,9 @@ VALUES
 INSERT IGNORE INTO service_package
 (id, service_category_id, name, base_price, description, required_slot, is_deleted)
 VALUES
-    (1, 2, 'Basic',   149000, 'Rua xe co ban: rua bot ngoai xe, lam sach mam xe va lau kho tay',                                  1, false),
-    (2, 2, 'Medium',  299000, 'Lam moi toan dien tu trong ra ngoai: bao gom Basic + hut bui noi that va lau kinh',                 2, false),
-    (3, 2, 'Premium', 499000, 'Cham soc va bao ve toi uu: bao gom Medium + xit ceramic boost va chong tia UV cho bang dieu khien', 3, false);
+    (1, 2, 'Basic',   149000, 'Basic wash: exterior foam wash, wheel cleaning, and hand dry',                                  1, false),
+    (2, 2, 'Medium',  299000, 'Complete inside-out refresh: includes Basic + interior vacuum and window cleaning',              2, false),
+    (3, 2, 'Premium', 499000, 'Optimal care and protection: includes Medium + ceramic boost spray and dashboard UV protection', 3, false);
 
 -- =====================================================================
 -- PACKAGE ADDON MAPPING (15)
@@ -449,36 +449,30 @@ VALUES
 INSERT IGNORE INTO promotion
 (id, title, description, start_date, end_date, status, created_at, is_deleted)
 VALUES
-    (1,  'Khuyen mai mua he',                'Giam gia cac goi rua xe mua he', DATE_SUB(CURDATE(), INTERVAL 30 DAY),  DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY), FALSE),
-    (2,  'Giam gia cuoi tuan',                'Uu dai cuoi tuan cho khach hang', DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 50 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 10 DAY), FALSE),
-    (3,  'Uu dai khach hang moi',             'Danh cho khach hang lan dau su dung', DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 5 DAY), FALSE),
-    (4,  'Flash Sale Tet',                    'Khuyen mai dip Tet', DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 180 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
-    (5,  'Sinh nhat cong ty',                  'Ky niem thanh lap cong ty', DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 90 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
-    (6,  'Mung khai truong chi nhanh moi',     'Khuyen mai khai truong', DATE_SUB(CURDATE(), INTERVAL 2 DAY),   DATE_ADD(CURDATE(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY), FALSE),
-    (7,  'Black Friday',                       'Sale lon nhat nam', DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
-    (8,  'Tich diem gap doi',                  'Nhan diem x2 cho moi luot rua xe', DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), FALSE),
-    (9,  'Uu dai mua mua',                     'Khuyen mai mua mua', DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), FALSE),
-    (11, 'Combo gia dinh',                     'Uu dai cho goi gia dinh', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE),
-    (10, 'Chien dich He Ruc Ro', 'Giam gia cuc sau ngay he', DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'ACTIVE', DATE_SUB(NOW(), INTERVAL 7 DAY), FALSE),
--- Chiến dịch 2: Sắp diễn ra (UPCOMING), bắt đầu từ tháng sau
-    (20, 'Chien dich Chao Thu', 'Khuyen mai chao thang moi', DATE_ADD(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 55 DAY), 'UPCOMING', DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE);
+    (1,  'Summer Promotion',                'Discount on wash packages during summer', DATE_SUB(CURDATE(), INTERVAL 30 DAY),  DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY), FALSE),
+    (2,  'Weekend Discount',                'Weekend offer for customers', DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 50 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 10 DAY), FALSE),
+    (3,  'New Customer Offer',             'For customers using the service for the first time', DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 5 DAY), FALSE),
+    (4,  'Flash Sale Tet',                    'Tet holiday promotion', DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 180 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
+    (5,  'Company Anniversary',                  'Celebrating the company founding anniversary', DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 90 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
+    (6,  'New Branch Grand Opening',     'Grand opening promotion', DATE_SUB(CURDATE(), INTERVAL 2 DAY),   DATE_ADD(CURDATE(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY), FALSE),
+    (7,  'Black Friday',                       'Biggest sale of the year', DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
+    (8,  'Double Points',                  'Earn 2x points for every wash', DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), FALSE),
+    (9,  'Rainy Season Offer',                     'Rainy season promotion', DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), FALSE),
+    (11, 'Family Combo',                     'Offer for the family package', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE),
+    (10, 'Vibrant Summer Campaign', 'Deep discount for summer days', DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'ACTIVE', DATE_SUB(NOW(), INTERVAL 7 DAY), FALSE),
+-- Campaign 2: Upcoming, starts next month
+    (20, 'Autumn Welcome Campaign', 'Promotion to welcome the new month', DATE_ADD(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 55 DAY), 'UPCOMING', DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE);
 
 -- =====================================================================
--- PROMOTION TARGET (10)
+-- PROMOTION TARGET (4) - ids khớp với customer_tier: 1=MEMBER, 2=SILVER, 3=GOLD, 4=PLATINUM
 -- =====================================================================
 INSERT IGNORE INTO promotion_target
 (id, target_name, target_code, description)
 VALUES
-    (1,  'All Customers',          'ALL',     'Ap dung cho tat ca khach hang'),
-    (2,  'New Customer',           'NEW',     'Khach hang moi'),
-    (3,  'VIP Customer',           'VIP',     'Khach hang VIP'),
-    (4,  'Member Tier',            'MEMBER',  'Khach hang hang Member'),
-    (5,  'Silver Tier',            'SILVER',  'Khach hang hang Silver'),
-    (6,  'Gold Tier',              'GOLD',    'Khach hang hang Gold'),
-    (7,  'First Time Booking',     'FIRST',   'Lan dau dat lich'),
-    (8,  'Returning Customer',     'RETURN',  'Khach hang quay lai'),
-    (9,  'Birthday Month',         'BDAY',    'Khach hang co sinh nhat trong thang'),
-    (10, 'Referral Program',       'REF',     'Khach hang gioi thieu ban be');
+    (1, 'Member Tier',   'MEMBER',   'Member tier customer'),
+    (2, 'Silver Tier',   'SILVER',   'Silver tier customer'),
+    (3, 'Gold Tier',     'GOLD',     'Gold tier customer'),
+    (4, 'Platinum Tier', 'PLATINUM', 'Platinum tier customer');
 
 -- =====================================================================
 -- PROMOTION TARGET MAPPING (15)
@@ -492,16 +486,16 @@ INSERT IGNORE INTO promotion_station_mapping (promotion_id, station_id) VALUES
 INSERT IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
-    (1, 1), (1, 2),
-    (2, 1),
-    (3, 2), (3, 7),
-    (4, 1),
-    (5, 3),
-    (6, 1), (6, 8),
-    (7, 1),
-    (8, 4), (8, 5), (8, 6),
-    (9, 1),
-    (10, 1);
+    (1, 1), (1, 2), (1, 3), (1, 4),
+    (2, 1), (2, 2), (2, 3), (2, 4),
+    (3, 1), (3, 2), (3, 3), (3, 4),
+    (4, 1), (4, 2), (4, 3), (4, 4),
+    (5, 1), (5, 2), (5, 3), (5, 4),
+    (6, 1), (6, 2), (6, 3), (6, 4),
+    (7, 1), (7, 2), (7, 3), (7, 4),
+    (8, 1), (8, 2), (8, 3),
+    (9, 1), (9, 2), (9, 3), (9, 4),
+    (10, 1), (10, 2), (10, 3), (10, 4);
 
 -- =====================================================================
 -- VOUCHER (12)
@@ -578,7 +572,7 @@ VALUES
 
     (6,  7,  7,  3,  CURDATE(), 'WASHING', 'ADVANCE',  3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 300000, 120000, 420000, 15000, 0),
     (7,  8,  8,  1,  CURDATE(), 'WASHING', 'WALK_IN', 1, NOW(),                           DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, true, 100000, 0,      100000, 0,     0),
-    (8,  9,  9,  2,  CURDATE(), 'CHECK_IN', 'ADVANCE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, true, 220000, 40000,  260000, 0,     0),
+    (8,  9,  9,  2,  CURDATE(), 'CANCELED', 'ADVANCE',  5, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, DATE_SUB(NOW(), INTERVAL 5 MINUTE), true, 220000, 40000,  260000, 0,     0),
     (9,  10, 10, 1,  CURDATE(), 'WASHING',    'ADVANCE',  2, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR),    NULL, NULL, true, 100000, 90000,  190000, 0,     5000),
     (10, 11, 11, 2,  CURDATE(), 'WASHING',    'WALK_IN', 6, NOW(),                           DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, true, 150000, 0,      150000, 0,     0),
 
@@ -613,7 +607,7 @@ INSERT IGNORE INTO booking
 VALUES
     (28, 7,  7,  1, CURDATE(), 'CONFIRMED', 'ADVANCE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0),
     (29, 8,  8,  2, CURDATE(), 'CONFIRMED', 'ADVANCE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  150000, 0, 150000, 0, 0),
-    (30, 9,  9,  3, CURDATE(), 'CONFIRMED', 'ADVANCE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 300000, 0, 300000, 0, 0),
+    (30, 9,  9,  3, CURDATE(), 'CANCELED', 'ADVANCE',  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, DATE_SUB(NOW(), INTERVAL 5 MINUTE), false, 300000, 0, 300000, 0, 0),
     (31, 10, 10, 1, CURDATE(), 'CONFIRMED', 'WALK_IN', NULL, NOW(),                           NULL, NULL, NULL, true,  100000, 0, 100000, 0, 0);
 
 -- =====================================================================
@@ -1938,6 +1932,7 @@ VALUES
     ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
     ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
     ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
+    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3','So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board','NUMBER', true),
     ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
     ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
     ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
@@ -1947,7 +1942,7 @@ VALUES
     -- MAX_VIOLATION_LIMIT: matches the hard-coded VIOLATION_LIMIT=3 in code (docs/seed.md 4.4)
     ('MAX_VIOLATION_LIMIT',         '3',       'Max cancellations/no-shows before a 14-day restriction', 'NUMBER', true),
     ('REFUND_TRANSFER_CONTENT_PREFIX', 'RF',   'Prefix for refund bank-transfer content (RF{refundId})', 'STRING', true),
-    ('REFUND_TRANSFER_CONTENT_TEMPLATE', 'Hoan tien coc booking {booking_id}', 'Template noi dung chuyen khoan hoan tien, thay the {booking_id}', 'STRING', true);
+    ('REFUND_TRANSFER_CONTENT_TEMPLATE', 'Hoan tien coc booking {booking_id}', 'Bank-transfer content template for deposit refunds; replace {booking_id}', 'STRING', true);
 
 -- =====================================================================
 -- ENUM/BR COVERAGE COMPLETION (docs/seed.md §1, §2) — added while
@@ -1982,11 +1977,11 @@ VALUES (26, 9700), (27, 9701), (32, 9702);
 -- refund_amount = DEFAULT_DEPOSIT_AMOUNT = 20000; BINs are real BankEnum values
 -- (TPBank 970423, Vietcombank 970436) so VietQR can render.
 INSERT IGNORE INTO refund
-(id, booking_id, refund_bank_name, refund_bank_bin, refund_account_number, refund_account_holder,
+(id, booking_id, refund_method, refund_bank_name, refund_bank_bin, refund_account_number, refund_account_holder,
  refund_amount, status, refund_note, refunded_at, refunded_by, created_at)
 VALUES
-    (1, 26, 'TPBank',      '970423', '0388123456',    'NGUYEN VAN CHI',  20000, 'PENDING',  NULL,            NULL,                             NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-    (2, 27, 'Vietcombank', '970436', '0071000123456', 'NGUYEN VAN DUNG', 20000, 'REFUNDED', 'FT24123456789', DATE_SUB(NOW(), INTERVAL 1 DAY), 1,    DATE_SUB(NOW(), INTERVAL 2 DAY));
+    (1, 26, 'BANK_TRANSFER', 'TPBank',      '970423', '0388123456',    'NGUYEN VAN CHI',  20000, 'PENDING',  NULL,            NULL,                             NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+    (2, 27, 'BANK_TRANSFER', 'Vietcombank', '970436', '0071000123456', 'NGUYEN VAN DUNG', 20000, 'REFUNDED', 'FT24123456789', DATE_SUB(NOW(), INTERVAL 1 DAY), 1,    DATE_SUB(NOW(), INTERVAL 2 DAY));
 
 -- FINAL invoice (docs/seed.md §1.6) for COMPLETED-unpaid booking 32 (cash checkout input),
 -- + CANCEL invoice for refunded booking 27 (so the REFUND payment below has an invoice to hang on).
@@ -2029,9 +2024,86 @@ VALUES
 INSERT IGNORE INTO queue_ticket
 (id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
 VALUES
-    (18, 1, 8,  'A018', 'WAITING',   DATE_SUB(NOW(), INTERVAL 10 MINUTE), true, 3),
+    (18, 1, 8,  'A018', 'CANCELED',  DATE_SUB(NOW(), INTERVAL 10 MINUTE), true, 3),
     (19, 1, 11, 'A019', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 240 HOUR),  true, 1),
     (20, 1, 15, 'A020', 'CANCELED',  DATE_SUB(NOW(), INTERVAL 6 DAY),     true, 1);
+
+-- =====================================================================
+-- QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO TEST SEED (3:1)
+-- Station 5 (staff user_id=28) and station 6 (staff user_id=29) have no other
+-- queue_ticket rows above, so GET /api/queue for either staff gives a clean,
+-- deterministic board to verify QueueServiceImpl.interleaveByRatio(ratio=3)
+-- AND QueueTicketRepository.findActiveQueueByStation's ORDER BY
+-- (issuedAt ASC -> isBooking DESC -> rank DESC). Each ticket uses a distinct
+-- real customer+vehicle (distinct license plate) with an existing computed
+-- customer_tier, and ranks are deliberately scrambled against issuedAt order
+-- so the test fails loudly if rank is ever mistakenly prioritized over FIFO.
+--
+-- Scenario A (station 5, id 900-909): 8 booking : 2 walk-in, with a same-
+-- issuedAt (55 min ago) rank tie-break pair (904=PLATINUM vs 905=MEMBER).
+-- Expected board order (ticket_number): S501,S502,S503,S504,S505,S506,S507,S509,S508,S510
+--   - S501(PLATINUM) still first, S502(MEMBER) still second -> issuedAt beats rank.
+--   - S505(PLATINUM,55') sorts before S506(MEMBER,55') -> rank tie-break when issuedAt equal.
+--   - 3:1 interleave: [S501,S502,S503]+S504(W), [S505,S506,S507]+S509(W), [S508,S510] leftover.
+--
+-- Scenario B (station 6, id 910-916): 2 booking : 5 walk-in, with a same-
+-- issuedAt (28 min ago) isBooking tie-break pair (911=booking vs 912=walk-in,
+-- both SILVER rank so the tie is isolated to isBooking, not rank).
+-- Expected board order: S601,S602,S603,S604,S605,S606,S607
+--   - S602(booking) sorts before S603(walk-in) despite equal issuedAt -> isBooking tie-break.
+--   - bookings exhaust after the first cycle; remaining walk-ins flow out FIFO,
+--     one per loop iteration, since there are no more bookings to batch with them.
+-- =====================================================================
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    -- Scenario A / station 5 -- customer/vehicle/rank: 7=PLATINUM,10=MEMBER,3=GOLD,11=SILVER,5=PLATINUM,6=MEMBER,1=SILVER,8=PLATINUM,12=SILVER,9=PLATINUM
+    (900, 7,  7,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 70 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (901, 10, 10,  1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 65 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (902, 3,  3,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 60 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (903, 11, 11,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 58 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (904, 5,  5,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 55 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (905, 6,  6,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 55 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (906, 1,  1,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 50 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (907, 8,  8,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (908, 12, 12,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (909, 9,  9,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 35 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    -- Scenario B / station 6 -- customer/vehicle/rank: 2=SILVER,4=SILVER,1(v13)=SILVER,2(v14)=SILVER,3(v15)=GOLD,100=GOLD,101=GOLD
+    (910, 2,   2,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (911, 4,   4,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 28 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (912, 1,   13,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 28 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (913, 2,   14,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 26 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (914, 3,   15,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 24 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (915, 100, 201, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 22 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (916, 101, 203, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0);
+
+INSERT IGNORE INTO queue_ticket
+(id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
+VALUES
+    -- Scenario A: station 5, expect S501,S502,S503,S504,S505,S506,S507,S509,S508,S510
+    (900, 5, 900, 'S501', 'WAITING', DATE_SUB(NOW(), INTERVAL 70 MINUTE), true,  0),
+    (901, 5, 901, 'S502', 'WAITING', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  0),
+    (902, 5, 902, 'S503', 'WAITING', DATE_SUB(NOW(), INTERVAL 60 MINUTE), true,  0),
+    (903, 5, 903, 'S504', 'WAITING', DATE_SUB(NOW(), INTERVAL 58 MINUTE), false, 0),
+    (904, 5, 904, 'S505', 'WAITING', DATE_SUB(NOW(), INTERVAL 55 MINUTE), true,  0),
+    (905, 5, 905, 'S506', 'WAITING', DATE_SUB(NOW(), INTERVAL 55 MINUTE), true,  0),
+    (906, 5, 906, 'S507', 'WAITING', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  0),
+    (907, 5, 907, 'S508', 'WAITING', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  0),
+    (908, 5, 908, 'S509', 'WAITING', DATE_SUB(NOW(), INTERVAL 40 MINUTE), false, 0),
+    (909, 5, 909, 'S510', 'WAITING', DATE_SUB(NOW(), INTERVAL 35 MINUTE), true,  0),
+    -- Scenario B: station 6, expect S601,S602,S603,S604,S605,S606,S607
+    (910, 6, 910, 'S601', 'WAITING', DATE_SUB(NOW(), INTERVAL 30 MINUTE), true,  0),
+    (911, 6, 911, 'S602', 'WAITING', DATE_SUB(NOW(), INTERVAL 28 MINUTE), true,  0),
+    (912, 6, 912, 'S603', 'WAITING', DATE_SUB(NOW(), INTERVAL 28 MINUTE), false, 0),
+    (913, 6, 913, 'S604', 'WAITING', DATE_SUB(NOW(), INTERVAL 26 MINUTE), false, 0),
+    (914, 6, 914, 'S605', 'WAITING', DATE_SUB(NOW(), INTERVAL 24 MINUTE), false, 0),
+    (915, 6, 915, 'S606', 'WAITING', DATE_SUB(NOW(), INTERVAL 22 MINUTE), false, 0),
+    (916, 6, 916, 'S607', 'WAITING', DATE_SUB(NOW(), INTERVAL 20 MINUTE), false, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -2239,3 +2311,19 @@ VALUES
     (600, 9600), (601, 9601), (602, 9602), (603, 9603), (604, 9604), (605, 9605),
     (606, 9606), (607, 9607), (608, 9608), (609, 9609), (610, 9610), (611, 9611), (612, 9612);
 
+INSERT IGNORE INTO system_setting (
+    setting_key,
+    setting_value,
+    category,
+    description,
+    data_type,
+    is_active
+)
+VALUES (
+           'SUBSCRIPTION_TRANSFER_LOCK_DAYS',
+           '14',
+           'Subscription',
+           'Minimum number of days required before transferring a subscription to another vehicle.',
+           'NUMBER',
+           TRUE
+       );

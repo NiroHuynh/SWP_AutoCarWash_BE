@@ -281,20 +281,13 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
             FamilySubscription familySubscription,
             Customer customer) {
         // ===== Idempotent: đã có hóa đơn PENDING đang chờ trên bản ghi mới nhất -> trả lại QR đó =====
-        if (!SubscriptionStatus.PENDING.name()
-                .equals(familySubscription.getStatus())) {
-            return null;
-        }
+        SubscriptionInvoice existing = subscriptionInvoiceRepository
+                .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
+                        familySubscription.getId(), SubscriptionInvoiceStatus.PENDING.name())
+                .orElse(null);
 
-        SubscriptionInvoice invoice =
-                subscriptionInvoiceRepository
-                        .findFirstByFamilySubscription_IdAndStatusOrderByCreatedAtDesc(
-                                familySubscription.getId(),
-                                SubscriptionInvoiceStatus.PENDING.name())
-                        .orElse(null);
-
-        if (invoice != null) {
-            return subscriptionPaymentService.getInvoiceStatus(invoice.getId(), customer.getId());
+        if (existing != null) {
+            return subscriptionPaymentService.getInvoiceStatus(existing.getId(), customer.getId());
         }
         return null;
     }
@@ -313,17 +306,15 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
             FamilySubscription subscription,
             SubscriptionPlan subscriptionPlan) {
 
-        subscription.setEndDate(
-                subscription.getEndDate()
-                        .plusDays(subscriptionPlan.getDurationDays()));
-
-        familySubscriptionRepository.save(subscription);
-
+        // KHÔNG đụng status/endDate ở đây — gói hiện tại phải giữ nguyên ACTIVE trong lúc chờ
+        // thanh toán, và nếu thanh toán fail/timeout thì không mất ngày còn lại. endDate chỉ
+        // được cộng dồn từ ngày hết hạn cũ sau khi thanh toán thành công, xem
+        // SubscriptionRenewalListener.activateFamilySubscription.
         return subscriptionPaymentService.initiatePayment(
-
                 SubscriptionPaymentInitRequest.builder()
                         .customerId(customer.getId())
                         .familySubscriptionId(subscription.getId())
+                        .subscriptionPlanId(subscriptionPlan.getId())
                         .planPrice(subscriptionPlan.getPrice())
                         .planName(subscriptionPlan.getPlanName())
                         .type(SubscriptionInvoiceType.RENEW)
@@ -331,42 +322,19 @@ public class FamilySubscriptionServiceImpl implements FamilySubscriptionService 
     }
 
     private SubscriptionPaymentInitResponse switchSubscriptionPlan(
-
             Customer customer,
-
             FamilyGroup familyGroup,
-
             FamilySubscription currentSubscription,
-
             SubscriptionPlan newPlan) {
 
-        currentSubscription.setStatus(
-                SubscriptionStatus.CANCELED.name());
-
-        currentSubscription.setCanceledAt(
-                LocalDateTime.now());
-
-        familySubscriptionRepository.save(currentSubscription);
-
-        FamilySubscription newSubscription =
-                FamilySubscription.builder()
-                        .familyGroup(familyGroup)
-                        .subscriptionPlan(newPlan)
-                        .status(SubscriptionStatus.PENDING.name())
-                        .startDate(LocalDate.now())
-                        .endDate(
-                                LocalDate.now()
-                                        .plusDays(newPlan.getDurationDays()))
-                        .build();
-
-        newSubscription =
-                familySubscriptionRepository.save(newSubscription);
-
+        // Chưa cancel gói cũ / tạo bản ghi mới ở đây — chỉ initiate payment với subscription hiện tại.
+        // Việc tạo bản ghi FamilySubscription mới (ACTIVE) + cancel bản ghi cũ chỉ thực hiện SAU KHI
+        // thanh toán thành công, xem SubscriptionRenewalListener.activateFamilyPlanSwitch.
         return subscriptionPaymentService.initiatePayment(
-
                 SubscriptionPaymentInitRequest.builder()
                         .customerId(customer.getId())
-                        .familySubscriptionId(newSubscription.getId())
+                        .familySubscriptionId(currentSubscription.getId())
+                        .subscriptionPlanId(newPlan.getId())
                         .planPrice(newPlan.getPrice())
                         .planName(newPlan.getPlanName())
                         .type(SubscriptionInvoiceType.RENEW)

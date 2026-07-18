@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.nimbusds.jose.JOSEException;
 import com.swp.autocarwash.auth.exception.AccountDisabledException;
 import com.swp.autocarwash.common.exception.BaseException;
+import com.swp.autocarwash.common.exception.CustomerRestrictedException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.subscription.entity.enums.PlanType;
@@ -77,6 +78,18 @@ public class GlobalExceptionHandler {
         errors.put("message", "Can not generate token now. Please try again!");
         errors.put("errorCode", "TOKEN_001");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
+    }
+
+    //Hứng lỗi: customer đang bị hạn chế booking do vi phạm -> kèm số ngày còn lại để FE hiển thị
+    @ExceptionHandler(CustomerRestrictedException.class)
+    public ResponseEntity<Map<String, Object>> handleCustomerRestricted(CustomerRestrictedException ex){
+        var errorCode = ex.getErrorCode();
+        Map<String, Object> errorBody = new HashMap<>();
+        errorBody.put("success", "false");
+        errorBody.put("message", errorCode.getMessage());
+        errorBody.put("errorCode", errorCode.getCode());
+        errorBody.put("remainingDays", ex.getRemainingDays());
+        return new ResponseEntity<>(errorBody, errorCode.getStatus());
     }
 
     @ExceptionHandler(BaseException.class)

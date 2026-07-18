@@ -19,9 +19,11 @@ public class RefundResponse {
 
     private Long id;
     private Long bookingId;
+    private String refundMethod;
     private String bankName;
     private String accountNumber;
     private String accountHolder;
+    private Integer pointsAwarded;
     private BigDecimal refundAmount;
     private String status;
     private String bookingStatus;

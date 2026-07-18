@@ -44,4 +44,15 @@ public interface QueueService {
      */
     QueueBoardResponse completeService(Long bookingId, Integer laneId);
 
+    /**
+     * Staff bật/gỡ bảo trì cho 1 làn của station mình — làn MAINTENANCE không được
+     * gán xe mới và không tính vào capacity đặt lịch online của station.
+     *
+     * @param userId      id user (staff) đang đăng nhập, dùng để tra station
+     * @param laneId      id làn cần đổi trạng thái
+     * @param maintenance true = bật bảo trì, false = gỡ bảo trì
+     * @return QueueBoardResponse — board mới sau khi đổi trạng thái làn
+     */
+    QueueBoardResponse setLaneMaintenance(Long userId, Integer laneId, boolean maintenance);
+
 }

@@ -29,7 +29,7 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
             "WHERE q.status IN :statuses " +
-            "ORDER BY q.priorityScore DESC, q.issuedAt ASC")
+            "ORDER BY q.isBooking DESC, q.issuedAt ASC, COALESCE(c.customerTier.queuePriorityWeight, 0) DESC")
     public List<QueueTicket> findQueueTicketListByStatus(@Param("statuses") List<String> statuses);
 
     /**
@@ -54,7 +54,16 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
             "WHERE q.station.id = :stationId AND b.status IN :statuses " +
-            "ORDER BY q.priorityScore DESC, q.issuedAt ASC")
+            "ORDER BY q.issuedAt ASC, q.isBooking DESC, COALESCE(c.customerTier.queuePriorityWeight, 0) DESC")
+    // issuedAt là tiêu chí chính (FIFO) -> có đặt lịch trước -> hạng thành viên
+    //COALESCE(x, 0): nếu x là NULL (khách không có tier — ví dụ walk-in không có tài khoản,
+    // customer null nên customerTier cũng null) thì thay bằng 0
+    // q.issuedAt ASC: tiêu chí ưu tiên số 1, ai đến trước (issued trước) xử lý trước
+    // q.isBooking DESC: chỉ xét khi 2 dòng có cùng issuedAt (hiếm khi trùng),
+    // isBooking là boolean (true/false), true > false khi sort
+    // COALESCE(...) DESC: chỉ xét khi issuedAt và isBooking đều bằng nhau, hạng cao xử lý trước
+
+
     List<QueueTicket> findActiveQueueByStation(
             @Param("stationId") Integer stationId,
             @Param("statuses") List<String> statuses

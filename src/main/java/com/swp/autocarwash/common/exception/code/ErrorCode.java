@@ -95,6 +95,11 @@ public enum ErrorCode {
             "INVOICE_001",
             "Invoice not found"
     ),
+    INVOICE_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "INVOICE_002",
+            "Hóa đơn không thuộc về chi nhánh của bạn."
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",
@@ -129,6 +134,46 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "CUSTOMER_002",
             "Customer not found"
+    ),
+    EMPLOYEE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "EMPLOYEE_001",
+            "Employee not found"
+    ),
+    EMPLOYEE_FIRST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_002",
+            "First name is required"
+    ),
+    EMPLOYEE_LAST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_003",
+            "Last name is required"
+    ),
+    EMPLOYEE_EMAIL_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_004",
+            "Email is required or format is invalid"
+    ),
+    EMPLOYEE_PHONE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_005",
+            "Phone is required or format is invalid"
+    ),
+    EMPLOYEE_BRANCH_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_006",
+            "Branch is required"
+    ),
+    EMPLOYEE_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_007",
+            "Status is required"
+    ),
+    EMPLOYEE_PASSWORD_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_008",
+            "Password is required and must have at least 6 characters"
     ),
     CUSTOMER_TIER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -462,7 +507,7 @@ public enum ErrorCode {
     VEHICLE_HAS_ACTIVE_BOOKING(
             HttpStatus.BAD_REQUEST,
             "VEHICLE_005",
-            "Cannot delete a vehicle with an unfinished booking."
+            "Cannot delete or transfer a vehicle with an unfinished booking."
     ),
     VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
             HttpStatus.BAD_REQUEST,
@@ -508,6 +553,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_003",
             "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
+    ),
+    CANNOT_MAINTAIN_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_004",
+            "Không thể chuyển làn đang rửa xe (WASHING) sang bảo trì."
+    ),
+    LANE_NOT_IN_MAINTENANCE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_005",
+            "Làn này hiện không ở trạng thái bảo trì."
     ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -878,6 +933,21 @@ public enum ErrorCode {
             "INVALID_SUBSCRIPTION_PLAN_TYPE",
             "Invalid subscription plan type."
     ),
+    DUPLICATE_SETTING_KEY(
+            HttpStatus.BAD_REQUEST,
+            "DUPLICATE_SETTING_KEY",
+            "The setting key already exists in the system. Please choose a different key."
+    ),
+    INVALID_SETTING_VALUE(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting value is invalid. Please provide a valid value."
+    ),
+    SETTING_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_SETTING_VALUE",
+            "The setting key does not exist in the system. Please check the key and try again."
+    ),
     REFUND_NOT_ELIGIBLE(
             HttpStatus.BAD_REQUEST,
             "REFUND_001",
@@ -947,6 +1017,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "REFUND_014",
             "Vui lòng nhập mã giao dịch"
+    ),
+    REFUND_METHOD_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_015",
+            "Vui lòng chọn hình thức hoàn cọc"
     ),
     FAMILY_GROUP_NOT_OWNED(
             HttpStatus.FORBIDDEN,
@@ -1049,7 +1124,26 @@ public enum ErrorCode {
             "DASHBOARD_008",
             "Cannot filter by both provinceId and stationId at the same time"
     ),
-    ;
+    VOUCHER_STATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The voucher is not valid for the selected station."
+    ),
+    VOUCHER_OUT_OF_STOCK(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The voucher is out of stock."
+    ),
+    VOUCHER_LIST_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "Voucher list can not be empty"
+    ),
+    DUPLICATE_VOUCHER_CODE(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_004",
+            "Duplicate voucher code"
+    );
 
 
 

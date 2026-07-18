@@ -94,4 +94,27 @@ public class QueueController {
                 ApiResponse.success("Xe đã vào làn rửa", queueService.startService(bookingId, laneId))
         );
     }
+
+    /**
+     * Chức năng: Staff bật/gỡ bảo trì cho 1 làn của station mình — làn MAINTENANCE
+     * không được gán xe mới và không tính vào capacity đặt lịch online.
+     * <p><b>Ví dụ:</b> {@code PATCH /api/queue/lanes/3/maintenance?maintenance=true}</p>
+     *
+     * @return {@code 200 OK} với {@link QueueBoardResponse} — board mới sau khi đổi trạng thái làn
+     */
+    @PatchMapping("/lanes/{laneId}/maintenance")
+    //@PreAuthorize("hasAuthority('STAFF')")
+    public ResponseEntity<ApiResponse<QueueBoardResponse>> setLaneMaintenance(
+            @PathVariable Integer laneId,
+            @RequestParam boolean maintenance,
+            @AuthenticationPrincipal UserCustomerDetails principal) {
+
+        QueueBoardResponse result = queueService.setLaneMaintenance(
+                principal.getUser().getId(), laneId, maintenance);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        maintenance ? "Đã chuyển làn sang bảo trì" : "Đã gỡ bảo trì cho làn",
+                        result)
+        );
+    }
 }

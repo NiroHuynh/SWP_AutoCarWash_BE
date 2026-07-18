@@ -38,6 +38,9 @@ public class SubscriptionPaymentInitRequest {
     /** Id bản ghi FamilySubscription đang chờ thanh toán (nullable nếu gói UNLIMITED). */
     private Long familySubscriptionId;
 
+    /** Id gói đích của lần thanh toán này — dùng khi renew Family đổi sang gói khác (nullable). */
+    private Integer subscriptionPlanId;
+
     /**
      * REGISTER (đăng ký mới) hoặc RENEW (gia hạn) — set bởi caller
      * (SubscriptionPurchaseServiceImpl) để invoice tạo ra khớp với type check
