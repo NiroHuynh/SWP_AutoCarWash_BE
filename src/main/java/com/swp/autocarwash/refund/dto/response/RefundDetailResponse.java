@@ -24,10 +24,13 @@ public class RefundDetailResponse {
     private String customerPhone;
     private String serviceCategoryName;
     private LocalDate appointmentDate;
+    private String refundMethod;
     private BigDecimal refundAmount;
     private String refundBankName;
     private String refundAccountNumber;
     private String refundAccountHolder;
+    /** Chỉ có giá trị khi refundMethod = LOYALTY_POINTS. */
+    private Integer pointsAwarded;
     private String stationName;
     /** PENDING / REFUNDED. */
     private String status;

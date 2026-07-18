@@ -37,17 +37,26 @@ public class Refund {
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private Booking booking;
 
-    @Column(name = "refund_bank_name", nullable = false, length = 100)
+    /** Hình thức hoàn cọc khách chọn (xem {@link com.swp.autocarwash.refund.entity.enums.RefundMethod}). */
+    @Column(name = "refund_method", nullable = false, length = 20)
+    private String refundMethod;
+
+    /** Chỉ có giá trị khi {@code refundMethod = LOYALTY_POINTS} — số điểm đã cộng cho khách. */
+    @Column(name = "points_awarded")
+    private Integer pointsAwarded;
+
+    /** Null khi hoàn cọc bằng điểm tích lũy (không cần thông tin ngân hàng). */
+    @Column(name = "refund_bank_name", length = 100)
     private String refundBankName;
 
     /** BIN của ngân hàng nhận tiền — lưu để đối soát / build QR khi Admin chuyển. */
     @Column(name = "refund_bank_bin", length = 20)
     private String refundBankBin;
 
-    @Column(name = "refund_account_number", nullable = false, length = 30)
+    @Column(name = "refund_account_number", length = 30)
     private String refundAccountNumber;
 
-    @Column(name = "refund_account_holder", nullable = false, length = 100)
+    @Column(name = "refund_account_holder", length = 100)
     private String refundAccountHolder;
 
     /**
