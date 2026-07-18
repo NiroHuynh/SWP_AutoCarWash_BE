@@ -95,6 +95,11 @@ public enum ErrorCode {
             "INVOICE_001",
             "Invoice not found"
     ),
+    INVOICE_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "INVOICE_002",
+            "Hóa đơn không thuộc về chi nhánh của bạn."
+    ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOCATION_001",

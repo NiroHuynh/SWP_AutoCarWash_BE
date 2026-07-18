@@ -70,8 +70,10 @@ public interface PaymentService {
     /**
      * Chức năng: Staff xem chi tiết hóa đơn sau khi checkout (FE-63-US-01 AC02).
      *
-     * @param invoiceId id hóa đơn ({@code BookingInvoice.id})
+     * @param invoiceId       id hóa đơn ({@code BookingInvoice.id})
+     * @param staffStationId  chi nhánh của staff đang đăng nhập, dùng để chặn xem hóa đơn chi nhánh khác;
+     *                        {@code null} nếu người gọi là ADMIN (không giới hạn chi nhánh)
      * @return chi tiết đầy đủ: booking info, danh sách dịch vụ, giảm giá, số tiền thực trả, phương thức thanh toán
      */
-    InvoiceDetailResponse getInvoiceDetail(Long invoiceId);
+    InvoiceDetailResponse getInvoiceDetail(Long invoiceId, Integer staffStationId);
 }
