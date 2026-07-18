@@ -83,7 +83,7 @@ public enum ErrorCode {
     BOOKING_SLOT_ALREADY_USED(
             HttpStatus.CONFLICT,
             "BOOKING_004",
-            "Booking slot already used"
+            "Vehicle has already booking this slot today"
     ),
     BOOKING_INVOICE_ALREADY_EXISTS(
             HttpStatus.CONFLICT,
@@ -1050,6 +1050,79 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "FAMILY_012",
             "Family subscription is still active."
+    ),
+
+    UNAUTHORIZED_ACCESS(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
+    FROM_DATE_AND_TO_DATE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_002",
+            "fromDate and toDate are required"
+    ),
+    GROUP_BY_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_003",
+            "groupBy is required"
+    ),
+    INVALID_GROUP_BY(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_004",
+            "Invalid groupBy value. Must be one of: HOUR, DAY, QUARTER, MONTH"
+    ),
+    HOUR_GROUPBY_REQUIRES_SAME_DATE(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_006",
+            "groupBy HOUR is only valid when fromDate equals toDate"
+    ),
+    CANNOT_FILTER_BY_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_007",
+            "Cannot filter by both provinceId and stationId at the same time"
+    ),
+    DASHBOARD_REQUIRED_FIELDS_MISSING(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_001",
+            "fromDate, toDate and groupBy are required"
+    ),
+    DASHBOARD_INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_002",
+            "fromDate must be before or equal to toDate"
+    ),
+    DASHBOARD_INVALID_GROUP_BY(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_003",
+            "Invalid groupBy value. Must be one of: HOUR, DAY, QUARTER, MONTH"
+    ),
+    DASHBOARD_HOUR_REQUIRES_SAME_DATE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_004",
+            "groupBy HOUR is only valid when fromDate equals toDate"
+    ),
+    DASHBOARD_CANNOT_FILTER_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_005",
+            "Cannot filter by both provinceId and stationId at the same time"
+    ),
+    DASHBOARD_TABLE_REQUIRED_FIELDS(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_006",
+            "fromDate and toDate are required"
+    ),
+
+    DASHBOARD_TABLE_INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_007",
+            "fromDate must be before or equal to toDate"
+    ),
+
+    DASHBOARD_TABLE_CANNOT_FILTER_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_008",
+            "Cannot filter by both provinceId and stationId at the same time"
     ),
     VOUCHER_STATION_INVALID(
             HttpStatus.BAD_REQUEST,

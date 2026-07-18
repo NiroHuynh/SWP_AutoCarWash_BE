@@ -1,6 +1,7 @@
 package com.swp.autocarwash.customer.repository;
 
 import com.swp.autocarwash.customer.entity.Customer;
+import com.swp.autocarwash.system.dto.response.TierStatProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +29,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     /**
      *
      * Chức năng: Tìm kiếm customer theo customer id.
-     *
+     * <p>
      * Quy trình:
      * - Nhận customerId cần tìm kiếm.
      * - Thực hiện truy vấn customer trong database.
@@ -36,9 +37,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
      * - Trả về Optional.empty() nếu không tìm thấy customer.
      *
      * @param id id của customer cần tìm
-     *
      * @return Optional<Customer> chứa customer nếu tồn tại
-     *
      * @author Phong
      * @version 1.0
      */
@@ -102,26 +101,26 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             ORDER BY MAX(b.checkOutAt) DESC
             """,
             countQuery = """
-            SELECT COUNT(DISTINCT c.id) FROM Customer c JOIN c.user u LEFT JOIN c.customerTier ct
-                 LEFT JOIN Booking b ON b.customer = c AND b.status = 'CHECK_OUT'
-                 LEFT JOIN b.slotAllocations bsa
-                 LEFT JOIN bsa.bookingSlot bs
-                 LEFT JOIN bs.station st
-                 LEFT JOIN st.commune cm
-                 LEFT JOIN cm.province pv
-            WHERE u.isDeleted = false
-              AND (:keyword IS NULL
-                   OR CONCAT(c.firstName, ' ', c.lastName) LIKE CONCAT('%', :keyword, '%')
-                   OR u.email LIKE CONCAT('%', :keyword, '%')
-                   OR u.phone LIKE CONCAT('%', :keyword, '%'))
-              AND (:year IS NULL OR YEAR(u.createdAt) = :year)
-              AND (:month IS NULL OR MONTH(u.createdAt) = :month)
-              AND (:tier IS NULL OR ct.tierName = :tier)
-              AND (:active IS NULL OR u.isActive = :active)
-              AND (:stationId IS NULL OR st.id = :stationId)
-              AND (:communeId IS NULL OR cm.id = :communeId)
-              AND (:provinceId IS NULL OR pv.id = :provinceId)
-            """)
+                    SELECT COUNT(DISTINCT c.id) FROM Customer c JOIN c.user u LEFT JOIN c.customerTier ct
+                         LEFT JOIN Booking b ON b.customer = c AND b.status = 'CHECK_OUT'
+                         LEFT JOIN b.slotAllocations bsa
+                         LEFT JOIN bsa.bookingSlot bs
+                         LEFT JOIN bs.station st
+                         LEFT JOIN st.commune cm
+                         LEFT JOIN cm.province pv
+                    WHERE u.isDeleted = false
+                      AND (:keyword IS NULL
+                           OR CONCAT(c.firstName, ' ', c.lastName) LIKE CONCAT('%', :keyword, '%')
+                           OR u.email LIKE CONCAT('%', :keyword, '%')
+                           OR u.phone LIKE CONCAT('%', :keyword, '%'))
+                      AND (:year IS NULL OR YEAR(u.createdAt) = :year)
+                      AND (:month IS NULL OR MONTH(u.createdAt) = :month)
+                      AND (:tier IS NULL OR ct.tierName = :tier)
+                      AND (:active IS NULL OR u.isActive = :active)
+                      AND (:stationId IS NULL OR st.id = :stationId)
+                      AND (:communeId IS NULL OR cm.id = :communeId)
+                      AND (:provinceId IS NULL OR pv.id = :provinceId)
+                    """)
     Page<CustomerListProjection> findCustomerList(
             @Param("keyword") String keyword,
             @Param("year") Integer year,
@@ -175,4 +174,14 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             @Param("communeId") Integer communeId,
             @Param("provinceId") Integer provinceId);
 
+    @Query("""
+            SELECT
+                ct.tierName AS tier,
+                COUNT(c.id) AS customerCount
+            FROM Customer c
+            JOIN c.customerTier ct
+            GROUP BY ct.id, ct.tierName
+            ORDER BY ct.minPoints
+            """)
+    List<TierStatProjection> getTierStatistics();
 }
