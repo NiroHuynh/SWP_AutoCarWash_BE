@@ -83,7 +83,7 @@ public enum ErrorCode {
     BOOKING_SLOT_ALREADY_USED(
             HttpStatus.CONFLICT,
             "BOOKING_004",
-            "Booking slot already used"
+            "Vehicle has already booking this slot today"
     ),
     BOOKING_INVOICE_ALREADY_EXISTS(
             HttpStatus.CONFLICT,

@@ -757,4 +757,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Integer stationId,
             Integer provinceId
     );
+
+    boolean existsByVehicleIdAndServicePackageIdAndAppointmentDateAndStatusNot(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate,
+            String status
+    );
 }

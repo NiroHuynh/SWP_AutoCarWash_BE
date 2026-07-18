@@ -986,15 +986,14 @@ public class BookingServiceImpl implements BookingService {
                 hasSubscription(vehicleId, servicePackageId);
 
 
-//        boolean hasUsedSubscriptionToday =
-//                hasUsedSubscriptionToday(
-//                        vehicleId,
-//                        servicePackageId,
-//                        appointmentDate);
+        boolean hasUsedSubscriptionToday =
+                hasUsedSubscriptionToday(
+                        vehicleId,
+                        servicePackageId,
+                        appointmentDate);
 
 
-//        return hasSubscription && !hasUsedSubscriptionToday;
-        return false;
+        return hasSubscription && !hasUsedSubscriptionToday;
     }
 
     /**
@@ -1104,5 +1103,19 @@ public class BookingServiceImpl implements BookingService {
                 .totalElements(page.getTotalElements())
                 .totalPages(page.getTotalPages())
                 .build();
+    }
+
+    private boolean hasUsedSubscriptionToday(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate appointmentDate
+    ) {
+        return bookingRepository
+                .existsByVehicleIdAndServicePackageIdAndAppointmentDateAndStatusNot(
+                        vehicleId,
+                        servicePackageId,
+                        appointmentDate,
+                        BookingStatus.CANCELED.name()
+                );
     }
 }
