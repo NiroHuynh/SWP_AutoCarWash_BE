@@ -495,9 +495,9 @@ public class BookingServiceImpl implements BookingService {
      * <p>Luồng xử lý:
      * <ol>
      *   <li>Validate booking đang ở trạng thái CHECK_IN — không cho hủy nếu chưa/đã qua trạng thái này.</li>
-     *   <li>Đổi status booking sang CANCELED, ghi nhận canceledAt.</li>
+     *   <li>Đổi status booking sang NO_SHOW, ghi nhận canceledAt.</li>
      *   <li>Giải phóng slot đã đặt (giảm bookedCount).</li>
-     *   <li>Đồng bộ QueueTicket tương ứng sang CANCELED .</li>
+     *   <li>Đồng bộ QueueTicket tương ứng sang NO_SHOW .</li>
      *   <li>Resolve Staff thực hiện hành động từ actingUserId, publish BookingCanceledEvent
      *       để các listener xử lý tịch thu cọc / cộng điểm vi phạm / cập nhật dashboard.</li>
      * </ol>
@@ -514,7 +514,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
         }
 
-        booking.setStatus(BookingStatus.CANCELED.name());
+        booking.setStatus(BookingStatus.NO_SHOW.name());
         booking.setCanceledAt(LocalDateTime.now(ZONE));
         // AC02: booking single-package đã trả cọc online -> hủy do khách bỏ về => KHÔNG hoàn cọc.
         // "Thu 100% cọc" chỉ là ghi nhận tịch thu (không refund). Gói không cọc (isDepositPaid=false)
@@ -534,7 +534,7 @@ public class BookingServiceImpl implements BookingService {
         // Chỉ bắn BookingCanceledEvent khi xe đã check-in trước đó (checkInEmployee != null) —
         // còn CONFIRMED (chưa check-in) không phát sinh event này, vì khách cancel trước khi tới tiệm => employess = null
         queueTicketRepository.findQueueTicketByBookingId(bookingId).ifPresent(ticket -> {
-            ticket.setStatus(QueueStatus.CANCELED.name());
+            ticket.setStatus(QueueStatus.NO_SHOW.name());
             queueTicketRepository.save(ticket);
         });
 
