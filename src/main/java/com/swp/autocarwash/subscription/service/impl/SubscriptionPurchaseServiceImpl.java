@@ -100,6 +100,7 @@ public class SubscriptionPurchaseServiceImpl implements SubscriptionPurchaseServ
                         .planPrice(plan.getPrice())
                         .planName(plan.getPlanName())
                         .unlimitSubscriptionId(subscription.getId())
+                        .type(SubscriptionInvoiceType.REGISTER)
                         .build());
     }
 

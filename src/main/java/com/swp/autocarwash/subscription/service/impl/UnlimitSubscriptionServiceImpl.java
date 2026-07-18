@@ -136,6 +136,7 @@ public class UnlimitSubscriptionServiceImpl implements UnlimitSubscriptionServic
                         .planPrice(subscriptionPlan.getPrice())
                         .status(SubscriptionInvoiceStatus.PENDING.name())
                         .customer(customer)
+                        .type(SubscriptionInvoiceType.REGISTER)
                         .build();
 
         subscriptionInvoiceRepository.save(invoice);
