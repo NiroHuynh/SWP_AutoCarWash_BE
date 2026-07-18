@@ -8,18 +8,22 @@ import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.refund.dto.request.CreateRefundRequest;
 import com.swp.autocarwash.refund.dto.response.AccountLookupResponse;
 import com.swp.autocarwash.refund.dto.response.DepositAmountResponse;
+import com.swp.autocarwash.refund.dto.response.PointsPreviewResponse;
 import com.swp.autocarwash.refund.dto.response.RefundDetailResponse;
 import com.swp.autocarwash.refund.dto.response.RefundListPageResponse;
 import com.swp.autocarwash.refund.dto.response.RefundResponse;
 import com.swp.autocarwash.refund.dto.response.RefundSummaryResponse;
+import com.swp.autocarwash.loyalty.dto.response.PointsConversionPreview;
 import com.swp.autocarwash.refund.entity.Refund;
 import com.swp.autocarwash.refund.entity.enums.BankEnum;
+import com.swp.autocarwash.refund.entity.enums.RefundMethod;
 import com.swp.autocarwash.refund.entity.enums.RefundStatus;
 import com.swp.autocarwash.refund.mapper.RefundMapper;
 import com.swp.autocarwash.refund.port.BookingRefundPort;
 import com.swp.autocarwash.refund.port.VietQrLookupPort;
 import com.swp.autocarwash.refund.repository.RefundRepository;
 import com.swp.autocarwash.refund.service.RefundService;
+import com.swp.autocarwash.loyalty.service.LoyaltyService;
 import com.swp.autocarwash.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -58,6 +62,7 @@ public class RefundServiceImpl implements RefundService {
     private final RefundRepository refundRepository;
     private final RefundMapper refundMapper;
     private final SystemSettingService systemSettingService;
+    private final LoyaltyService loyaltyService;
 
     @Override
     public AccountLookupResponse lookupAccount(String bin, String accountNumber) {
@@ -78,9 +83,6 @@ public class RefundServiceImpl implements RefundService {
     @Override
     @Transactional
     public RefundResponse createRefund(CreateRefundRequest request, Long customerId) {
-        BankEnum bank = BankEnum.fromBin(request.getBankBin())
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_BANK));
-
         // 1. Lấy snapshot booking + kiểm tra ownership (ném Forbidden nếu sai chủ).
         RefundableBookingContract booking =
                 bookingRefundPort.loadRefundableBooking(request.getBookingId(), customerId);
@@ -99,10 +101,31 @@ public class RefundServiceImpl implements RefundService {
             throw new BusinessException(ErrorCode.REFUND_ALREADY_EXISTS);
         }
 
-        // 3. Tạo Refund (snapshot số tiền cọc từ contract).
+        Refund saved = request.getRefundMethod() == RefundMethod.LOYALTY_POINTS
+                ? createLoyaltyPointsRefund(request, customerId, booking)
+                : createBankTransferRefund(request, booking);
+
+        return refundMapper.toResponse(saved);
+    }
+
+    /** Hoàn cọc kiểu cũ: khách chọn ngân hàng, Admin xác nhận chuyển khoản thủ công (US-05). */
+    private Refund createBankTransferRefund(CreateRefundRequest request, RefundableBookingContract booking) {
+        if (request.getBankBin() == null || request.getBankBin().isBlank()) {
+            throw new BusinessException(ErrorCode.REFUND_BANK_REQUIRED);
+        }
+        if (request.getAccountNumber() == null || request.getAccountNumber().isBlank()) {
+            throw new BusinessException(ErrorCode.REFUND_ACCOUNT_NUMBER_REQUIRED);
+        }
+        if (request.getAccountHolder() == null || request.getAccountHolder().isBlank()) {
+            throw new BusinessException(ErrorCode.REFUND_ACCOUNT_HOLDER_REQUIRED);
+        }
+        BankEnum bank = BankEnum.fromBin(request.getBankBin())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_BANK));
+
         Refund refund = Refund.builder()
                 .booking(com.swp.autocarwash.booking.entity.Booking.builder()
                         .id(request.getBookingId()).build())
+                .refundMethod(RefundMethod.BANK_TRANSFER.name())
                 .refundBankName(bank.getDisplayName())
                 .refundBankBin(bank.getBin())
                 .refundAccountNumber(request.getAccountNumber())
@@ -112,10 +135,52 @@ public class RefundServiceImpl implements RefundService {
                 .build();
         Refund saved = refundRepository.save(refund);
 
-        // 4. Chuyển booking sang REFUND_PENDING + giải phóng slot.
+        // Chuyển booking sang REFUND_PENDING + giải phóng slot — chờ Admin duyệt.
         bookingRefundPort.markRefundPending(request.getBookingId());
+        return saved;
+    }
 
-        return refundMapper.toResponse(saved);
+    /** Hoàn cọc bằng cách quy đổi thành điểm tích lũy — cộng điểm ngay, không cần Admin duyệt. */
+    private Refund createLoyaltyPointsRefund(CreateRefundRequest request, Long customerId,
+                                              RefundableBookingContract booking) {
+        int points = loyaltyService.earnPointsFromDepositRefund(
+                customerId, request.getBookingId(), booking.getDepositAmount());
+
+        Refund refund = Refund.builder()
+                .booking(com.swp.autocarwash.booking.entity.Booking.builder()
+                        .id(request.getBookingId()).build())
+                .refundMethod(RefundMethod.LOYALTY_POINTS.name())
+                .pointsAwarded(points)
+                .refundAmount(booking.getDepositAmount())
+                .status(RefundStatus.REFUNDED.name())
+                .refundedAt(Instant.now())
+                .build();
+        Refund saved = refundRepository.save(refund);
+
+        // Đã hoàn xong ngay lập tức — chuyển thẳng booking sang REFUNDED.
+        bookingRefundPort.markRefunded(request.getBookingId());
+        return saved;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PointsPreviewResponse previewPointsConversion(Long bookingId, Long customerId) {
+        RefundableBookingContract booking = bookingRefundPort.loadRefundableBooking(bookingId, customerId);
+
+        if (!Boolean.TRUE.equals(booking.getIsDepositPaid())) {
+            throw new BusinessException(ErrorCode.REFUND_NOT_ELIGIBLE);
+        }
+
+        PointsConversionPreview preview =
+                loyaltyService.previewPointsForAmount(customerId, booking.getDepositAmount());
+
+        return PointsPreviewResponse.builder()
+                .bookingId(bookingId)
+                .depositAmount(booking.getDepositAmount())
+                .tierName(preview.getTierName())
+                .pointMultiple(preview.getPointMultiple())
+                .previewPoints(preview.getPreviewPoints())
+                .build();
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.swp.autocarwash.payment.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingSlot;
+import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.event.BookingCompletedEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
@@ -31,6 +33,7 @@ import com.swp.autocarwash.payment.entity.enums.PaymentType;
 import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.payment.repository.PaymentRepository;
 import com.swp.autocarwash.payment.service.PaymentService;
+import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,6 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.Math.min;
 
@@ -59,12 +63,6 @@ import static java.lang.Math.min;
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
-
-    /**
-     * Số tiền đặt cọc cố định theo BL-BK-00 (khớp với BookingServiceImpl) —
-     * dùng để trừ vào totalAmount khi tính số tiền còn phải thu tại quầy.
-     */
-    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
 
     private final BookingRepository bookingRepository;
     private final BookingInvoiceRepository bookingInvoiceRepository;
@@ -101,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Bước 1: Tính số tiền còn phải thu = tổng tiền - tiền cọc đã trả - điểm sử dụng (nếu có)
         BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
-                ? DEFAULT_DEPOSIT_AMOUNT
+                ? systemSettingService.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT)
                 : BigDecimal.ZERO;
         BigDecimal amountBeforeRedeem = booking.getTotalAmount().subtract(deposit);
         RedeemResult redeem = calculateRedeemAmount(
@@ -400,11 +398,25 @@ public class PaymentServiceImpl implements PaymentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId) {
+    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId, Integer staffStationId) {
         BookingInvoice invoice = bookingInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.INVOICE_NOT_FOUND));
 
         Booking booking = invoice.getBooking();
+
+        if (staffStationId != null) {
+            Integer invoiceStationId = booking == null ? null : booking.getSlotAllocations().stream()
+                    .map(BookingSlotAllocation::getBookingSlot)
+                    .filter(Objects::nonNull)
+                    .map(BookingSlot::getStation)
+                    .filter(Objects::nonNull)
+                    .map(Station::getId)
+                    .findFirst()
+                    .orElse(null);
+            if (!staffStationId.equals(invoiceStationId)) {
+                throw new BusinessException(ErrorCode.INVOICE_ACCESS_DENIED);
+            }
+        }
 
         List<InvoiceDetailResponse.ServiceLine> services = new ArrayList<>();
         if (booking != null && booking.getServicePackage() != null) {

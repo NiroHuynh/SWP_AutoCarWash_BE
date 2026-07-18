@@ -19,7 +19,9 @@ import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import com.swp.autocarwash.wash.entity.WashLane;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
+import com.swp.autocarwash.wash.service.WashLaneService;
 import com.swp.autocarwash.station.repository.StationWashLaneRepository;
+import com.swp.autocarwash.system.service.SystemSettingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,8 @@ public class QueueServiceImpl implements QueueService {
     private final BookingService bookingService;
     private final BookingRepository bookingRepository;
     private final StationWashLaneRepository washLaneRepository;
+    private final WashLaneService washLaneService;
+    private final SystemSettingService systemSettingService;
 
 
     @Override
@@ -150,9 +154,45 @@ public class QueueServiceImpl implements QueueService {
         return buildBoard(stationId);
     }
 
+    @Override
+    @Transactional
+    public QueueBoardResponse setLaneMaintenance(Long userId, Integer laneId, boolean maintenance) {
+        Staff staff = staffRepository.findByUserId(userId);
+        washLaneService.setMaintenance(laneId, staff.getStation().getId(), maintenance);
+        return buildBoard(staff.getStation().getId());
+    }
+    /**
+     * Xen kẽ danh sách ticket đã sort (tier + FIFO) theo nhịp {@code ratio} booking : 1 walk-in,
+     * để board gợi ý staff gọi khách xen kẽ thay vì luôn ưu tiên tuyệt đối booking trước walk-in.
+     * Giữ nguyên thứ tự nội bộ của từng nhóm; nhóm nào cạn trước thì nhóm còn lại tiếp tục trôi ra bình thường.
+     */
+    private List<QueueTicket> interleaveByRatio(List<QueueTicket> sorted, int ratio) {
+        int step = ratio > 0 ? ratio : 1;
+
+        List<QueueTicket> bookings = sorted.stream()
+                .filter(t -> Boolean.TRUE.equals(t.getIsBooking())).toList();
+        List<QueueTicket> walkins = sorted.stream()
+                .filter(t -> !Boolean.TRUE.equals(t.getIsBooking())).toList();
+
+        List<QueueTicket> result = new ArrayList<>(sorted.size());
+        int bi = 0, wi = 0;
+        while (bi < bookings.size() || wi < walkins.size()) {
+            for (int i = 0; i < step && bi < bookings.size(); i++) {
+                result.add(bookings.get(bi++));
+            }
+            if (wi < walkins.size()) {
+                result.add(walkins.get(wi++));
+            }
+        }
+        return result;
+    }
+
+// Load toàn bộ queue ticket của station đó
     private QueueBoardResponse buildBoard(Integer stationId) {
-        List<QueueTicketResponse> queue = queueTicketRepository
-                .findActiveQueueByStation(stationId, ACTIVE_STATUSES)
+        List<QueueTicket> rawOrder = queueTicketRepository
+                .findActiveQueueByStation(stationId, ACTIVE_STATUSES);
+        int ratio = systemSettingService.getQueueBookingWalkinInterleaveRatio();
+        List<QueueTicketResponse> queue = interleaveByRatio(rawOrder, ratio)
                 .stream().map(queueMapper::toResponse).toList();
 
         long availableLaneCount = washLaneRepository
@@ -171,9 +211,13 @@ public class QueueServiceImpl implements QueueService {
                     .build());
         }
 
+        long activeLaneCount = allLanes.stream()
+                .filter(l -> !WashLaneStatus.MAINTENANCE.name().equals(l.getStatus()))
+                .count();
+
         return QueueBoardResponse.builder()
                 .availableLaneCount(availableLaneCount)
-                .activeLaneCount(lanes.size())
+                .activeLaneCount(activeLaneCount)
                 .lanes(lanes)
                 .queue(queue)
                 .build();

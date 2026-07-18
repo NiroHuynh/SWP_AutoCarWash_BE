@@ -28,6 +28,7 @@ import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.customer.service.customer.CustomerService;
 import com.swp.autocarwash.customer.validator.CustomerValidator;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
+import com.swp.autocarwash.loyalty.entity.enums.TierStatus;
 import com.swp.autocarwash.loyalty.repository.CustomerTierRepository;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
 import com.swp.autocarwash.subscription.entity.UnlimitSubscription;
@@ -183,23 +184,39 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
 
-        // 2. Tính toán điểm Loyalty và phân hạng thứ bậc (Tier) kế tiếp
-        String currentTierName = customer.getCustomerTier() != null ? customer.getCustomerTier().getTierName() : "Member";
-        int currentPoints = customer.getLoyaltyBalance().getTotalPoints()!= null ? customer.getLoyaltyBalance().getTotalPoints() : 0;
+        // =========================================================================
+        // 2. TÍNH TOÁN ĐIỂM LOYALTY VÀ PHÂN HẠNG THỨ BẬC (TIER) KẾ TIẾP
+        // =========================================================================
+
+        // 2.1. Lấy thông tin hạng hiện tại
+        String currentTierName = TierStatus.MEMBER.name();
+        int currentTierMinPoints = 0; // Điểm sàn của hạng hiện tại để làm mốc tìm hạng tiếp theo
+
+        if (customer.getCustomerTier() != null) {
+            currentTierName = customer.getCustomerTier().getTierName();
+            currentTierMinPoints = customer.getCustomerTier().getMinPoints(); // Lấy minPoints của hạng hiện tại
+        }
+
+        // 2.2. Lấy số điểm tích lũy hiện có của khách hàng
+        int currentPoints = (customer.getLoyaltyBalance() != null && customer.getLoyaltyBalance().getTotalPoints() != null)
+                ? customer.getLoyaltyBalance().getTotalPoints() : 0;
 
         String nextTierName = null;
         Integer nextTierMinPoints = null;
         Integer pointsToNextTier = null;
 
-        // Dùng cơ chế hàm Top 1 (Lấy dòng đầu) để tìm mốc điểm hạng tiếp theo
+        //CẬP NHẬT CHÍNH XÁC: Tìm hạng tiếp theo có minPoints lớn hơn minPoints của hạng HIỆN TẠI
+        Optional<CustomerTier> nextTierOpt = customerTierRepository.findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(currentTierMinPoints);
 
-        Optional<CustomerTier> nextTierOpt = customerTierRepository.findTop1ByMinPointsGreaterThanOrderByMinPointsAsc(currentPoints);
         if (nextTierOpt.isPresent()) {
             CustomerTier nextTier = nextTierOpt.get();
             nextTierName = nextTier.getTierName();
             nextTierMinPoints = nextTier.getMinPoints();
-            pointsToNextTier = nextTierMinPoints - currentPoints;
-        } // Nếu đạt đỉnh Rank (Diamond/Platinum cao nhất) -> Các trường tự động giữ null đúng chuẩn AC
+
+            //CẬP NHẬT CHÍNH XÁC: Số điểm cần nạp thêm = Điểm sàn hạng mới - Điểm hiện có của khách
+            int pointsNeeded = nextTierMinPoints - currentPoints;
+            pointsToNextTier = Math.max(0, pointsNeeded); // Đảm bảo không bao giờ bị âm
+        }
 
         CustomerProfileResponse.TierInfo tierInfo = CustomerProfileResponse.TierInfo.builder()
                 .currentTierName(currentTierName)
@@ -208,7 +225,6 @@ public class CustomerServiceImpl implements CustomerService {
                 .nextTierMinPoints(nextTierMinPoints)
                 .pointsToNextTier(pointsToNextTier)
                 .build();
-
         // 3. Xử lý danh sách phương tiện sở hữu & Quét chéo gói Membership ACTIVE
         List<Vehicle> dbVehicles = vehicleRepository.findByCustomerIdAndIsDeletedFalse(customerId);
         List<CustomerProfileResponse.VehicleInfo> vehicleDTOs = new ArrayList<>();
