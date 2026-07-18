@@ -4,5 +4,6 @@ public enum QueueStatus {
     WAITING,
     COMPLETED,
     CANCELED,
-    WASHING
+    WASHING,
+    NO_SHOW
 }
