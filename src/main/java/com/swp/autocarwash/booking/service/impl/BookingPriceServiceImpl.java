@@ -68,17 +68,25 @@ public class BookingPriceServiceImpl implements BookingPriceService {
 
         validator.validate(request);
 
-        // 1. Tính giá gốc Service Package và Addon Service
+// 1. Tính giá gốc Service Package và Addon Service
         BigDecimal servicePrice = getServicePackagePrice(
                 request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
         BigDecimal addonPrice = getAddonServicePrice(request);
-        BigDecimal subTotal = servicePrice.add(addonPrice);
+
+//  BƯỚC 1: Kiểm tra xem xe có sở hữu gói cước (Unlimited/Family) còn hạn trong ngày này không
+        boolean isVehicleBookingOnDateAndHasSubscription =
+                isVehicleBookingOnDateAndHasSubscription(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
+
+//BƯỚC 2: TÍNH TOÁN LẠI SUB-TOTAL THỰC TẾ DỰA TRÊN QUYỀN LỢI GÓI CƯỚC
+// Nếu có gói cước, giá gói gốc coi như bằng 0đ, SubTotal chỉ tính tiền của Addon.
+        BigDecimal actualServicePrice = isVehicleBookingOnDateAndHasSubscription ? BigDecimal.ZERO : servicePrice;
+        BigDecimal subTotal = actualServicePrice.add(addonPrice); //Bây giờ SubTotal sẽ là 0 + 100k = 100k!
 
         LocalDate appDate = LocalDate.parse(request.getAppointmentDate());
         LocalDateTime appDateTime = appDate.atStartOfDay();
 
-        // 2. Lấy thông tin khách hàng và Hạng thành viên (Rank) để đối soát Chế độ 1
+// 2. Lấy thông tin khách hàng và Hạng thành viên (Rank) để đối soát Chế độ 1
         Long userId = getCurrentUserId();
 
         Customer customer = customerRepository.findByUserId(userId);
@@ -87,18 +95,18 @@ public class BookingPriceServiceImpl implements BookingPriceService {
         }
         Integer customerTierId = customer.getCustomerTier().getId();
 
-        // Khởi tạo các biến chứa kết quả Voucher sẽ áp dụng
+// Khởi tạo các biến chứa kết quả Voucher sẽ áp dụng
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher appliedVoucher = null;
         boolean valid = false;
         Integer percent = null;
         String finalAppliedCode = null;
 
-        // =========================================================================
-        // HỆ THỐNG GÁC CỔNG VOUCHER ĐA CHẾ ĐỘ
-        // =========================================================================
+// =========================================================================
+// HỆ THỐNG GÁC CỔNG VOUCHER ĐA CHẾ ĐỘ (Giữ nguyên logic quét của em)
+// =========================================================================
 
-        // CONFIG 1: Tự động quét Chế độ 1 (Giảm trực tiếp theo Chi nhánh + Hạng thành viên)
+// CONFIG 1: Tự động quét Chế độ 1
         List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
 
         if (activePromos != null && !activePromos.isEmpty()) {
@@ -113,7 +121,7 @@ public class BookingPriceServiceImpl implements BookingPriceService {
                         continue;
                     }
 
-                    // Chế độ quét tự động: Nếu không đủ tiền tối thiểu thì chỉ đơn giản là bỏ qua để duyệt mã khác
+                    // Chế độ quét tự động dựa trên subTotal mới đã tối ưu
                     boolean isMinOrderValid = subTotal.compareTo(tempVoucher.getMinOrderValue()) >= 0;
                     if (!isMinOrderValid) {
                         continue;
@@ -139,33 +147,28 @@ public class BookingPriceServiceImpl implements BookingPriceService {
             if (bestVoucher != null) {
                 appliedVoucher = bestVoucher;
                 finalAppliedCode = bestVoucher.getVoucherCode();
-                valid = true; // Quét tự động thành công -> Mặc định hợp lệ
+                valid = true;
             }
         }
-        // CONFIG 2 & 3: Khách tự nhập/chọn mã -> Cần check cực kỳ nghiêm ngặt và quăng lỗi riêng biệt
+// CONFIG 2 & 3: Khách tự nhập/chọn mã
         else if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             String inputCode = request.getVoucherCode().trim().toUpperCase();
 
-            // 1. Check tồn tại & trạng thái xóa
             Voucher voucher = voucherRepository.findByVoucherCodeAndIsDeletedFalse(inputCode)
                     .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_NOT_FOUND));
 
-            // 2. Check trạng thái hoạt động (ACTIVE)
             if (!"ACTIVE".equalsIgnoreCase(voucher.getStatus())) {
-                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND); // Hoặc mã lỗi cụ thể tùy bạn
+                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND);
             }
 
-            // 3. Check thời hạn hiệu lực (StartDate và ExpiryDate)
             if (appDateTime.isBefore(voucher.getStartDate()) || appDateTime.isAfter(voucher.getExpiryDate())) {
                 throw new BusinessException(ErrorCode.VOUCHER_EXPIRED);
             }
 
-            // 4. Check giới hạn số lượt sử dụng toàn hệ thống
             if (voucher.getUsedCount() >= voucher.getUsageLimit()) {
                 throw new BusinessException(ErrorCode.VOUCHER_OUT_OF_STOCK);
             }
 
-            // 5. Check tính hợp lệ của chi nhánh áp dụng (Station)
             if (voucher.getPromotion() != null) {
                 List<PromotionStationMapping> mappings = promotionStationMappingRepository.findById_PromotionId(voucher.getPromotion().getId());
                 boolean isStationValid = mappings.stream().anyMatch(m -> m.getId().getStationId().equals(request.getStationId()));
@@ -174,20 +177,19 @@ public class BookingPriceServiceImpl implements BookingPriceService {
                 }
             }
 
-            // 6. Check giá trị đơn hàng tối thiểu
+            // Check giá trị đơn hàng tối thiểu dựa trên subTotal mới
             if (subTotal.compareTo(voucher.getMinOrderValue()) < 0) {
                 throw new BusinessException(ErrorCode.VOUCHER_NOT_APPLICABLE);
             }
 
-            // Nếu vượt qua toàn bộ 6 chốt chặn cứng trên:
             appliedVoucher = voucher;
             finalAppliedCode = voucher.getVoucherCode();
-            valid = true; // Lúc này chắc chắn hợp lệ
+            valid = true;
         }
 
-        // =========================================================================
-        // LOGIC TÍNH KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ
-        // =========================================================================
+// =========================================================================
+// LOGIC TÍNH KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ
+// =========================================================================
         if (appliedVoucher != null && valid) {
             percent = appliedVoucher.getDiscountPercentage();
             if (percent != null) {
@@ -205,25 +207,24 @@ public class BookingPriceServiceImpl implements BookingPriceService {
             }
         }
 
+//BƯỚC 3: Tổng tiền thanh toán cuối cùng = subTotal (đã xử lý gói cước) trừ đi tiền giảm giá từ Voucher
         BigDecimal finalTotal = subTotal.subtract(discountAmount);
+// Ví dụ: 100k (Addon) - 50k (Voucher) = 50k chuẩn bài!
 
-        boolean isVehicleBookingOnDateAndHasSubscription =
-                isVehicleBookingOnDateAndHasSubscription(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
-
-        // 3. Đóng gói dữ liệu trả về cho Frontend (Chỉ chạy đến đây khi không dính Exception nào)
+// 3. Đóng gói dữ liệu trả về cho Frontend
         return BookingPricePreviewResponse.builder()
                 .currency("VND")
                 .isVehicleBookingOnDateAndHasSubscription(isVehicleBookingOnDateAndHasSubscription)
                 .breakdown(BookingPricePreviewResponse.PriceBreakdown.builder()
-                        .servicePrice(servicePrice)
-                        .addonPrice(addonPrice)
-                        .subTotal(subTotal)
+                        .servicePrice(servicePrice) // FE vẫn thấy giá gốc của gói là 200k để hiển thị gạch ngang
+                        .addonPrice(addonPrice)     // FE thấy tiền addon là 100k
+                        .subTotal(isVehicleBookingOnDateAndHasSubscription ? addonPrice : servicePrice.add(addonPrice)) // Đồng bộ hiển thị SubTotal trên UI cho khớp dòng tiền
                         .voucherCode(finalAppliedCode)
                         .voucherDiscount(discountAmount)
-                        .finalTotal(finalTotal)
+                        .finalTotal(finalTotal) // Trả về 50k xịn sò
                         .build())
                 .appliedVoucher(BookingPricePreviewResponse.AppliedVoucher.builder()
-                        .valid(valid) // Trả ra true
+                        .valid(valid)
                         .discountPercentage(percent)
                         .build())
                 .build();
