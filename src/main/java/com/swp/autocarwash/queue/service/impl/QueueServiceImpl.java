@@ -19,6 +19,7 @@ import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import com.swp.autocarwash.wash.entity.WashLane;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
+import com.swp.autocarwash.wash.service.WashLaneService;
 import com.swp.autocarwash.station.repository.StationWashLaneRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class QueueServiceImpl implements QueueService {
     private final BookingService bookingService;
     private final BookingRepository bookingRepository;
     private final StationWashLaneRepository washLaneRepository;
+    private final WashLaneService washLaneService;
 
 
     @Override
@@ -150,6 +152,14 @@ public class QueueServiceImpl implements QueueService {
         return buildBoard(stationId);
     }
 
+    @Override
+    @Transactional
+    public QueueBoardResponse setLaneMaintenance(Long userId, Integer laneId, boolean maintenance) {
+        Staff staff = staffRepository.findByUserId(userId);
+        washLaneService.setMaintenance(laneId, staff.getStation().getId(), maintenance);
+        return buildBoard(staff.getStation().getId());
+    }
+
     private QueueBoardResponse buildBoard(Integer stationId) {
         List<QueueTicketResponse> queue = queueTicketRepository
                 .findActiveQueueByStation(stationId, ACTIVE_STATUSES)
@@ -171,9 +181,13 @@ public class QueueServiceImpl implements QueueService {
                     .build());
         }
 
+        long activeLaneCount = allLanes.stream()
+                .filter(l -> !WashLaneStatus.MAINTENANCE.name().equals(l.getStatus()))
+                .count();
+
         return QueueBoardResponse.builder()
                 .availableLaneCount(availableLaneCount)
-                .activeLaneCount(lanes.size())
+                .activeLaneCount(activeLaneCount)
                 .lanes(lanes)
                 .queue(queue)
                 .build();
