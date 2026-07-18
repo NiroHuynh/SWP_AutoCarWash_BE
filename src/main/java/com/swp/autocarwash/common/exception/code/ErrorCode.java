@@ -549,6 +549,16 @@ public enum ErrorCode {
             "WASH_LANE_003",
             "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
     ),
+    CANNOT_MAINTAIN_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_004",
+            "Không thể chuyển làn đang rửa xe (WASHING) sang bảo trì."
+    ),
+    LANE_NOT_IN_MAINTENANCE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_005",
+            "Làn này hiện không ở trạng thái bảo trì."
+    ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "LOYALTY_002",
@@ -1002,6 +1012,11 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "REFUND_014",
             "Vui lòng nhập mã giao dịch"
+    ),
+    REFUND_METHOD_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_015",
+            "Vui lòng chọn hình thức hoàn cọc"
     ),
     FAMILY_GROUP_NOT_OWNED(
             HttpStatus.FORBIDDEN,

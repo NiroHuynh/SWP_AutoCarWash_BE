@@ -8,6 +8,7 @@ import com.swp.autocarwash.refund.dto.response.RefundDetailResponse;
 import com.swp.autocarwash.refund.dto.response.RefundListItemResponse;
 import com.swp.autocarwash.refund.dto.response.RefundResponse;
 import com.swp.autocarwash.refund.entity.Refund;
+import com.swp.autocarwash.refund.entity.enums.RefundMethod;
 import com.swp.autocarwash.station.entity.Station;
 import org.springframework.stereotype.Component;
 
@@ -21,15 +22,20 @@ import org.springframework.stereotype.Component;
 public class RefundMapper {
 
     public RefundResponse toResponse(Refund refund) {
+        boolean isLoyaltyPoints = RefundMethod.LOYALTY_POINTS.name().equals(refund.getRefundMethod());
         return RefundResponse.builder()
                 .id(refund.getId())
                 .bookingId(refund.getBooking().getId())
+                .refundMethod(refund.getRefundMethod())
                 .bankName(refund.getRefundBankName())
                 .accountNumber(refund.getRefundAccountNumber())
                 .accountHolder(refund.getRefundAccountHolder())
+                .pointsAwarded(refund.getPointsAwarded())
                 .refundAmount(refund.getRefundAmount())
                 .status(refund.getStatus())
-                .bookingStatus(BookingStatus.REFUND_PENDING.name())
+                .bookingStatus(isLoyaltyPoints
+                        ? BookingStatus.REFUNDED.name()
+                        : BookingStatus.REFUND_PENDING.name())
                 .createdAt(refund.getCreatedAt())
                 .build();
     }
@@ -43,6 +49,7 @@ public class RefundMapper {
                 .customerName(customer != null ? customer.getFullName() : null)
                 .customerPhone(customer != null && customer.getUser() != null ? customer.getUser().getPhone() : null)
                 .stationName(resolveStationName(booking))
+                .refundMethod(refund.getRefundMethod())
                 .refundAmount(refund.getRefundAmount())
                 .status(refund.getStatus())
                 .createdAt(refund.getCreatedAt())
@@ -61,10 +68,12 @@ public class RefundMapper {
                 .serviceCategoryName(booking.getServicePackage() != null
                         ? booking.getServicePackage().getServiceCategory().getCategoryName() : null)
                 .appointmentDate(booking.getAppointmentDate())
+                .refundMethod(refund.getRefundMethod())
                 .refundAmount(refund.getRefundAmount())
                 .refundBankName(refund.getRefundBankName())
                 .refundAccountNumber(refund.getRefundAccountNumber())
                 .refundAccountHolder(refund.getRefundAccountHolder())
+                .pointsAwarded(refund.getPointsAwarded())
                 .stationName(resolveStationName(booking))
                 .status(refund.getStatus())
                 .qrImageUrl(qrImageUrl)
