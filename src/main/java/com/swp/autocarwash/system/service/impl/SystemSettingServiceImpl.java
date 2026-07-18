@@ -58,6 +58,8 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     public static final String REFUND_TRANSFER_CONTENT_TEMPLATE = "REFUND_TRANSFER_CONTENT_TEMPLATE";
     /** Key cau hinh diem uu tien cong them cho queue_ticket tao tu booking (uu tien hon khach vang lai). */
     public static final String QUEUE_PRIORITY_BOOKING_WEIGHT = "QUEUE_PRIORITY_BOOKING_WEIGHT";
+    /** Key cau hinh so ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board. */
+    public static final String QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO = "QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO";
     private final SystemSettingRepository systemSettingRepository;
 
     /**
@@ -116,6 +118,17 @@ public class SystemSettingServiceImpl implements SystemSettingService {
                 -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
         try{
             return Integer.valueOf(weight);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
+
+    @Override
+    public Integer getQueueBookingWalkinInterleaveRatio() {
+        String ratio = systemSettingRepository.findBySettingKey(QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(ratio);
         }catch(NumberFormatException e ){
             throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
         }
