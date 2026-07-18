@@ -1040,6 +1040,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_002",
             "The voucher is out of stock."
+    ),
+    VOUCHER_LIST_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "Voucher list can not be empty"
+    ),
+    DUPLICATE_VOUCHER_CODE(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_004",
+            "Duplicate voucher code"
     );
 
 
