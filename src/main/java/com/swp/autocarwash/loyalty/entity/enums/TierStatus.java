@@ -4,5 +4,5 @@ public enum TierStatus {
     MEMBER,
     SILVER,
     GOLD,
-    PREMIUM
+    PLATINUM
 }

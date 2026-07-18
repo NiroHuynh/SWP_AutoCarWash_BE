@@ -29,7 +29,7 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
             "WHERE q.status IN :statuses " +
-            "ORDER BY COALESCE(c.customerTier.queuePriorityWeight, 0) DESC, q.isBooking DESC, q.issuedAt ASC")
+            "ORDER BY q.isBooking DESC, q.issuedAt ASC, COALESCE(c.customerTier.queuePriorityWeight, 0) DESC")
     public List<QueueTicket> findQueueTicketListByStatus(@Param("statuses") List<String> statuses);
 
     /**
@@ -46,31 +46,22 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
      * @param statuses  danh sách status được coi là "đang active"
      * @return danh sách QueueTicket thuộc station, đã eager-fetch, sắp theo độ ưu tiên
      */
-    @Query("""
-    SELECT DISTINCT q
-    FROM QueueTicket q
-        LEFT JOIN FETCH q.booking b
-        LEFT JOIN FETCH b.vehicle
-        LEFT JOIN FETCH b.servicePackage
-        LEFT JOIN FETCH b.customer c
-        LEFT JOIN FETCH c.customerTier
-        LEFT JOIN FETCH q.station
-    WHERE q.station.id = :stationId
-      AND b.status IN :statuses
-    ORDER BY
-        COALESCE(q.isBooking, false) DESC,
-        q.issuedAt ASC,
-        COALESCE(c.customerTier.queuePriorityWeight, 0) DESC
-    """)
-
-    // Hạng là tiêu chí chính -> có đặt lịch trước -> FIFO
-    // cùng hạng+cùng loại thì FIFO theo issuedAt.
+    @Query("SELECT DISTINCT q FROM QueueTicket q " +
+            "LEFT JOIN FETCH q.booking b " +
+            "LEFT JOIN FETCH b.vehicle " +
+            "LEFT JOIN FETCH b.servicePackage " +
+            "LEFT JOIN FETCH b.customer c " +
+            "LEFT JOIN FETCH c.customerTier " +
+            "LEFT JOIN FETCH q.station " +
+            "WHERE q.station.id = :stationId AND b.status IN :statuses " +
+            "ORDER BY q.issuedAt ASC, q.isBooking DESC, COALESCE(c.customerTier.queuePriorityWeight, 0) DESC")
+    // issuedAt là tiêu chí chính (FIFO) -> có đặt lịch trước -> hạng thành viên
     //COALESCE(x, 0): nếu x là NULL (khách không có tier — ví dụ walk-in không có tài khoản,
     // customer null nên customerTier cũng null) thì thay bằng 0
-    // q.isBooking DESC: Chỉ được xét đến khi 2 dòng có cùng giá trị khóa 1 (cùng hạng, hoặc cùng "không có hạng" = 0),
+    // q.issuedAt ASC: tiêu chí ưu tiên số 1, ai đến trước (issued trước) xử lý trước
+    // q.isBooking DESC: chỉ xét khi 2 dòng có cùng issuedAt (hiếm khi trùng),
     // isBooking là boolean (true/false), true > false khi sort
-    //q.issuedAt ASC: Chỉ được xét đến khi cả khóa 1 và khóa 2 đều bằng nhau (cùng hạng, cùng loại booking/walk-in)
-    //nguyên tắc FIFO "ai đến trước xử lý trước"
+    // COALESCE(...) DESC: chỉ xét khi issuedAt và isBooking đều bằng nhau, hạng cao xử lý trước
 
 
     List<QueueTicket> findActiveQueueByStation(
