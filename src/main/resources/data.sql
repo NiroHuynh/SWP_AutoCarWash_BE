@@ -1982,11 +1982,11 @@ VALUES (26, 9700), (27, 9701), (32, 9702);
 -- refund_amount = DEFAULT_DEPOSIT_AMOUNT = 20000; BINs are real BankEnum values
 -- (TPBank 970423, Vietcombank 970436) so VietQR can render.
 INSERT IGNORE INTO refund
-(id, booking_id, refund_bank_name, refund_bank_bin, refund_account_number, refund_account_holder,
+(id, booking_id, refund_method, refund_bank_name, refund_bank_bin, refund_account_number, refund_account_holder,
  refund_amount, status, refund_note, refunded_at, refunded_by, created_at)
 VALUES
-    (1, 26, 'TPBank',      '970423', '0388123456',    'NGUYEN VAN CHI',  20000, 'PENDING',  NULL,            NULL,                             NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-    (2, 27, 'Vietcombank', '970436', '0071000123456', 'NGUYEN VAN DUNG', 20000, 'REFUNDED', 'FT24123456789', DATE_SUB(NOW(), INTERVAL 1 DAY), 1,    DATE_SUB(NOW(), INTERVAL 2 DAY));
+    (1, 26, 'BANK_TRANSFER', 'TPBank',      '970423', '0388123456',    'NGUYEN VAN CHI',  20000, 'PENDING',  NULL,            NULL,                             NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+    (2, 27, 'BANK_TRANSFER', 'Vietcombank', '970436', '0071000123456', 'NGUYEN VAN DUNG', 20000, 'REFUNDED', 'FT24123456789', DATE_SUB(NOW(), INTERVAL 1 DAY), 1,    DATE_SUB(NOW(), INTERVAL 2 DAY));
 
 -- FINAL invoice (docs/seed.md §1.6) for COMPLETED-unpaid booking 32 (cash checkout input),
 -- + CANCEL invoice for refunded booking 27 (so the REFUND payment below has an invoice to hang on).
