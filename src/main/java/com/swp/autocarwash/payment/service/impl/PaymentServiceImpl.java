@@ -1,6 +1,8 @@
 package com.swp.autocarwash.payment.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingSlot;
+import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.event.BookingCompletedEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
@@ -31,6 +33,7 @@ import com.swp.autocarwash.payment.entity.enums.PaymentType;
 import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.payment.repository.PaymentRepository;
 import com.swp.autocarwash.payment.service.PaymentService;
+import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,6 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.Math.min;
 
@@ -394,11 +398,25 @@ public class PaymentServiceImpl implements PaymentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId) {
+    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId, Integer staffStationId) {
         BookingInvoice invoice = bookingInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.INVOICE_NOT_FOUND));
 
         Booking booking = invoice.getBooking();
+
+        if (staffStationId != null) {
+            Integer invoiceStationId = booking == null ? null : booking.getSlotAllocations().stream()
+                    .map(BookingSlotAllocation::getBookingSlot)
+                    .filter(Objects::nonNull)
+                    .map(BookingSlot::getStation)
+                    .filter(Objects::nonNull)
+                    .map(Station::getId)
+                    .findFirst()
+                    .orElse(null);
+            if (!staffStationId.equals(invoiceStationId)) {
+                throw new BusinessException(ErrorCode.INVOICE_ACCESS_DENIED);
+            }
+        }
 
         List<InvoiceDetailResponse.ServiceLine> services = new ArrayList<>();
         if (booking != null && booking.getServicePackage() != null) {
