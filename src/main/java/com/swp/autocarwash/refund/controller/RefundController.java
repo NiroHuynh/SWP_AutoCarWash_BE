@@ -11,6 +11,7 @@ import com.swp.autocarwash.refund.dto.request.CreateRefundRequest;
 import com.swp.autocarwash.refund.dto.response.AccountLookupResponse;
 import com.swp.autocarwash.refund.dto.response.BankOptionResponse;
 import com.swp.autocarwash.refund.dto.response.DepositAmountResponse;
+import com.swp.autocarwash.refund.dto.response.PointsPreviewResponse;
 import com.swp.autocarwash.refund.dto.response.RefundDetailResponse;
 import com.swp.autocarwash.refund.dto.response.RefundListPageResponse;
 import com.swp.autocarwash.refund.dto.response.RefundResponse;
@@ -92,6 +93,19 @@ public class RefundController {
             @RequestParam String accountNumber) {
         AccountLookupResponse result = refundService.lookupAccount(bin, accountNumber);
         return ResponseEntity.ok(ApiResponse.success("Tra cứu tài khoản thành công", result));
+    }
+
+    /**
+     * Xem trước số điểm tích lũy sẽ nhận nếu khách chọn quy đổi cọc thành điểm — FE gọi
+     * khi khách chọn option "Chuyển thành điểm" trên form hủy (không tạo Refund, không cộng điểm thật).
+     */
+    @GetMapping("/points-preview")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<PointsPreviewResponse>> previewPointsConversion(
+            @RequestParam Long bookingId,
+            @AuthenticationPrincipal UserCustomerDetails principal) {
+        PointsPreviewResponse result = refundService.previewPointsConversion(bookingId, resolveCustomerId(principal));
+        return ResponseEntity.ok(ApiResponse.success("Xem trước số điểm quy đổi thành công", result));
     }
 
     /**

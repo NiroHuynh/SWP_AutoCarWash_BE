@@ -22,6 +22,7 @@ public class RefundListItemResponse {
     private String customerName;
     private String customerPhone;
     private String stationName;
+    private String refundMethod;
     private BigDecimal refundAmount;
     /** PENDING / REFUNDED — FE map sang "Chờ xử lý" / "Đã hoàn tiền". */
     private String status;

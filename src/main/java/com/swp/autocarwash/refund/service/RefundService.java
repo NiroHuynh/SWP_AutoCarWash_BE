@@ -3,6 +3,7 @@ package com.swp.autocarwash.refund.service;
 import com.swp.autocarwash.refund.dto.request.CreateRefundRequest;
 import com.swp.autocarwash.refund.dto.response.AccountLookupResponse;
 import com.swp.autocarwash.refund.dto.response.DepositAmountResponse;
+import com.swp.autocarwash.refund.dto.response.PointsPreviewResponse;
 import com.swp.autocarwash.refund.dto.response.RefundDetailResponse;
 import com.swp.autocarwash.refund.dto.response.RefundListPageResponse;
 import com.swp.autocarwash.refund.dto.response.RefundResponse;
@@ -39,6 +40,16 @@ public interface RefundService {
      * không cần tạo Refund mới biết số tiền sẽ hoàn.
      */
     DepositAmountResponse getDepositAmount();
+
+    /**
+     * Xem trước số điểm tích lũy khách sẽ nhận nếu chọn quy đổi tiền cọc thành điểm
+     * (refundMethod = LOYALTY_POINTS) — hiển thị TRƯỚC khi khách xác nhận hủy, không tạo
+     * Refund, không cộng điểm thật.
+     *
+     * @param bookingId  mã booking
+     * @param customerId id customer đang đăng nhập (từ JWT)
+     */
+    PointsPreviewResponse previewPointsConversion(Long bookingId, Long customerId);
 
     /**
      * Danh sách yêu cầu hoàn tiền cho Admin, có filter + search (US-05 AC1, AC6-AC10).

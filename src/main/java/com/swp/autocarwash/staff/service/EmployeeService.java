@@ -1,5 +1,6 @@
 package com.swp.autocarwash.staff.service;
 
+import com.swp.autocarwash.staff.dto.request.CreateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.request.UpdateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.response.EmployeeDetailResponse;
 import com.swp.autocarwash.staff.dto.response.EmployeeListPageResponse;
@@ -10,6 +11,12 @@ public interface EmployeeService {
             String keyword, Boolean active, Integer stationId, Integer communeId, Integer provinceId, Pageable pageable);
 
     EmployeeDetailResponse getEmployeeDetail(Long employeeId);
+
+    /**
+     * Chức năng: Admin tạo nhân viên mới - tạo User (role ROLE_STAFF, password do
+     * admin đặt) kèm dòng staff gắn với chi nhánh được chọn.
+     */
+    EmployeeDetailResponse createEmployee(CreateEmployeeRequest request);
 
     /**
      * Chức năng: Admin sửa thông tin nhân viên (tên trên bảng staff; email/phone/
