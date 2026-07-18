@@ -6,6 +6,8 @@ import com.swp.autocarwash.common.exception.UnauthorizedException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.staff.entity.Staff;
+import com.swp.autocarwash.staff.repository.custom.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class SecurityUtils {
 
     private final CustomerRepository customerRepository;
-
+    private final StaffRepository staffRepository;
     /**
      * Lấy userId của user hiện tại từ SecurityContext.
      *
@@ -48,4 +50,23 @@ public class SecurityUtils {
         Long userId = getCurrentUserId();
         return customerRepository.findByUserId(userId);
     }
+    public boolean hasRole(String roleName) {
+
+        Authentication auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof UserCustomerDetails)) {
+            throw new UnauthorizedException(ErrorCode.INVALID_TOKEN);
+        }
+
+        return auth.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals(roleName));
+    }
+
+    public Staff getEmployee() {
+        return staffRepository.findByUserId(getCurrentUserId());
+    }
+
 }

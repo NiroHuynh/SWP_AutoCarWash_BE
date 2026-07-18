@@ -116,11 +116,11 @@ public class BookingValidator {
 //        kiểm tra hết hạn
         validateSlotNotExpired(slotIds);
 
-////        kiểm tra đã booking slot này trước đó chưa
-//        validateSlotAlreadyBooked(vehicleId, slotIds);
+//        kiểm tra đã booking slot này trước đó chưa
+        validateSlotAlreadyBooked(vehicleId, slotIds);
 
 //        kiểm tra xem vehicle đã booking vào hôm nay chưa
-        validateVehicleBookedInSlotDate(vehicleId,slotIds);
+//        validateVehicleBookedInSlotDate(vehicleId,slotIds);
 
         List<BookingSlot> slots =
                 slotRepository.findByIdIn(slotIds);
