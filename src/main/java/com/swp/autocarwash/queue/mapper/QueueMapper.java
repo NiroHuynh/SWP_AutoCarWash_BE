@@ -33,6 +33,7 @@ public class QueueMapper {
                 .status(booking != null ? booking.getStatus() : ticket.getStatus())
                 .isBooking(ticket.getIsBooking())
                 .priorityScore(ticket.getPriorityScore())
+                .issuedAt(ticket.getIssuedAt())
                 .bookingId(booking != null ? booking.getId() : null)
                 .licensePlate(vehicle != null ? vehicle.getLicensePlate() : null)
                 .customerName(customer != null ? customer.getFirstName() + " " + customer.getLastName() : null)
