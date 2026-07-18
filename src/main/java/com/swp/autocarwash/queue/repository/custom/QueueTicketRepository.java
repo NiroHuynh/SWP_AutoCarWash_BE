@@ -55,8 +55,8 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH q.station " +
             "WHERE q.station.id = :stationId AND b.status IN :statuses " +
             "ORDER BY COALESCE(c.customerTier.queuePriorityWeight, 0) DESC, q.isBooking DESC, q.issuedAt ASC")
-    // Hạng là tiêu chí chính (không thể bị điểm booking đè qua mặt), có đặt lịch trước
-    // chỉ tiebreak giữa các khách CÙNG hạng, cùng hạng+cùng loại thì FIFO theo issuedAt.
+    // Hạng là tiêu chí chính -> có đặt lịch trước -> FIFO
+    // cùng hạng+cùng loại thì FIFO theo issuedAt.
     //COALESCE(x, 0): nếu x là NULL (khách không có tier — ví dụ walk-in không có tài khoản,
     // customer null nên customerTier cũng null) thì thay bằng 0
     // q.isBooking DESC: Chỉ được xét đến khi 2 dòng có cùng giá trị khóa 1 (cùng hạng, hoặc cùng "không có hạng" = 0),
