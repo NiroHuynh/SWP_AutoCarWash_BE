@@ -46,15 +46,23 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
      * @param statuses  danh sách status được coi là "đang active"
      * @return danh sách QueueTicket thuộc station, đã eager-fetch, sắp theo độ ưu tiên
      */
-    @Query("SELECT DISTINCT q FROM QueueTicket q " +
-            "LEFT JOIN FETCH q.booking b " +
-            "LEFT JOIN FETCH b.vehicle " +
-            "LEFT JOIN FETCH b.servicePackage " +
-            "LEFT JOIN FETCH b.customer c " +
-            "LEFT JOIN FETCH c.customerTier " +
-            "LEFT JOIN FETCH q.station " +
-            "WHERE q.station.id = :stationId AND b.status IN :statuses " +
-            "ORDER BY COALESCE(c.customerTier.queuePriorityWeight, 0) DESC, q.isBooking DESC, q.issuedAt ASC")
+    @Query("""
+    SELECT DISTINCT q
+    FROM QueueTicket q
+        LEFT JOIN FETCH q.booking b
+        LEFT JOIN FETCH b.vehicle
+        LEFT JOIN FETCH b.servicePackage
+        LEFT JOIN FETCH b.customer c
+        LEFT JOIN FETCH c.customerTier
+        LEFT JOIN FETCH q.station
+    WHERE q.station.id = :stationId
+      AND b.status IN :statuses
+    ORDER BY
+        COALESCE(q.isBooking, false) DESC,
+        q.issuedAt ASC,
+        COALESCE(c.customerTier.queuePriorityWeight, 0) DESC
+    """)
+
     // Hạng là tiêu chí chính -> có đặt lịch trước -> FIFO
     // cùng hạng+cùng loại thì FIFO theo issuedAt.
     //COALESCE(x, 0): nếu x là NULL (khách không có tier — ví dụ walk-in không có tài khoản,
