@@ -40,5 +40,8 @@ public class LoyaltyPointTransactionResponse {
     /** Ten goi dich vu cua booking lien quan (null neu giao dich khong gan booking). */
     private String servicePackageName;
 
+    /** Nguon phat sinh giao dich: BOOKING / SUBSCRIPTION / MANUAL / ADJUSTMENT / DEPOSIT_REFUND. */
+    private String description;
+
     private Instant createdAt;
 }
