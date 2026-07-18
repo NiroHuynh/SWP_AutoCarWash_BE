@@ -111,13 +111,33 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
 
     // TRƯỜNG HỢP 2: Tạo mã Voucher theo Chiến dịch
     private CreatePromotionVoucherResponse handleCampaignLinkedVoucher(CreatePromotionVoucherRequest request) {
-        // 1. Chốt chặn chống trùng mã code Admin tự gõ
-        String upperCode = request.getVoucherCode().trim().toUpperCase();
-        if (voucherRepository.existsByVoucherCode(upperCode)) {
-            throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS);
+        // Chốt chặn 1: Validate mảng voucher gửi lên không được rỗng
+        if (request.getVouchers() == null || request.getVouchers().isEmpty()) {
+            throw new BusinessException(ErrorCode.VOUCHER_LIST_CANNOT_BE_EMPTY);
         }
 
-        // 2. Tạo chiến dịch cha
+        // Chốt chặn 2: Quét chống trùng mã trên Form gửi lên và trùng dưới Database
+        List<String> codesInRequest = new ArrayList<>();
+        for (CreatePromotionVoucherRequest.VoucherSubRequest vReq : request.getVouchers()) {
+            if (vReq.getVoucherCode() == null || vReq.getVoucherCode().trim().isEmpty()) {
+                throw new BusinessException(ErrorCode.VOUCHER_CODE_CANNOT_BE_EMPTY);
+            }
+
+            String upperCode = vReq.getVoucherCode().trim().toUpperCase();
+
+            // A. Check trùng nội bộ trong mảng gửi lên (Duplicate voucher code detected)
+            if (codesInRequest.contains(upperCode)) {
+                throw new BusinessException(ErrorCode.DUPLICATE_VOUCHER_CODE);
+            }
+            codesInRequest.add(upperCode);
+
+            // B. Check trùng với các mã voucher đã tồn tại trước đó dưới Database
+            if (voucherRepository.existsByVoucherCode(upperCode)) {
+                throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS);
+            }
+        }
+
+        // 3. Vượt qua tất cả chốt chặn -> Tiến hành tạo 1 Chiến dịch cha duy nhất
         Promotion promotion = Promotion.builder()
                 .title(request.getCampaignName())
                 .startDate(request.getCampaignStartDate())
@@ -125,44 +145,108 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
                 .status(calculateStatus(request.getCampaignStartDate()))
                 .isDeleted(false)
                 .build();
-        promotion = promotionRepository.save(promotion);
+        promotion = promotionRepository.save(promotion); // Lưu lấy ID cha
 
-        //Lưu cấu hình chi nhánh áp dụng
+        // Lưu cấu hình các chi nhánh áp dụng
         saveStationMappings(promotion.getId(), request.getStationIds());
 
-        // 3. Lưu bảng trung gian mapping
+        // Lưu bảng trung gian mapping đối tượng áp dụng (Hạng thành viên)
         saveTargetMappings(promotion.getId(), request.getTargetCustomerTierIds());
 
-        // 4. Tạo Voucher kế thừa hoàn toàn ngày tháng từ Chiến dịch cha (AC02)
-        BigDecimal maxDiscount = "FIXED".equalsIgnoreCase(request.getDiscountType())
-                ? request.getDiscountValue() : request.getMaxDiscountAmount();
+        // 4. VÒNG LẶP THẦN THÁNH: Duyệt mảng đúc hàng loạt Voucher con đính vào Cha
+        List<String> savedVoucherCodes = new ArrayList<>();
 
-        Integer percent = "PERCENTAGE".equalsIgnoreCase(request.getDiscountType())
-                ? request.getDiscountValue().intValue() : null;
+        LocalDateTime voucherStart = request.getCampaignStartDate().atStartOfDay();
+        LocalDateTime voucherExpiry = request.getCampaignEndDate().atTime(LocalTime.MAX);
+        String initialStatus = calculateStatus(request.getCampaignStartDate());
 
-        Voucher voucher = Voucher.builder()
-                .promotion(promotion)
-                .voucherCode(upperCode)
-                .minOrderValue(request.getMinOrderValue() != null ? request.getMinOrderValue() : BigDecimal.ZERO)
-                .maxDiscountAmount(maxDiscount)
-                .usageLimit(request.getUsageLimit())
-                .usedCount(0)
-                .startDate(request.getCampaignStartDate().atStartOfDay()) //Kế thừa ngày chiến dịch cha
-                .expiryDate(request.getCampaignEndDate().atTime(LocalTime.MAX))
-                .status(calculateStatus(request.getCampaignStartDate()))
-                .reusable(request.getReusable() != null && request.getReusable())
-                .discountPercentage(percent)
-                .isDeleted(false)
-                .build();
+        for (CreatePromotionVoucherRequest.VoucherSubRequest vReq : request.getVouchers()) {
+            String upperCode = vReq.getVoucherCode().trim().toUpperCase();
 
-        voucherRepository.save(voucher);
+            // Tính toán giá trị giảm giá tối đa dựa trên loại hình FIXED/PERCENTAGE của từng con
+            BigDecimal maxDiscount = "FIXED".equalsIgnoreCase(vReq.getDiscountType())
+                    ? vReq.getDiscountValue() : vReq.getMaxDiscountAmount();
 
+            Integer percent = "PERCENTAGE".equalsIgnoreCase(vReq.getDiscountType())
+                    ? vReq.getDiscountValue().intValue() : null;
+
+            Voucher voucher = Voucher.builder()
+                    .promotion(promotion) // Khóa ngoại đính kết vào chung 1 Promotion cha
+                    .voucherCode(upperCode)
+                    .minOrderValue(vReq.getMinOrderValue() != null ? vReq.getMinOrderValue() : BigDecimal.ZERO)
+                    .maxDiscountAmount(maxDiscount)
+                    .usageLimit(vReq.getUsageLimit())
+                    .usedCount(0)
+                    .startDate(voucherStart) // Kế thừa không gian thời gian của chiến dịch cha
+                    .expiryDate(voucherExpiry)
+                    .status(initialStatus)
+                    .reusable(vReq.getReusable() != null && vReq.getReusable())
+                    .discountPercentage(percent)
+                    .isDeleted(false)
+                    .build();
+
+            voucherRepository.save(voucher);
+            savedVoucherCodes.add(voucher.getVoucherCode());
+        }
+
+        // 5. Đóng gói Response khớp 100% API Contract SUCCESS mong đợi của Frontend
         return CreatePromotionVoucherResponse.builder()
                 .promotionId(promotion.getId())
-                .voucherId(voucher.getId())
-                .voucherCode(voucher.getVoucherCode())
+                .voucherCodes(savedVoucherCodes) // Trả về mảng chuỗi danh sách mã vừa tạo thành công
                 .build();
     }
+//        // 1. Chốt chặn chống trùng mã code Admin tự gõ
+//        String upperCode = request.getVoucherCode().trim().toUpperCase();
+//        if (voucherRepository.existsByVoucherCode(upperCode)) {
+//            throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS);
+//        }
+//
+//        // 2. Tạo chiến dịch cha
+//        Promotion promotion = Promotion.builder()
+//                .title(request.getCampaignName())
+//                .startDate(request.getCampaignStartDate())
+//                .endDate(request.getCampaignEndDate())
+//                .status(calculateStatus(request.getCampaignStartDate()))
+//                .isDeleted(false)
+//                .build();
+//        promotion = promotionRepository.save(promotion);
+//
+//        //Lưu cấu hình chi nhánh áp dụng
+//        saveStationMappings(promotion.getId(), request.getStationIds());
+//
+//        // 3. Lưu bảng trung gian mapping
+//        saveTargetMappings(promotion.getId(), request.getTargetCustomerTierIds());
+//
+//        // 4. Tạo Voucher kế thừa hoàn toàn ngày tháng từ Chiến dịch cha (AC02)
+//        BigDecimal maxDiscount = "FIXED".equalsIgnoreCase(request.getDiscountType())
+//                ? request.getDiscountValue() : request.getMaxDiscountAmount();
+//
+//        Integer percent = "PERCENTAGE".equalsIgnoreCase(request.getDiscountType())
+//                ? request.getDiscountValue().intValue() : null;
+//
+//        Voucher voucher = Voucher.builder()
+//                .promotion(promotion)
+//                .voucherCode(upperCode)
+//                .minOrderValue(request.getMinOrderValue() != null ? request.getMinOrderValue() : BigDecimal.ZERO)
+//                .maxDiscountAmount(maxDiscount)
+//                .usageLimit(request.getUsageLimit())
+//                .usedCount(0)
+//                .startDate(request.getCampaignStartDate().atStartOfDay()) //Kế thừa ngày chiến dịch cha
+//                .expiryDate(request.getCampaignEndDate().atTime(LocalTime.MAX))
+//                .status(calculateStatus(request.getCampaignStartDate()))
+//                .reusable(request.getReusable() != null && request.getReusable())
+//                .discountPercentage(percent)
+//                .isDeleted(false)
+//                .build();
+//
+//        voucherRepository.save(voucher);
+//
+//        return CreatePromotionVoucherResponse.builder()
+//                .promotionId(promotion.getId())
+//                .voucherId(voucher.getId())
+//                .voucherCode(voucher.getVoucherCode())
+//                .build();
+
 
     //TRƯỜNG HỢP 3: Tạo mã Voucher lẻ độc lập
     private CreatePromotionVoucherResponse handleStandaloneVoucher(CreatePromotionVoucherRequest request) {

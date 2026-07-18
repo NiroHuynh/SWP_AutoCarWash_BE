@@ -1,6 +1,7 @@
 package com.swp.autocarwash.staff.controller;
 
 import com.swp.autocarwash.common.response.ApiResponse;
+import com.swp.autocarwash.staff.dto.request.CreateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.request.UpdateEmployeeRequest;
 import com.swp.autocarwash.staff.dto.response.EmployeeDetailResponse;
 import com.swp.autocarwash.staff.dto.response.EmployeeListPageResponse;
@@ -49,6 +50,18 @@ public class EmployeeController {
     public ResponseEntity<ApiResponse<EmployeeDetailResponse>> getEmployeeDetail(@PathVariable Long employeeId) {
         EmployeeDetailResponse data = employeeService.getEmployeeDetail(employeeId);
         return ResponseEntity.ok(ApiResponse.success("Employee detail", data));
+    }
+
+    /**
+     * Chức năng: Admin tạo nhân viên mới từ form Add New - tạo luôn tài khoản đăng
+     * nhập (role STAFF) với password do admin đặt.
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> createEmployee(
+            @Valid @RequestBody CreateEmployeeRequest request) {
+        EmployeeDetailResponse data = employeeService.createEmployee(request);
+        return ResponseEntity.ok(ApiResponse.success("Employee created successfully", data));
     }
 
     /**
