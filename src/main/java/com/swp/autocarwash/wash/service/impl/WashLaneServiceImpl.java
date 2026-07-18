@@ -40,7 +40,8 @@ public class WashLaneServiceImpl implements WashLaneService {
      * @version 1.0
      */
     private void syncCapacity(Station station) {
-        long activeLaneCount = washLaneRepository.countByStationIdAndIsDeletedFalse(station.getId());
+        long activeLaneCount = washLaneRepository.countByStationIdAndIsDeletedFalseAndStatusNot(
+                station.getId(), WashLaneStatus.MAINTENANCE.name());
 
         station.setMaxWashCapacity((int) activeLaneCount);
         stationRepository.save(station);
@@ -110,6 +111,31 @@ public class WashLaneServiceImpl implements WashLaneService {
             throw new BusinessException(ErrorCode.CANNOT_DELETE_WASHING_LANE);
         }
         lane.setIsDeleted(true);
+        washLaneRepository.save(lane);
+        syncCapacity(lane.getStation());
+    }
+
+    @Override
+    @Transactional
+    public void setMaintenance(Integer laneId, Integer stationId, boolean maintenance) {
+        WashLane lane = washLaneRepository.findById(laneId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.LANE_NOT_FOUND));
+        if (Boolean.TRUE.equals(lane.getIsDeleted()) || !lane.getStation().getId().equals(stationId)) {
+            throw new ResourceNotFoundException(ErrorCode.LANE_NOT_FOUND);
+        }
+
+        if (maintenance) {
+            if (WashLaneStatus.WASHING.name().equalsIgnoreCase(lane.getStatus())) {
+                throw new BusinessException(ErrorCode.CANNOT_MAINTAIN_WASHING_LANE);
+            }
+            lane.setStatus(WashLaneStatus.MAINTENANCE.name());
+        } else {
+            if (!WashLaneStatus.MAINTENANCE.name().equalsIgnoreCase(lane.getStatus())) {
+                throw new BusinessException(ErrorCode.LANE_NOT_IN_MAINTENANCE);
+            }
+            lane.setStatus(WashLaneStatus.AVAILABLE.name());
+        }
+
         washLaneRepository.save(lane);
         syncCapacity(lane.getStation());
     }

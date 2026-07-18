@@ -11,6 +11,7 @@ import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.loyalty.dto.request.LoyaltyEarnRequest;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyOverviewResponse;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyTransactionPageResponse;
+import com.swp.autocarwash.loyalty.dto.response.PointsConversionPreview;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointTransaction;
@@ -106,6 +107,49 @@ public class LoyaltyServiceImpl implements LoyaltyService {
                         .build();
 
         doEarnPoint(request);
+    }
+
+
+    @Override
+    @Transactional
+    public int earnPointsFromDepositRefund(Long customerId, Long bookingId, BigDecimal amount) {
+
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        int earnedPoint = calculatePoint(amount, customer.getCustomerTier().getPointMultiple());
+
+        LoyaltyEarnRequest request =
+                LoyaltyEarnRequest.builder()
+                        .customerId(customerId)
+                        .customerTierId(customer.getCustomerTier().getId())
+                        .earnedPoint(earnedPoint)
+                        .sourceType(LoyaltySourceType.DEPOSIT_REFUND)
+                        .booking(
+                                Booking.builder()
+                                        .id(bookingId)
+                                        .build()
+                        )
+                        .build();
+
+        doEarnPoint(request);
+
+        return earnedPoint;
+    }
+
+    @Override
+    public PointsConversionPreview previewPointsForAmount(Long customerId, BigDecimal amount) {
+
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        CustomerTier tier = customer.getCustomerTier();
+
+        return PointsConversionPreview.builder()
+                .tierName(tier.getTierName())
+                .pointMultiple(tier.getPointMultiple())
+                .previewPoints(calculatePoint(amount, tier.getPointMultiple()))
+                .build();
     }
 
 

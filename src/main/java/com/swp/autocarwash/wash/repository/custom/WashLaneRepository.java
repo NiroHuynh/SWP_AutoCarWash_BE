@@ -32,4 +32,7 @@ public interface WashLaneRepository extends JpaRepository<WashLane, Integer> {
 
     //Đếm số làn đang active (chưa xóa) theo trạm — dùng làm nguồn capacity thật cho luồng booking
     long countByStationIdAndIsDeletedFalse(Integer stationId);
+
+    // Đếm số làn tính vào capacity đặt lịch: chưa xóa VÀ không phải MAINTENANCE (làn bảo trì tạm ngừng hoạt động).
+    long countByStationIdAndIsDeletedFalseAndStatusNot(Integer stationId, String status);
 }
