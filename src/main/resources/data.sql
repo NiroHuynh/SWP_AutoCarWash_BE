@@ -464,21 +464,15 @@ VALUES
     (20, 'Autumn Welcome Campaign', 'Promotion to welcome the new month', DATE_ADD(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 55 DAY), 'UPCOMING', DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE);
 
 -- =====================================================================
--- PROMOTION TARGET (10)
+-- PROMOTION TARGET (4) - ids khớp với customer_tier: 1=MEMBER, 2=SILVER, 3=GOLD, 4=PLATINUM
 -- =====================================================================
 INSERT IGNORE INTO promotion_target
 (id, target_name, target_code, description)
 VALUES
-    (1,  'All Customers',          'ALL',     'Applies to all customers'),
-    (2,  'New Customer',           'NEW',     'New customer'),
-    (3,  'VIP Customer',           'VIP',     'VIP customer'),
-    (4,  'Member Tier',            'MEMBER',  'Member tier customer'),
-    (5,  'Silver Tier',            'SILVER',  'Silver tier customer'),
-    (6,  'Gold Tier',              'GOLD',    'Gold tier customer'),
-    (7,  'First Time Booking',     'FIRST',   'First-time booking'),
-    (8,  'Returning Customer',     'RETURN',  'Returning customer'),
-    (9,  'Birthday Month',         'BDAY',    'Customer with a birthday this month'),
-    (10, 'Referral Program',       'REF',     'Customer who referred a friend');
+    (1, 'Member Tier',   'MEMBER',   'Member tier customer'),
+    (2, 'Silver Tier',   'SILVER',   'Silver tier customer'),
+    (3, 'Gold Tier',     'GOLD',     'Gold tier customer'),
+    (4, 'Platinum Tier', 'PLATINUM', 'Platinum tier customer');
 
 -- =====================================================================
 -- PROMOTION TARGET MAPPING (15)
@@ -492,16 +486,16 @@ INSERT IGNORE INTO promotion_station_mapping (promotion_id, station_id) VALUES
 INSERT IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
-    (1, 1), (1, 2),
-    (2, 1),
-    (3, 2), (3, 7),
-    (4, 1),
-    (5, 3),
-    (6, 1), (6, 8),
-    (7, 1),
-    (8, 4), (8, 5), (8, 6),
-    (9, 1),
-    (10, 1);
+    (1, 1), (1, 2), (1, 3), (1, 4),
+    (2, 1), (2, 2), (2, 3), (2, 4),
+    (3, 1), (3, 2), (3, 3), (3, 4),
+    (4, 1), (4, 2), (4, 3), (4, 4),
+    (5, 1), (5, 2), (5, 3), (5, 4),
+    (6, 1), (6, 2), (6, 3), (6, 4),
+    (7, 1), (7, 2), (7, 3), (7, 4),
+    (8, 1), (8, 2), (8, 3),
+    (9, 1), (9, 2), (9, 3), (9, 4),
+    (10, 1), (10, 2), (10, 3), (10, 4);
 
 -- =====================================================================
 -- VOUCHER (12)
@@ -1938,6 +1932,7 @@ VALUES
     ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
     ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
     ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
+    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3','So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board','NUMBER', true),
     ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
     ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
     ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
@@ -2032,6 +2027,83 @@ VALUES
     (18, 1, 8,  'A018', 'CANCELED',  DATE_SUB(NOW(), INTERVAL 10 MINUTE), true, 3),
     (19, 1, 11, 'A019', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 240 HOUR),  true, 1),
     (20, 1, 15, 'A020', 'CANCELED',  DATE_SUB(NOW(), INTERVAL 6 DAY),     true, 1);
+
+-- =====================================================================
+-- QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO TEST SEED (3:1)
+-- Station 5 (staff user_id=28) and station 6 (staff user_id=29) have no other
+-- queue_ticket rows above, so GET /api/queue for either staff gives a clean,
+-- deterministic board to verify QueueServiceImpl.interleaveByRatio(ratio=3)
+-- AND QueueTicketRepository.findActiveQueueByStation's ORDER BY
+-- (issuedAt ASC -> isBooking DESC -> rank DESC). Each ticket uses a distinct
+-- real customer+vehicle (distinct license plate) with an existing computed
+-- customer_tier, and ranks are deliberately scrambled against issuedAt order
+-- so the test fails loudly if rank is ever mistakenly prioritized over FIFO.
+--
+-- Scenario A (station 5, id 900-909): 8 booking : 2 walk-in, with a same-
+-- issuedAt (55 min ago) rank tie-break pair (904=PLATINUM vs 905=MEMBER).
+-- Expected board order (ticket_number): S501,S502,S503,S504,S505,S506,S507,S509,S508,S510
+--   - S501(PLATINUM) still first, S502(MEMBER) still second -> issuedAt beats rank.
+--   - S505(PLATINUM,55') sorts before S506(MEMBER,55') -> rank tie-break when issuedAt equal.
+--   - 3:1 interleave: [S501,S502,S503]+S504(W), [S505,S506,S507]+S509(W), [S508,S510] leftover.
+--
+-- Scenario B (station 6, id 910-916): 2 booking : 5 walk-in, with a same-
+-- issuedAt (28 min ago) isBooking tie-break pair (911=booking vs 912=walk-in,
+-- both SILVER rank so the tie is isolated to isBooking, not rank).
+-- Expected board order: S601,S602,S603,S604,S605,S606,S607
+--   - S602(booking) sorts before S603(walk-in) despite equal issuedAt -> isBooking tie-break.
+--   - bookings exhaust after the first cycle; remaining walk-ins flow out FIFO,
+--     one per loop iteration, since there are no more bookings to batch with them.
+-- =====================================================================
+INSERT IGNORE INTO booking
+(id, customer_id, vehicle_id, service_package_id,
+ appointment_date, status, booking_type, check_in_employee_id,
+ created_at, check_in_at, check_out_at, canceled_at,
+ is_deposit_paid,
+ total_service_amount, total_addon_amount, total_amount,
+ voucher_discount_amount, point_discount_amount)
+VALUES
+    -- Scenario A / station 5 -- customer/vehicle/rank: 7=PLATINUM,10=MEMBER,3=GOLD,11=SILVER,5=PLATINUM,6=MEMBER,1=SILVER,8=PLATINUM,12=SILVER,9=PLATINUM
+    (900, 7,  7,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 70 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (901, 10, 10,  1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 65 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (902, 3,  3,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 60 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (903, 11, 11,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 58 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (904, 5,  5,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 55 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (905, 6,  6,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 55 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (906, 1,  1,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 50 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (907, 8,  8,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 45 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (908, 12, 12,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (909, 9,  9,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 35 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    -- Scenario B / station 6 -- customer/vehicle/rank: 2=SILVER,4=SILVER,1(v13)=SILVER,2(v14)=SILVER,3(v15)=GOLD,100=GOLD,101=GOLD
+    (910, 2,   2,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (911, 4,   4,   1, CURDATE(), 'CHECK_IN', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 28 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (912, 1,   13,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 28 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (913, 2,   14,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 26 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (914, 3,   15,  1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 24 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (915, 100, 201, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 22 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
+    (916, 101, 203, 1, CURDATE(), 'CHECK_IN', 'WALK_IN', NULL, DATE_SUB(NOW(), INTERVAL 20 MINUTE), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0);
+
+INSERT IGNORE INTO queue_ticket
+(id, station_id, booking_id, ticket_number, status, issued_at, is_booking, priority_score)
+VALUES
+    -- Scenario A: station 5, expect S501,S502,S503,S504,S505,S506,S507,S509,S508,S510
+    (900, 5, 900, 'S501', 'WAITING', DATE_SUB(NOW(), INTERVAL 70 MINUTE), true,  0),
+    (901, 5, 901, 'S502', 'WAITING', DATE_SUB(NOW(), INTERVAL 65 MINUTE), true,  0),
+    (902, 5, 902, 'S503', 'WAITING', DATE_SUB(NOW(), INTERVAL 60 MINUTE), true,  0),
+    (903, 5, 903, 'S504', 'WAITING', DATE_SUB(NOW(), INTERVAL 58 MINUTE), false, 0),
+    (904, 5, 904, 'S505', 'WAITING', DATE_SUB(NOW(), INTERVAL 55 MINUTE), true,  0),
+    (905, 5, 905, 'S506', 'WAITING', DATE_SUB(NOW(), INTERVAL 55 MINUTE), true,  0),
+    (906, 5, 906, 'S507', 'WAITING', DATE_SUB(NOW(), INTERVAL 50 MINUTE), true,  0),
+    (907, 5, 907, 'S508', 'WAITING', DATE_SUB(NOW(), INTERVAL 45 MINUTE), true,  0),
+    (908, 5, 908, 'S509', 'WAITING', DATE_SUB(NOW(), INTERVAL 40 MINUTE), false, 0),
+    (909, 5, 909, 'S510', 'WAITING', DATE_SUB(NOW(), INTERVAL 35 MINUTE), true,  0),
+    -- Scenario B: station 6, expect S601,S602,S603,S604,S605,S606,S607
+    (910, 6, 910, 'S601', 'WAITING', DATE_SUB(NOW(), INTERVAL 30 MINUTE), true,  0),
+    (911, 6, 911, 'S602', 'WAITING', DATE_SUB(NOW(), INTERVAL 28 MINUTE), true,  0),
+    (912, 6, 912, 'S603', 'WAITING', DATE_SUB(NOW(), INTERVAL 28 MINUTE), false, 0),
+    (913, 6, 913, 'S604', 'WAITING', DATE_SUB(NOW(), INTERVAL 26 MINUTE), false, 0),
+    (914, 6, 914, 'S605', 'WAITING', DATE_SUB(NOW(), INTERVAL 24 MINUTE), false, 0),
+    (915, 6, 915, 'S606', 'WAITING', DATE_SUB(NOW(), INTERVAL 22 MINUTE), false, 0),
+    (916, 6, 916, 'S607', 'WAITING', DATE_SUB(NOW(), INTERVAL 20 MINUTE), false, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

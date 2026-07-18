@@ -16,7 +16,7 @@ public class StaffScopeResolver {
     private final StaffRepository staffRepository;
 
     public boolean isStaff(UserCustomerDetails principal) {
-        return "STAFF".equals(principal.getUser().getRole().getName());
+        return "ROLE_STAFF".equals(principal.getUser().getRole().getName());
     }
 
     public Integer staffStationId(UserCustomerDetails principal) {
