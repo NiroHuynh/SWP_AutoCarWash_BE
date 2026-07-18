@@ -59,7 +59,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<EmployeeListItemResponse> content = page.getContent().stream()
                 .map(p -> EmployeeListItemResponse.builder()
                         .employeeId(p.getEmployeeId())
-                        .employeeCode("EMP-" + String.format("%05d", p.getEmployeeId()))
+                        .employeeCode(String.valueOf(p.getEmployeeId()))
                         .fullName(p.getFullName())
                         .email(p.getEmail())
                         .phone(p.getPhone())
@@ -125,7 +125,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         staff.setLastName(request.getLastName());
         staffRepository.save(staff);
 
-        // employeeCode suy ra từ staff.id ("EMP-%05d") nên phải save xong mới map được.
+        // employeeCode suy ra từ staff.id nên phải save xong mới map được.
         return toDetailResponse(staff);
     }
 
@@ -181,7 +181,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         User user = staff.getUser();
         return EmployeeDetailResponse.builder()
                 .employeeId(staff.getId())
-                .employeeCode("EMP-" + String.format("%05d", staff.getId()))
+                .employeeCode(String.valueOf(staff.getId()))
                 .fullName(staff.getFullName())
                 .firstName(staff.getFirstName())
                 .lastName(staff.getLastName())

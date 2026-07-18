@@ -34,7 +34,7 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
               AND (:stationId IS NULL OR st.id = :stationId)
               AND (:communeId IS NULL OR cm.id = :communeId)
               AND (:provinceId IS NULL OR pv.id = :provinceId)
-            ORDER BY u.createdAt DESC
+            ORDER BY s.id ASC
             """,
             countQuery = """
             SELECT COUNT(s.id) FROM Staff s JOIN s.user u JOIN s.station st
