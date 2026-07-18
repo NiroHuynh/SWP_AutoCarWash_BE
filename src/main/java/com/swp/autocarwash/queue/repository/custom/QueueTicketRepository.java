@@ -29,7 +29,7 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
             "WHERE q.status IN :statuses " +
-            "ORDER BY q.priorityScore DESC, q.issuedAt ASC")
+            "ORDER BY COALESCE(c.customerTier.queuePriorityWeight, 0) DESC, q.isBooking DESC, q.issuedAt ASC")
     public List<QueueTicket> findQueueTicketListByStatus(@Param("statuses") List<String> statuses);
 
     /**
@@ -54,7 +54,17 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, Long> 
             "LEFT JOIN FETCH c.customerTier " +
             "LEFT JOIN FETCH q.station " +
             "WHERE q.station.id = :stationId AND b.status IN :statuses " +
-            "ORDER BY q.priorityScore DESC, q.issuedAt ASC")
+            "ORDER BY COALESCE(c.customerTier.queuePriorityWeight, 0) DESC, q.isBooking DESC, q.issuedAt ASC")
+    // Hạng là tiêu chí chính (không thể bị điểm booking đè qua mặt), có đặt lịch trước
+    // chỉ tiebreak giữa các khách CÙNG hạng, cùng hạng+cùng loại thì FIFO theo issuedAt.
+    //COALESCE(x, 0): nếu x là NULL (khách không có tier — ví dụ walk-in không có tài khoản,
+    // customer null nên customerTier cũng null) thì thay bằng 0
+    // q.isBooking DESC: Chỉ được xét đến khi 2 dòng có cùng giá trị khóa 1 (cùng hạng, hoặc cùng "không có hạng" = 0),
+    // isBooking là boolean (true/false), true > false khi sort
+    //q.issuedAt ASC: Chỉ được xét đến khi cả khóa 1 và khóa 2 đều bằng nhau (cùng hạng, cùng loại booking/walk-in)
+    //nguyên tắc FIFO "ai đến trước xử lý trước"
+
+
     List<QueueTicket> findActiveQueueByStation(
             @Param("stationId") Integer stationId,
             @Param("statuses") List<String> statuses

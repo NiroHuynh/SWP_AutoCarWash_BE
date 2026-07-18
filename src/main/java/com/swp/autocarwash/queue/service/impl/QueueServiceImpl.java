@@ -159,7 +159,7 @@ public class QueueServiceImpl implements QueueService {
         washLaneService.setMaintenance(laneId, staff.getStation().getId(), maintenance);
         return buildBoard(staff.getStation().getId());
     }
-
+// Load toàn bộ queue ticket của station đó
     private QueueBoardResponse buildBoard(Integer stationId) {
         List<QueueTicketResponse> queue = queueTicketRepository
                 .findActiveQueueByStation(stationId, ACTIVE_STATUSES)
