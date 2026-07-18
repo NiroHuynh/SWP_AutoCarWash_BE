@@ -507,7 +507,7 @@ public enum ErrorCode {
     VEHICLE_HAS_ACTIVE_BOOKING(
             HttpStatus.BAD_REQUEST,
             "VEHICLE_005",
-            "Cannot delete a vehicle with an unfinished booking."
+            "Cannot delete or transfer a vehicle with an unfinished booking."
     ),
     VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
             HttpStatus.BAD_REQUEST,
