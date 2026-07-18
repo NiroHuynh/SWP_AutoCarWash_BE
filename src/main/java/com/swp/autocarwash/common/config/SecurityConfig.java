@@ -72,6 +72,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/addon-services").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/service-packages").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/customer/subscription-plans").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/subscriptions/family/plans").permitAll()
                 //tất cả các API khác đều phải có token
                 .anyRequest().authenticated()
             );
