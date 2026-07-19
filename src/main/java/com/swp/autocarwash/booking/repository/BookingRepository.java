@@ -126,13 +126,26 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("status") String status
     );
 
-    //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
+//    //tìm thông tin của xe trễ giờ booking nhưng đã quay lại trong ngày và vẫn sử dụng dịch vụ -> chuyển cọc sang đơn này
+//    @Query("SELECT b FROM Booking b " +
+//            "WHERE b.vehicle.licensePlate = :licensePlate " +
+//            "AND b.appointmentDate = :appointmentDate " +
+//            "AND b.status = :status " +
+//            "AND b.isDepositPaid = true " +
+//            "AND b.depositConfiscatedAt IS NULL")
+//    Optional<Booking> findBookingToRescueDeposit(
+//            @Param("licensePlate") String licensePlate,
+//            @Param("appointmentDate") LocalDate appointmentDate,
+//            @Param("status") String status
+//    );
+
     @Query("SELECT b FROM Booking b " +
             "WHERE b.vehicle.licensePlate = :licensePlate " +
             "AND b.appointmentDate = :appointmentDate " +
             "AND b.status = :status " +
             "AND b.isDepositPaid = true " +
-            "AND b.depositConfiscatedAt IS NULL")
+            "AND b.depositConfiscatedAt IS NULL " +
+            "ORDER BY b.createdAt DESC LIMIT 1") //Luôn lấy đơn đặt gần nhất trong ngày để cứu cọc
     Optional<Booking> findBookingToRescueDeposit(
             @Param("licensePlate") String licensePlate,
             @Param("appointmentDate") LocalDate appointmentDate,
