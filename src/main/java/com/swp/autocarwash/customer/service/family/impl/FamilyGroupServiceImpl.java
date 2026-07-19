@@ -305,36 +305,40 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
             return null;
         }
 
-        // 3. Bốc thông tin gói cước của nhóm (AC02)
+        // =========================================================================
+        // 3. BỐC THÔNG TIN GÓI CƯỚC CỦA NHÓM (ĐÃ FIX ƯU TIÊN GÓI ACTIVE)
+        // =========================================================================
         GroupSubscriptionDto subscriptionDto = null;
         int maxVehicleCount = 0;
 
-        //Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
-        Optional<FamilySubscription> latestSubOpt = familySubscriptionRepository.findLatestSubscriptionByGroupId(targetGroup.getId());
-//        if (activeSubOpt.isPresent()) {
-//            FamilySubscription sub = activeSubOpt.get();
-//            maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
-//
-//            subscriptionDto = GroupSubscriptionDto.builder()
-//                    .planName(sub.getSubscriptionPlan().getPlanName())
-//                    .status(sub.getStatus())
-//                    .endDate(sub.getEndDate())
-//                    .build();
-//        }
+        //BƯỚC 1: Thử tìm gói cước đang thực sự ACTIVE trước
+        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
 
-        if (latestSubOpt.isPresent()) {
-            FamilySubscription sub = latestSubOpt.get();
+        FamilySubscription sub = null;
 
-            // Nếu gói thực tế đang ACTIVE dưới DB thì lấy hạn mức, nếu đã thành EXPIRED thì hạn mức đưa về 0
-            //if ("ACTIVE".equalsIgnoreCase(sub.getStatus())) {
+        if (activeSubOpt.isPresent()) {
+            // Nếu có gói ACTIVE -> Chắc chắn lấy gói này hiển thị
+            sub = activeSubOpt.get();
+        } else {
+            // Nếu KHÔNG có gói ACTIVE nào -> Mới bốc gói mới nhất trong lịch sử (EXPIRED hoặc CANCELED)
+            Optional<FamilySubscription> latestSubOpt = familySubscriptionRepository.findLatestSubscriptionByGroupId(targetGroup.getId());
+            if (latestSubOpt.isPresent()) {
+                sub = latestSubOpt.get();
+            }
+        }
+
+        // BƯỚC 2: Đóng gói dữ liệu hiển thị nếu tìm thấy gói phù hợp
+        if (sub != null) {
+            // Nếu gói thực tế đang ACTIVE dưới DB thì lấy hạn mức, nếu đã thành EXPIRED/CANCELED thì hạn mức đưa về 0
+            if ("ACTIVE".equalsIgnoreCase(sub.getStatus())) {
                 maxVehicleCount = sub.getSubscriptionPlan().getMaxVehicleCount();
-            //} else {
-             //   maxVehicleCount = 0;
-            //}
+            } else {
+                maxVehicleCount = 0;
+            }
 
             subscriptionDto = GroupSubscriptionDto.builder()
                     .planName(sub.getSubscriptionPlan().getPlanName())
-                    .status(sub.getStatus()) //Trả thẳng chữ ACTIVE / EXPIRED chuẩn bài từ DB ra cho FE
+                    .status(sub.getStatus()) // Trả thẳng chữ ACTIVE / EXPIRED / CANCELED chuẩn bài từ DB ra cho FE
                     .endDate(sub.getEndDate())
                     .build();
         }
