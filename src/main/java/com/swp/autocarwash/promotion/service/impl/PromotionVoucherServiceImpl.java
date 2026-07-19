@@ -27,6 +27,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -411,138 +412,137 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
     }
 
     @Override
-    public List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer stationId, String status) {
+    public List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer provinceId, Integer communeId, Integer stationId) {
 
-        // 1. Chuẩn hóa trạng thái bộ lọc (Mặc định nếu FE gửi trống là "ALL")
-        String filterStatus = "ALL";
-        if (status != null && !status.trim().isEmpty()) {
-            filterStatus = status.toUpperCase();
+        // 1. CHỐT CHẶN BẢO VỆ BE: Chỉ cho phép truyền 1 trong 3 tham số lọc (Không được gửi kết hợp lung tung)
+        int filterCount = 0;
+        if (provinceId != null) filterCount++;
+        if (communeId != null) filterCount++;
+        if (stationId != null) filterCount++;
+
+        if (filterCount > 1) {
+            throw new BusinessException(ErrorCode.CANNOT_COMBINE_FILTERS); // Trả về COMMON_002
         }
 
-        // Danh sách tổng hợp cuối cùng chứa toàn bộ dữ liệu trả về cho FE
-        List<PromotionDashboardListViewResponse> allItems = new ArrayList<>();
+        // 2. Xác định danh sách các Station ID hợp lệ cần filter
+        List<Integer> validStationIds = null;
 
-        //PHẦN 1: BỐC DỮ LIỆU TỪ BẢNG PROMOTION (CHIẾN DỊCH VÀ VOUCHER CHẾ ĐỘ 1, 2)
+        // Nhánh 1: Lọc đích danh theo Chi nhánh
+        if (stationId != null) {
+            Station station = stationRepository.findById(stationId).orElse(null);
+            if (station == null || Boolean.TRUE.equals(station.getIsDeleted())) {
+                throw new BusinessException(ErrorCode.STATION_NOT_FOUND); // Trả về STATION_001
+            }
+            validStationIds = List.of(stationId);
+        }
+        //Lọc theo Phường/Xã (Commune)
+        else if (communeId != null) {
+            // Quét xem trong bảng Station có chi nhánh nào thuộc Commune này không
+            List<Station> stationsInCommune = stationRepository.findByCommune_IdAndIsDeletedFalse(communeId);
 
+            // Nếu không tìm thấy hoặc Xã này không có trong hệ thống địa lý -> Báo lỗi
+            if (stationsInCommune == null || stationsInCommune.isEmpty()) {
+                throw new BusinessException(ErrorCode.COMMUNE_NOT_FOUND);
+            }
+            validStationIds = stationsInCommune.stream().map(Station::getId).toList();
+        }
+        // Nhánh 3: Lọc theo Tỉnh/Thành phố
+        else if (provinceId != null) {
+            List<Station> stationsInProvince = stationRepository.findByProvinceIdThroughCommune(provinceId);
+            if (stationsInProvince == null || stationsInProvince.isEmpty()) {
+                throw new BusinessException(ErrorCode.PROVINCE_NOT_FOUND); // Trả về PROVINCE_001
+            }
+            validStationIds = stationsInProvince.stream().map(Station::getId).toList();
+        }
+
+        // 3. Bốc toàn bộ các Chiến dịch chưa bị xóa mềm (is_deleted = false)
         List<Promotion> promotions = promotionRepository.findByIsDeletedFalse();
+        List<PromotionDashboardListViewResponse> resultList = new ArrayList<>();
 
         for (Promotion p : promotions) {
-            // Điểm chặn 1: Lọc theo trạng thái chiến dịch
-            if (!filterStatus.equals("ALL") && !p.getStatus().equalsIgnoreCase(filterStatus)) {
-                continue; // Bỏ qua nếu không khớp trạng thái Admin chọn
-            }
 
-            // Bước A: Tìm danh sách ID các chi nhánh áp dụng của chiến dịch từ bảng trung gian
+            // Bước A: Lấy danh sách Chi nhánh áp dụng từ bảng trung gian mapping
             List<PromotionStationMapping> stationMappings = promotionStationMappingRepository.findById_PromotionId(p.getId());
-            List<Integer> assignedStationIds = new ArrayList<>();
-            for (PromotionStationMapping mapping : stationMappings) {
-                assignedStationIds.add(mapping.getId().getStationId());
+            List<Integer> assignedStationIds = stationMappings.stream()
+                    .map(m -> m.getId().getStationId())
+                    .toList();
+
+            // BỘ LỌC CHI NHÁNH ĐA TẦNG
+            if (validStationIds != null) {
+                boolean isMatch = assignedStationIds.stream().anyMatch(validStationIds::contains);
+                if (!isMatch) {
+                    continue; // Bỏ qua chiến dịch nếu không nằm trong danh sách trúng filter
+                }
             }
 
-            // Điểm chặn 2: Lọc theo chi nhánh Admin chọn trên giao diện
-            if (stationId != null && !assignedStationIds.contains(stationId)) {
-                continue; // Bỏ qua nếu chiến dịch này không áp dụng cho chi nhánh đang chọn
-            }
-
-            // Bước B: Chuyển đổi danh sách ID chi nhánh sang danh sách "Tên chi nhánh" để hiển thị
-            List<String> stationNames = new ArrayList<>();
+            // =========================================================================
+            // ĐOẠN ĐÓNG GÓI STATIONS, TARGETS VÀ VOUCHERS (Giữ nguyên y hệt lượt trước)
+            // =========================================================================
+            List<PromotionDashboardListViewResponse.StationInfo> stationInfos = new ArrayList<>();
             List<Station> stations = stationRepository.findAllById(assignedStationIds);
             for (Station s : stations) {
-                stationNames.add(s.getStationName());
+                stationInfos.add(PromotionDashboardListViewResponse.StationInfo.builder()
+                        .stationId(s.getId())
+                        .stationName(s.getStationName())
+                        .build());
             }
 
-            // Bước C: Tìm danh sách "Tên nhóm đối tượng khách hàng" (Ví dụ: Hạng Vàng, Khách mới)
-            List<String> targetNames = new ArrayList<>();
+            List<PromotionDashboardListViewResponse.TargetInfo> targetInfos = new ArrayList<>();
             List<PromotionTargetMapping> targetMappings = promotionTargetMappingRepository.findById_PromotionId(p.getId());
             for (PromotionTargetMapping mapping : targetMappings) {
                 PromotionTarget target = promotionTargetRepository.findById(mapping.getId().getPromotionTargetId()).orElse(null);
                 if (target != null) {
-                    targetNames.add(target.getTargetName());
+                    targetInfos.add(PromotionDashboardListViewResponse.TargetInfo.builder()
+                            .targetId(target.getId())
+                            .targetName(target.getTargetName())
+                            .targetCode(target.getTargetCode())
+                            .build());
                 }
             }
 
-            //LOGIC PHÂN LOẠI CHẾ ĐỘ 1 VÀ CHẾ ĐỘ 2 DỰA TRÊN VOUCHER CON LIÊN KẾT
-            Integer currentConfigMode = 1; // Mặc định giả định ban đầu là Chế độ 1
-            Long linkedVoucherId = null;
-            String linkedVoucherCode = null;
-
-            // Tìm kiếm Voucher con đính kèm với Promotion cha này dưới DB
-            Voucher linkedVoucher = voucherRepository.findByPromotionId(p.getId()).stream().findFirst().orElse(null);
-            if (linkedVoucher != null) {
-                linkedVoucherId = linkedVoucher.getId();
-                linkedVoucherCode = linkedVoucher.getVoucherCode();
-
-                // Nếu mã code KHÔNG bắt đầu bằng AUTO_PROMO_ -> Chắc chắn Admin tự nhập mã -> Chế độ 2
-                if (!linkedVoucher.getVoucherCode().startsWith("AUTO_PROMO_")) {
-                    currentConfigMode = 2;
-                }
+            List<PromotionDashboardListViewResponse.VoucherInfo> voucherInfos = new ArrayList<>();
+            List<Voucher> linkedVouchers = voucherRepository.findByPromotionIdAndIsDeletedFalse(p.getId());
+            for (Voucher v : linkedVouchers) {
+                voucherInfos.add(PromotionDashboardListViewResponse.VoucherInfo.builder()
+                        .id(v.getId())
+                        .voucherCode(v.getVoucherCode())
+                        .discountPercentage(v.getDiscountPercentage())
+                        .maxDiscountAmount(v.getMaxDiscountAmount())
+                        .minOrderValue(v.getMinOrderValue())
+                        .usageLimit(v.getUsageLimit())
+                        .usedCount(v.getUsedCount())
+                        .startDate(v.getStartDate())
+                        .expiryDate(v.getExpiryDate())
+                        .reusable(v.getReusable())
+                        .status(v.getStatus())
+                        .build());
             }
 
-
-
-
-            // Bước D: Đóng gói toàn bộ thông tin chiến dịch vào DTO
             PromotionDashboardListViewResponse dto = PromotionDashboardListViewResponse.builder()
                     .id(p.getId())
-                    .type("CAMPAIGN")
-                    .name(p.getTitle())
-                    .appliedStations(stationNames)
-                    .targetSegments(targetNames)
+                    .title(p.getTitle())
+                    .description(p.getDescription() != null ? p.getDescription() : "Mô tả chiến dịch...")
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
                     .status(p.getStatus())
-                    .configMode(currentConfigMode)
-                    .voucherId(linkedVoucherId)
-                    .voucherCode(linkedVoucherCode)
+                    .createdAt(p.getCreatedAt() != null ? p.getCreatedAt() : LocalDateTime.now())
+                    .stations(stationInfos)
+                    .targets(targetInfos)
+                    .vouchers(voucherInfos)
                     .build();
 
-            allItems.add(dto);
+            resultList.add(dto);
         }
 
-
-        //PHẦN 2: BỐC DỮ LIỆU VOUCHER LẺ (CHẾ ĐỘ 3 - PROMOTION_ID LÀ NULL)
-
-        List<Voucher> vouchers = voucherRepository.findByIsDeletedFalse();
-
-        for (Voucher v : vouchers) {
-            // Chỉ lấy những Voucher độc lập (Không thuộc chiến dịch nào)
-            if (v.getPromotion() == null) {
-
-                // Điểm chặn 1: Lọc trạng thái của Voucher lẻ
-                if (!filterStatus.equals("ALL") && !v.getStatus().equalsIgnoreCase(filterStatus)) {
-                    continue;
-                }
-
-                // Mặc định Voucher lẻ áp dụng công khai cho "Toàn hệ thống" và "Tất cả khách hàng"
-                PromotionDashboardListViewResponse dto = PromotionDashboardListViewResponse.builder()
-                        .id(v.getId().intValue()) // Ép kiểu Long của Voucher sang Integer để gom chung bảng
-                        .type("STANDALONE_VOUCHER")
-                        .name("Voucher lẻ: " + v.getVoucherCode())
-                        .appliedStations(List.of("Toàn hệ thống"))
-                        .targetSegments(List.of("Tất cả khách hàng"))
-                        .startDate(v.getStartDate().toLocalDate()) // Ép LocalDateTime về LocalDate
-                        .endDate(v.getExpiryDate().toLocalDate())
-                        .status(v.getStatus())
-                        .configMode(3)
-                        .voucherId(v.getId())
-                        .voucherCode(v.getVoucherCode())
-                        .build();
-
-                allItems.add(dto);
-            }
-        }
-
-        //PHẦN 3: SẮP XẾP THEO NGÀY BẮT ĐẦU MỚI NHẤT (MỚI NHẤT LÊN ĐẦU)
-
-        allItems.sort(new Comparator<PromotionDashboardListViewResponse>() {
+        // 4. SẮP XẾP THEO CREATED_AT MỚI NHẤT LÊN ĐẦU
+        resultList.sort(new Comparator<PromotionDashboardListViewResponse>() {
             @Override
             public int compare(PromotionDashboardListViewResponse a, PromotionDashboardListViewResponse b) {
-                return b.getStartDate().compareTo(a.getStartDate()); // Ngày lớn hơn (mới hơn) đứng trước
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
             }
         });
 
-        // Trả thẳng nguyên cái List đã gộp và sắp xếp về cho Controller
-        return allItems;
+        return resultList;
     }
 
     //CODE SERVICE PHỤC VỤ LOGIC CONFIG - UPDATE PROMOTION/VOUCHER
@@ -562,101 +562,200 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         return VoucherStatus.ACTIVE.name();
     }
 
+    @Override
     @Transactional
-    public void updatePromotion(Integer promotionId, UpdatePromotionRequest request) {
-        // 1. Kiểm tra tồn tại Chiến dịch
-        Promotion promotion = promotionRepository.findById(promotionId)
+    public PromotionDashboardListViewResponse updatePromotion(Integer promotionId, UpdatePromotionRequest request) {
+        // 1. Tìm và validate sự tồn tại của Chiến dịch cha
+        Promotion promotion = promotionRepository.findByIdAndIsDeletedFalse(promotionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
 
-        // 2. Validate Khoảng ngày tháng của Chiến dịch
-        LocalDate now = LocalDate.now();
-        if (request.getStartDate().isBefore(now) || request.getEndDate().isBefore(now)) {
-            throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+        // 2. Validate ràng buộc cơ bản của Chiến dịch
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty() || request.getTitle().length() > 150) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST_PARAMETERS);
         }
-        if (request.getEndDate().isBefore(request.getStartDate())) {
-            throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
+        if (request.getStartDate() == null || request.getEndDate() == null || request.getEndDate().isBefore(request.getStartDate())) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST_PARAMETERS);
+        }
+        LocalDate today = LocalDate.now();
+        if (request.getStartDate().isBefore(today) || request.getEndDate().isBefore(today)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST_PARAMETERS);
+        }
+        if (request.getStationIds() == null || request.getStationIds().isEmpty()) {
+            throw new BusinessException(ErrorCode.STATION_LIST_CANNOT_BE_EMPTY);
         }
 
-        // 3. Cập nhật Metadata cơ bản
-        promotion.setTitle(request.getTitle());
+        // 3. Cập nhật thông tin gốc của Chiến dịch
+        promotion.setTitle(request.getTitle().trim());
         promotion.setDescription(request.getDescription());
         promotion.setStartDate(request.getStartDate());
         promotion.setEndDate(request.getEndDate());
-        promotion.setDescription("Hệ thống tự động giảm giá trực tiếp theo chiến dịch");
+        promotion.setStatus(determinePromotionStatus(request.getStartDate(), request.getEndDate()));
+        promotion = promotionRepository.save(promotion);
 
-        // Tự động tính toán lại Trạng thái Chiến dịch
-        String newPromoStatus = determinePromotionStatus(request.getStartDate(), request.getEndDate());
-        promotion.setStatus(newPromoStatus);
-        promotionRepository.save(promotion);
-
-        // 4. Xử lý đồng bộ Mappings Chi nhánh (AC03) - Xóa cũ, thêm mới an toàn
+        // 4. Đồng bộ làm sạch và map lại danh sách Chi nhánh (Stations)
         promotionStationMappingRepository.deleteByPromotionId(promotionId);
+        List<PromotionDashboardListViewResponse.StationInfo> savedStationInfos = new ArrayList<>();
         for (Integer stationId : request.getStationIds()) {
             Station station = stationRepository.findById(stationId).orElse(null);
-            if (station == null || station.getIsDeleted() || !station.getIsOperating()) {
-                throw new BusinessException(ErrorCode.STATION_NOT_FOUND_OR_INACTIVE);
+            if (station == null || Boolean.TRUE.equals(station.getIsDeleted()) || !Boolean.TRUE.equals(station.getIsOperating())) {
+                throw new BusinessException(ErrorCode.STATION_NOT_FOUND_OR_INACTIVE); // Ném lỗi STATION_001
             }
 
             PromotionStationMappingId mappingId = PromotionStationMappingId.builder()
                     .promotionId(promotionId)
                     .stationId(stationId)
                     .build();
-            PromotionStationMapping mapping = PromotionStationMapping
-                    .builder()
+            PromotionStationMapping mapping = PromotionStationMapping.builder()
                     .id(mappingId)
                     .promotion(promotion)
                     .station(station)
                     .build();
             promotionStationMappingRepository.save(mapping);
+
+            savedStationInfos.add(PromotionDashboardListViewResponse.StationInfo.builder()
+                    .stationId(station.getId())
+                    .stationName(station.getStationName())
+                    .build());
         }
 
-        // 5. Xử lý đồng bộ Mappings Nhóm đối tượng (AC02)
+        // 5. Đồng bộ làm sạch và map lại danh sách Đối tượng khách hàng (Targets)
         promotionTargetMappingRepository.deleteByPromotionId(promotionId);
-        if (request.getTargetCustomerTierIds() != null) {
-            for (Integer targetId : request.getTargetCustomerTierIds()) {
-                // Logic kiểm tra targetId hợp lệ dưới DB...
-                PromotionTarget promotionTarget = promotionTargetRepository.findById(targetId).orElse(null);
+        List<PromotionDashboardListViewResponse.TargetInfo> savedTargetInfos = new ArrayList<>();
+        if (request.getTargetIds() != null) {
+            for (Integer targetId : request.getTargetIds()) {
+                PromotionTarget target = promotionTargetRepository.findById(targetId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_TARGET_NOT_FOUND));
 
                 PromotionTargetMappingId targetMappingId = PromotionTargetMappingId.builder()
                         .promotionId(promotionId)
                         .promotionTargetId(targetId)
                         .build();
-                PromotionTargetMapping targetMapping = PromotionTargetMapping
-                        .builder()
+                PromotionTargetMapping targetMapping = PromotionTargetMapping.builder()
                         .id(targetMappingId)
                         .promotion(promotion)
-                        .promotionTarget(promotionTarget)
+                        .promotionTarget(target)
                         .build();
                 promotionTargetMappingRepository.save(targetMapping);
+
+                savedTargetInfos.add(PromotionDashboardListViewResponse.TargetInfo.builder()
+                        .targetId(target.getId())
+                        .targetName(target.getTargetName())
+                        .targetCode(target.getTargetCode())
+                        .build());
             }
         }
 
-        //6. CRUCIAL BE RULE: Tự động đồng bộ ăn theo thời gian cho Voucher con liên kết (Nếu có)
-        List<Voucher> linkedVoucher = voucherRepository.findByPromotionId(promotionId);
-        if (linkedVoucher != null && !linkedVoucher.isEmpty()) {
-            // Ép kiểu LocalDate sang LocalDateTime đầu ngày và cuối ngày theo cấu hình mới của cha
-            LocalDateTime voucherStart = request.getStartDate().atStartOfDay();
-            LocalDateTime voucherExpiry = request.getEndDate().atTime(LocalTime.MAX);
+        // 6. XỬ LÝ ĐỒNG BỘ DANH SÁCH VOUCHER CON (VÒNG LẶP NÂNG CAO)
+        if (request.getVouchers() == null || request.getVouchers().isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST_PARAMETERS);
+        }
 
-            // Vòng lặp quét qua từng mã con để đồng bộ thời gian và trạng thái hàng loạt
-            for (Voucher voucher : linkedVoucher) {
-                // Đồng bộ thời gian hiệu lực theo Chiến dịch cha vừa cập nhật
-                voucher.setStartDate(voucherStart);
-                voucher.setExpiryDate(voucherExpiry);
+        List<Long> incomingVoucherIds = new ArrayList<>();
+        List<String> codesInRequest = new ArrayList<>();
+        List<PromotionDashboardListViewResponse.VoucherInfo> savedVoucherInfos = new ArrayList<>();
 
-                // Tính toán lại trạng thái độc lập của từng Voucher con dựa theo ngày mới và hạn mức dùng của riêng nó
-                String newVoucherStatus = determineVoucherStatus(
-                        voucherStart,
-                        voucherExpiry,
-                        voucher.getUsedCount(),
-                        voucher.getUsageLimit()
-                );
-                voucher.setStatus(newVoucherStatus);
+        LocalDateTime voucherStart = request.getStartDate().atStartOfDay();
+        LocalDateTime voucherExpiry = request.getEndDate().atTime(LocalTime.MAX);
 
-                // Đẩy cập nhật của từng mã con xuống Database
-                voucherRepository.save(voucher);
+        for (UpdatePromotionRequest.VoucherUpdateSubRequest vReq : request.getVouchers()) {
+            if (vReq.getVoucherCode() == null || vReq.getVoucherCode().trim().isEmpty()) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST_PARAMETERS);
+            }
+            String cleanCode = vReq.getVoucherCode().trim().toUpperCase();
+
+            // Check trùng nội bộ request body gửi lên
+            if (codesInRequest.contains(cleanCode)) {
+                throw new BusinessException(ErrorCode.DUPLICATE_VOUCHER_CODE); // Ném lỗi VOUCHER_002
+            }
+            codesInRequest.add(cleanCode);
+
+            Voucher voucher;
+            // PHÂN NHÁNH A: Cập nhật Voucher hiện có
+            if (vReq.getId() != null) {
+                voucher = voucherRepository.findByIdAndIsDeletedFalse(vReq.getId())
+                        .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_NOT_FOUND)); // Ném lỗi VOUCHER_001
+
+                // Validate trùng mã với bản ghi khác trong hệ thống
+                Optional<Voucher> duplicateCheck = voucherRepository.findByVoucherCodeAndIsDeletedFalse(cleanCode);
+                if (duplicateCheck.isPresent() && !duplicateCheck.get().getId().equals(voucher.getId())) {
+                    throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS); // Ném lỗi VOUCHER_002
+                }
+
+                // Validate giới hạn lượt dùng không được nhỏ hơn số lần thực tế đã dùng
+                if (vReq.getUsageLimit() < voucher.getUsedCount()) {
+                    throw new BusinessException(ErrorCode.USAGE_LIMIT_MUST_BE_GREATER_THAN_USED_COUNT); // Ném lỗi VOUCHER_003
+                }
+
+                incomingVoucherIds.add(voucher.getId());
+            }
+            // PHÂN NHÁNH B: Tạo mới hoàn toàn Voucher con đính kèm vào chiến dịch
+            else {
+                if (voucherRepository.existsByVoucherCode(cleanCode)) {
+                    throw new BusinessException(ErrorCode.VOUCHER_CODE_ALREADY_EXISTS); // Ném lỗi VOUCHER_002
+                }
+                voucher = new Voucher();
+                voucher.setPromotion(promotion);
+                voucher.setUsedCount(0);
+                voucher.setIsDeleted(false);
+            }
+
+            // Ghi nhận / Cấu hình lại các quy tắc tài chính mới
+            voucher.setVoucherCode(cleanCode);
+            voucher.setDiscountPercentage(vReq.getDiscountPercentage());
+            voucher.setMaxDiscountAmount(vReq.getMaxDiscountAmount());
+            voucher.setMinOrderValue(vReq.getMinOrderValue() != null ? vReq.getMinOrderValue() : BigDecimal.ZERO);
+            voucher.setUsageLimit(vReq.getUsageLimit());
+            voucher.setReusable(vReq.getReusable() != null && vReq.getReusable());
+            voucher.setStartDate(voucherStart);
+            voucher.setExpiryDate(voucherExpiry);
+
+            // Tự động tính toán lại trạng thái Voucher dựa trên dòng thời gian mới
+            voucher.setStatus(determineVoucherStatus(voucherStart, voucherExpiry, voucher.getUsedCount(), vReq.getUsageLimit()));
+            voucher = voucherRepository.save(voucher);
+
+            if (vReq.getId() == null) {
+                incomingVoucherIds.add(voucher.getId()); // Ghi nhận ID của thằng vừa chèn mới tinh
+            }
+
+            savedVoucherInfos.add(PromotionDashboardListViewResponse.VoucherInfo.builder()
+                    .id(voucher.getId())
+                    .voucherCode(voucher.getVoucherCode())
+                    .discountPercentage(voucher.getDiscountPercentage())
+                    .maxDiscountAmount(voucher.getMaxDiscountAmount())
+                    .minOrderValue(voucher.getMinOrderValue())
+                    .usageLimit(voucher.getUsageLimit())
+                    .usedCount(voucher.getUsedCount())
+                    .startDate(voucher.getStartDate())
+                    .expiryDate(voucher.getExpiryDate())
+                    .reusable(voucher.getReusable() != null && voucher.getReusable())
+                    .status(voucher.getStatus())
+                    .build());
+        }
+
+        // Xóa mềm các voucher cũ của Promotion này nhưng không được truyền lên Form
+        List<Voucher> currentVouchersInDb = voucherRepository.findByPromotionIdAndIsDeletedFalse(promotionId);
+        for (Voucher dbVoucher : currentVouchersInDb) {
+            if (!incomingVoucherIds.contains(dbVoucher.getId())) {
+                dbVoucher.setIsDeleted(true);
+                dbVoucher.setStatus(VoucherStatus.EXPIRED.name());
+                dbVoucher.setExpiryDate(LocalDateTime.now());
+                voucherRepository.save(dbVoucher);
             }
         }
+
+        // 7. Đóng gói object trả về khớp 100% cấu hình JSON mẫu SUCCESS của Frontend
+        return PromotionDashboardListViewResponse.builder()
+                .id(promotion.getId())
+                .title(promotion.getTitle())
+                .description(promotion.getDescription())
+                .startDate(promotion.getStartDate())
+                .endDate(promotion.getEndDate())
+                .status(promotion.getStatus())
+                .createdAt(promotion.getCreatedAt())
+                .stations(savedStationInfos)
+                .targets(savedTargetInfos)
+                .vouchers(savedVoucherInfos)
+                .build();
     }
 
     @Transactional
