@@ -67,7 +67,8 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
     @Override
     public ScanVehicleResponse scanVehicle(String licensePlate) {
-        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate);
+        LocalDate today = LocalDate.now();
+        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate, today);
 
         // TRƯỜNG HỢP 1: KHÔNG TÌM THẤY LỊCH ĐẶT TRƯỚC (KHÁCH VÃNG LAI)
         if (bookingOtp.isEmpty()) {
