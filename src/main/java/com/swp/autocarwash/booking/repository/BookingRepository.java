@@ -989,4 +989,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("toDate") LocalDate toDate,
             @Param("provinceId") Integer provinceId
     );
+
+
 }
