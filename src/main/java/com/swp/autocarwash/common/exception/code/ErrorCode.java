@@ -1163,6 +1163,7 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PROMOTION_TARGET_NOT_FOUND",
             "Promotion target not found"
+
     );
 
 

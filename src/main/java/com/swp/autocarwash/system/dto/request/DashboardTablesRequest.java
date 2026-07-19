@@ -20,6 +20,8 @@ public class DashboardTablesRequest {
 
     private Integer provinceId;
 
+    private Integer communeId;
+
     private Integer stationId;
 
 }

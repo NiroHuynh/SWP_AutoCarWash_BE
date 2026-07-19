@@ -2,6 +2,7 @@ package com.swp.autocarwash.customer.repository;
 
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.system.dto.response.TierStatProjection;
+import com.swp.autocarwash.system.dto.response.TierStatisticsProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -183,5 +184,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             GROUP BY ct.id, ct.tierName
             ORDER BY ct.minPoints
             """)
-    List<TierStatProjection> getTierStatistics();
+    List<TierStatisticsProjection> getTierStatistics();
 }
