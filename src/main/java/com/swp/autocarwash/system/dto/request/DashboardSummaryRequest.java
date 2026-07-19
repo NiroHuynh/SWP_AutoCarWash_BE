@@ -18,5 +18,7 @@ public class DashboardSummaryRequest {
 
     private Integer provinceId;
 
+    private Integer communeId;
+
     private Integer stationId;
 }
