@@ -9,6 +9,7 @@ import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.staff.entity.Staff;
 import com.swp.autocarwash.station.entity.Station;
+import com.swp.autocarwash.station.repository.CommuneRepository;
 import com.swp.autocarwash.station.repository.ProvinceRepository;
 import com.swp.autocarwash.station.repository.StationRepository;
 import com.swp.autocarwash.system.dto.request.DashboardGroupBy;
@@ -38,6 +39,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final ProvinceRepository provinceRepository;
     private final StationRepository stationRepository;
     private final CustomerRepository customerRepository;
+    private final CommuneRepository communeRepository;
     private final SecurityUtils securityUtils;
 
     @Override
@@ -46,6 +48,7 @@ public class DashboardServiceImpl implements DashboardService {
         validateRequest(request);
 
         Integer stationId = null;
+        Integer communeId = null;
         Integer provinceId = null;
 
         if (securityUtils.hasRole("ROLE_ADMIN")) {
@@ -57,6 +60,14 @@ public class DashboardServiceImpl implements DashboardService {
                                 new BusinessException(ErrorCode.PROVINCE_NOT_FOUND));
 
                 provinceId = request.getProvinceId();
+
+            } else if (request.getCommuneId() != null) {
+
+                communeRepository.findById(request.getCommuneId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.COMMUNE_NOT_FOUND));
+
+                communeId = request.getCommuneId();
 
             } else if (request.getStationId() != null) {
 
@@ -114,6 +125,23 @@ public class DashboardServiceImpl implements DashboardService {
                     request.getFromDate(),
                     request.getToDate(),
                     provinceId);
+
+        } else if (communeId != null) {
+
+            totalRevenue = bookingRepository.getTotalRevenueByCommune(
+                    request.getFromDate(),
+                    request.getToDate(),
+                    communeId);
+
+            totalBookings = bookingRepository.getTotalBookingsByCommune(
+                    request.getFromDate(),
+                    request.getToDate(),
+                    communeId);
+
+            totalCustomers = bookingRepository.getTotalCustomersByCommune(
+                    request.getFromDate(),
+                    request.getToDate(),
+                    communeId);
 
         } else {
 
@@ -200,6 +228,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         Integer stationId = null;
+        Integer communeId = null;
         Integer provinceId = null;
 
         // ===== STAFF =====
@@ -216,32 +245,32 @@ public class DashboardServiceImpl implements DashboardService {
 
         else if (securityUtils.hasRole("ROLE_ADMIN")) {
 
-            if (request.getStationId() != null) {
+            if (request.getProvinceId() != null) {
 
-                Station station = stationRepository
-                        .findById(request.getStationId())
+                provinceRepository.findById(request.getProvinceId())
                         .orElseThrow(() ->
-                                new BusinessException(
-                                        ErrorCode.STATION_NOT_FOUND
-                                ));
-
-                stationId = station.getId();
-
-            } else if (request.getProvinceId() != null) {
-
-                provinceRepository
-                        .findById(request.getProvinceId())
-                        .orElseThrow(() ->
-                                new BusinessException(
-                                        ErrorCode.PROVINCE_NOT_FOUND
-                                ));
+                                new BusinessException(ErrorCode.PROVINCE_NOT_FOUND));
 
                 provinceId = request.getProvinceId();
+
+            } else if (request.getCommuneId() != null) {
+
+                communeRepository.findById(request.getCommuneId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.COMMUNE_NOT_FOUND));
+
+                communeId = request.getCommuneId();
+
+            } else if (request.getStationId() != null) {
+
+                stationRepository.findById(request.getStationId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.STATION_NOT_FOUND));
+
+                stationId = request.getStationId();
             }
 
-        }
-
-        else {
+        } else {
 
             throw new UnauthorizedException(
                     ErrorCode.UNAUTHORIZED_ACCESS
@@ -256,27 +285,31 @@ public class DashboardServiceImpl implements DashboardService {
                     request.getFromDate(),
                     request.getToDate(),
                     stationId,
-                    provinceId
+                    provinceId,
+                    communeId
             );
 
             case DAY -> buildDayChart(
                     request.getFromDate(),
                     request.getToDate(),
                     stationId,
-                    provinceId
+                    provinceId,
+                    communeId
             );
 
             case QUARTER -> buildQuarterChart(
                     request.getFromDate(),
                     request.getToDate(),
                     stationId,
-                    provinceId
+                    provinceId,
+                    communeId
             );
 
             case HOUR -> buildHourChart(
                     request.getFromDate(),
                     stationId,
-                    provinceId
+                    provinceId,
+                    communeId
             );
         };
     }
@@ -323,7 +356,8 @@ public class DashboardServiceImpl implements DashboardService {
             LocalDate fromDate,
             LocalDate toDate,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            Integer communeId
     ) {
 
         List<RevenueChartProjection> projections =
@@ -331,7 +365,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         BigDecimal revenueTotal =
@@ -339,7 +374,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         Map<Integer, BigDecimal> revenueMap = toMap(projections);
@@ -374,6 +410,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .chartData(chartData)
                 .build();
     }
+
     private Map<Integer, BigDecimal> toMap(
             List<RevenueChartProjection> projections
     ) {
@@ -395,7 +432,8 @@ public class DashboardServiceImpl implements DashboardService {
             LocalDate fromDate,
             LocalDate toDate,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            Integer communeId
     ) {
 
         List<RevenueChartProjection> projections =
@@ -403,7 +441,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         BigDecimal revenueTotal =
@@ -411,7 +450,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         Map<Integer, BigDecimal> revenueMap = toMap(projections);
@@ -446,7 +486,8 @@ public class DashboardServiceImpl implements DashboardService {
             LocalDate fromDate,
             LocalDate toDate,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            Integer communeId
     ) {
 
         List<RevenueChartProjection> projections =
@@ -454,7 +495,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         BigDecimal revenueTotal =
@@ -462,7 +504,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         Map<Integer, BigDecimal> revenueMap = toMap(projections);
@@ -490,14 +533,16 @@ public class DashboardServiceImpl implements DashboardService {
     private DashboardRevenueChartResponse buildHourChart(
             LocalDate date,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            Integer communeId
     ) {
 
         List<RevenueChartProjection> projections =
                 bookingRepository.getRevenueByHour(
                         date,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         BigDecimal revenueTotal =
@@ -505,7 +550,8 @@ public class DashboardServiceImpl implements DashboardService {
                         date,
                         date,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         Map<Integer, BigDecimal> revenueMap = toMap(projections);
@@ -562,6 +608,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         Integer stationId = null;
+        Integer communeId = null;
         Integer provinceId = null;
 
         // ===== STAFF =====
@@ -579,25 +626,29 @@ public class DashboardServiceImpl implements DashboardService {
 
         else if (securityUtils.hasRole("ROLE_ADMIN")) {
 
-            if (request.getStationId() != null) {
+            if (request.getProvinceId() != null) {
 
-                if (!stationRepository.existsById(request.getStationId())) {
-                    throw new BusinessException(
-                            ErrorCode.STATION_NOT_FOUND
-                    );
-                }
-
-                stationId = request.getStationId();
-
-            } else if (request.getProvinceId() != null) {
-
-                if (!provinceRepository.existsById(request.getProvinceId())) {
-                    throw new BusinessException(
-                            ErrorCode.PROVINCE_NOT_FOUND
-                    );
-                }
+                provinceRepository.findById(request.getProvinceId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.PROVINCE_NOT_FOUND));
 
                 provinceId = request.getProvinceId();
+
+            } else if (request.getCommuneId() != null) {
+
+                communeRepository.findById(request.getCommuneId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.COMMUNE_NOT_FOUND));
+
+                communeId = request.getCommuneId();
+
+            } else if (request.getStationId() != null) {
+
+                stationRepository.findById(request.getStationId())
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.STATION_NOT_FOUND));
+
+                stationId = request.getStationId();
             }
 
         }
@@ -618,22 +669,40 @@ public class DashboardServiceImpl implements DashboardService {
                         request.getFromDate(),
                         request.getToDate(),
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         // ===== Tier Stats =====
 
-        List<TierStatResponse> tierStats =
-                customerRepository
-                        .getTierStatistics()
-                        .stream()
-                        .map(item ->
-                                TierStatResponse.builder()
-                                        .tier(item.getTier())
-                                        .customerCount(item.getCustomerCount())
-                                        .build()
-                        )
-                        .toList();
+        List<TierStatisticsProjection> statistics;
+
+        if (stationId != null) {
+
+            statistics = bookingRepository.getTierStatisticsByStation( request.getFromDate(),
+                    request.getToDate(),stationId);
+
+        } else if (communeId != null) {
+
+            statistics = bookingRepository.getTierStatisticsByCommune( request.getFromDate(),
+                    request.getToDate(),communeId);
+
+        } else if (provinceId != null) {
+
+            statistics = bookingRepository.getTierStatisticsByProvince( request.getFromDate(),
+                    request.getToDate(),provinceId);
+
+        } else {
+
+            statistics = customerRepository.getTierStatistics();
+        }
+
+        List<TierStatResponse> tierStats = statistics.stream()
+                .map(item -> TierStatResponse.builder()
+                        .tier(item.getTier())
+                        .customerCount(item.getCustomerCount())
+                        .build())
+                .toList();
 
         return DashboardTablesResponse.builder()
                 .packageStats(packageStats)
@@ -645,7 +714,8 @@ public class DashboardServiceImpl implements DashboardService {
             LocalDate fromDate,
             LocalDate toDate,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            Integer communeId
     ) {
 
         List<PackageStatProjection> projections =
@@ -653,7 +723,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         if (projections.isEmpty()) {
@@ -665,7 +736,8 @@ public class DashboardServiceImpl implements DashboardService {
                         fromDate,
                         toDate,
                         stationId,
-                        provinceId
+                        provinceId,
+                        communeId
                 );
 
         return projections.stream()
