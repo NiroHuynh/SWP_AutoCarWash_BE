@@ -482,7 +482,9 @@ public class WalkInCheckInService {
                     .bookingType(BookingType.WALK_IN.name())
                     .createdAt(LocalDateTime.now())
                     .checkInAt(LocalDateTime.now())
-                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
+                    //.isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
+                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0
+                || (request.getPenaltyDepositCollected() != null && request.getPenaltyDepositCollected()))
                     .build();
             Booking savedBooking = bookingRepository.save(newBooking);
 
