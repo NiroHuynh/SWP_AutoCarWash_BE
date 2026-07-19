@@ -217,7 +217,7 @@ public class WalkInCheckInService {
         if(oldBookingOpt.isPresent()){
             Booking oldBooking = oldBookingOpt.get();
             transferredCredit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
-            systemNotice +="The system found late appointment today, support auto transfer deposit to new booking";
+            systemNotice += " | The system found late appointment today, support auto transfer deposit to new booking";
         }
 
         //Công thức tính số tiền thực tế cần thu tại quầy lúc lấy xe
