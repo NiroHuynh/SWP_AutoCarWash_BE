@@ -107,10 +107,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("appointmentDate") LocalDate appointmentDate
     );
 
-    //tự lấy status CONFIRMED và ngày hiện tại
-    default Optional<Booking> findConfirmedBookingTodayByLicensePlate(String licensePlate) {
-        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED.toString(), LocalDate.now());
-    }
+//    //tự lấy status CONFIRMED và ngày hiện tại
+//    default Optional<Booking> findConfirmedBookingTodayByLicensePlate(String licensePlate) {
+//        return findConfirmedBookingByLicensePlate(licensePlate, BookingStatus.CONFIRMED.toString(), LocalDate.now());
+//    }
+
+    @Query("SELECT b FROM Booking b " +
+            "JOIN BookingSlotAllocation bsa ON bsa.booking.id = b.id " +
+            "JOIN bsa.bookingSlot s " +
+            "WHERE b.vehicle.licensePlate = :licensePlate " +
+            "AND b.appointmentDate = :today " +
+            "AND b.status = 'CONFIRMED' " +
+            "ORDER BY s.startTime ASC LIMIT 1") // 🔥 Lấy đơn có khung giờ sớm nhất để check-in trước
+    Optional<Booking> findConfirmedBookingTodayByLicensePlate(
+            @Param("licensePlate") String licensePlate,
+            @Param("today") LocalDate today);
 
     /**
      * Subtask 4.1: Tìm các Booking NO_SHOW trong ngày, có is_deposit_paid = true
