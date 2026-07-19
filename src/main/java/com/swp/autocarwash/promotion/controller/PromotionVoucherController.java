@@ -65,10 +65,11 @@ public class PromotionVoucherController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PromotionDashboardListViewResponse>>> getPromotionDashboardList(
             @RequestParam(value = "stationId", required = false) Integer stationId,
-            @RequestParam(value = "status", required = false, defaultValue = "ACTIVE") String status
+            @RequestParam(value = "provinceId", required = false) Integer provinceId,
+            @RequestParam(value = "communeId", required = false) Integer communeId
     ) {
         // 1. Gọi Service thực hiện thuật toán gộp đa hình (Union) và lọc dữ liệu bằng vòng lặp truyền thống
-        List<PromotionDashboardListViewResponse> response = promotionVoucherService.getPromotionDashboardList(stationId, status);
+        List<PromotionDashboardListViewResponse> response = promotionVoucherService.getPromotionDashboardList(provinceId,communeId, stationId);
 
         // 2. Đóng gói JSON trả về mảng danh sách trực tiếp cho FE dễ map vòng lặp render
         return ResponseEntity.ok(ApiResponse.success("Successfully retrieved the list of promotions!" , response));

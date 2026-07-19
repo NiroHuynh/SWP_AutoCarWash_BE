@@ -1143,6 +1143,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_004",
             "Duplicate voucher code"
+    ),
+    CANNOT_COMBINE_FILTERS(
+            HttpStatus.BAD_REQUEST,
+            "CANNOT_FILTER_BOTH_PROVINCE_AND_STATION",
+            "Can not filter combine province, commune and station at time"
+    ),
+    COMMUNE_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "COMMUNE_NOT_FOUND",
+            "Commune not found"
+    ),
+    INVALID_REQUEST_PARAMETERS(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_REQUEST_PARAMETERS",
+            "Invalid request parameters"
+    ),
+    PROMOTION_TARGET_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_TARGET_NOT_FOUND",
+            "Promotion target not found"
     );
 
 

@@ -61,4 +61,16 @@ public interface StationRepository extends JpaRepository<Station, Integer> {
     List<Object[]> countPromotionsPerBranch(@Param("status") String status);
 
     List<Station> findByIsDeletedFalse();
+
+    //Lọc trạm theo commune_id (Duyệt qua thuộc tính object commune)
+    List<Station> findByCommune_IdAndIsDeletedFalse(Integer communeId);
+
+    //Lọc trạm theo province_id (JOIN lội từ Station -> Commune -> Province)
+    @Query("SELECT s FROM Station s " +
+            "JOIN s.commune c " +
+            "JOIN c.province p " +
+            "WHERE p.id = :provinceId AND s.isDeleted = false")
+    List<Station> findByProvinceIdThroughCommune(@Param("provinceId") Integer provinceId);
+
+
 }
