@@ -1143,7 +1143,13 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "VOUCHER_004",
             "Duplicate voucher code"
-    );
+    ),
+    COMMUNE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "COMMUNE_001",
+            "Commune not found"
+    ),
+    ;
 
 
 
