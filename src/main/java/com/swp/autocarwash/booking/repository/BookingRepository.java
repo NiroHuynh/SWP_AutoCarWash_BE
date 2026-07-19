@@ -118,7 +118,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE b.vehicle.licensePlate = :licensePlate " +
             "AND b.appointmentDate = :today " +
             "AND b.status = 'CONFIRMED' " +
-            "ORDER BY s.startTime ASC LIMIT 1") // 🔥 Lấy đơn có khung giờ sớm nhất để check-in trước
+            "ORDER BY s.startTime ASC LIMIT 1") //Lấy đơn có khung giờ sớm nhất để check-in trước
     Optional<Booking> findConfirmedBookingTodayByLicensePlate(
             @Param("licensePlate") String licensePlate,
             @Param("today") LocalDate today);
