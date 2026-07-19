@@ -4,6 +4,7 @@ import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.system.dto.response.PackageStatProjection;
 import com.swp.autocarwash.system.dto.response.RevenueChartProjection;
+import com.swp.autocarwash.system.dto.response.TierStatisticsProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -399,6 +400,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("provinceId") Integer provinceId
     );
 
+    @Query("""
+            SELECT COALESCE(SUM(b.totalAmount), 0)
+            FROM Booking b
+            WHERE b.status = 'CHECK_OUT'
+              AND b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+              )
+            """)
+    BigDecimal getTotalRevenueByCommune(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("communeId") Integer communeId
+    );
+
     // ==================== TOTAL BOOKINGS ====================
 
     @Query("""
@@ -448,6 +467,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("provinceId") Integer provinceId
     );
 
+    @Query("""
+            SELECT COUNT(b)
+            FROM Booking b
+            WHERE b.status <> 'CANCELED'
+              AND b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+              )
+            """)
+    Long getTotalBookingsByCommune(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("communeId") Integer communeId
+    );
+
     // ==================== TOTAL CUSTOMERS ====================
 
     @Query("""
@@ -495,6 +532,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     @Query("""
+            SELECT COUNT(DISTINCT b.customer.id)
+            FROM Booking b
+            WHERE b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+              )
+            """)
+    Long getTotalCustomersByCommune(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("communeId") Integer communeId
+    );
+
+    @Query("""
             SELECT
                 MONTH(b.appointmentDate) as label,
                 COALESCE(SUM(b.totalAmount),0) as value
@@ -522,6 +576,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                 )
             )
             
+            AND (
+                :communeId IS NULL
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                    AND a.bookingSlot.station.commune.id = :communeId
+                )
+            )
+            
             GROUP BY MONTH(b.appointmentDate)
             ORDER BY MONTH(b.appointmentDate)
             """)
@@ -529,7 +593,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query("""
@@ -560,6 +625,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                 )
             )
             
+            AND (
+                :communeId IS NULL
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                    AND a.bookingSlot.station.commune.id = :communeId
+                )
+            )
+            
             GROUP BY DAY(b.appointmentDate)
             ORDER BY DAY(b.appointmentDate)
             """)
@@ -567,7 +642,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query("""
@@ -598,6 +674,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                 )
             )
             
+            AND (
+                :communeId IS NULL
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                    AND a.bookingSlot.station.commune.id = :communeId
+                )
+            )
             GROUP BY QUARTER(b.appointmentDate)
             ORDER BY QUARTER(b.appointmentDate)
             """)
@@ -605,7 +690,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query(value = """
@@ -644,13 +730,27 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                 )
             )
             
+            AND (
+                :communeId IS NULL
+                OR EXISTS (
+                    SELECT 1
+                    FROM booking_slot_allocation a
+                    JOIN booking_slot s
+                        ON s.id = a.booking_slot_id
+                    JOIN station st
+                        ON st.id = s.station_id
+                    WHERE a.booking_id = b.id
+                    AND st.commune_id = :communeId
+                )
+            )
             GROUP BY HOUR(b.check_out_at)
             ORDER BY HOUR(b.check_out_at)
             """, nativeQuery = true)
     List<RevenueChartProjection> getRevenueByHour(
             @Param("date") LocalDate date,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query("""
@@ -678,12 +778,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     AND a.bookingSlot.station.commune.province.id = :provinceId
                 )
             )
+            AND (
+                :communeId IS NULL
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                    AND a.bookingSlot.station.commune.id = :communeId
+                )
+            )
             """)
     BigDecimal getRevenueTotal(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query("""
@@ -714,7 +824,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                           AND bsa.bookingSlot.station.commune.province.id = :provinceId
                     )
               )
-            
+              AND (
+                  :communeId IS NULL
+                  OR EXISTS (
+                      SELECT 1
+                      FROM BookingSlotAllocation a
+                      WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+                  )
+              )
             GROUP BY sp.id, sp.name
             ORDER BY COUNT(b.id) DESC
             """)
@@ -722,7 +840,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("stationId") Integer stationId,
-            @Param("provinceId") Integer provinceId
+            @Param("provinceId") Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     @Query("""
@@ -750,12 +869,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                           AND bsa.bookingSlot.station.commune.province.id = :provinceId
                     )
               )
+              AND (
+                  :communeId IS NULL
+                  OR EXISTS (
+                      SELECT 1
+                      FROM BookingSlotAllocation a
+                      WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+                  )
+              )
             """)
     Long getTotalBookingForPackageStatistic(
             LocalDate fromDate,
             LocalDate toDate,
             Integer stationId,
-            Integer provinceId
+            Integer provinceId,
+            @Param("communeId") Integer communeId
     );
 
     boolean existsByVehicleIdAndServicePackageIdAndAppointmentDateAndStatusNot(
@@ -763,5 +892,77 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Integer servicePackageId,
             LocalDate appointmentDate,
             String status
+    );
+
+    @Query("""
+            SELECT
+                ct.tierName AS tier,
+                COUNT(DISTINCT c.id) AS customerCount
+            FROM Customer c
+            JOIN Booking b
+                ON b.customer = c
+            LEFT JOIN c.customerTier ct
+            WHERE b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND b.status <> 'CANCELED'
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.id = :stationId
+              )
+            GROUP BY ct.tierName
+            """)
+    List<TierStatisticsProjection> getTierStatisticsByStation(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("stationId") Integer stationId
+    );
+
+    @Query("""
+            SELECT
+                ct.tierName AS tier,
+                COUNT(DISTINCT c.id) AS customerCount
+            FROM Customer c
+            JOIN Booking b
+                ON b.customer = c
+            LEFT JOIN c.customerTier ct
+            WHERE b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND b.status <> 'CANCELED'
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.id = :communeId
+              )
+            GROUP BY ct.tierName
+            """)
+    List<TierStatisticsProjection> getTierStatisticsByCommune(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("communeId") Integer communeId
+    );
+
+    @Query("""
+            SELECT
+                ct.tierName AS tier,
+                COUNT(DISTINCT c.id) AS customerCount
+            FROM Customer c
+            JOIN Booking b
+                ON b.customer = c
+            LEFT JOIN c.customerTier ct
+            WHERE b.appointmentDate BETWEEN :fromDate AND :toDate
+              AND b.status <> 'CANCELED'
+              AND EXISTS (
+                    SELECT 1
+                    FROM BookingSlotAllocation a
+                    WHERE a.booking = b
+                      AND a.bookingSlot.station.commune.province.id = :provinceId
+              )
+            GROUP BY ct.tierName
+            """)
+    List<TierStatisticsProjection> getTierStatisticsByProvince(
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("provinceId") Integer provinceId
     );
 }
