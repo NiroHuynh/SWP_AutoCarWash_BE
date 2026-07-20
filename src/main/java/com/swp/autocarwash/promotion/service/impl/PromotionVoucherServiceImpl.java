@@ -141,6 +141,7 @@ public class PromotionVoucherServiceImpl implements PromotionVoucherService {
         // 3. Vượt qua tất cả chốt chặn -> Tiến hành tạo 1 Chiến dịch cha duy nhất
         Promotion promotion = Promotion.builder()
                 .title(request.getCampaignName())
+                .description(request.getDescription())
                 .startDate(request.getCampaignStartDate())
                 .endDate(request.getCampaignEndDate())
                 .status(calculateStatus(request.getCampaignStartDate()))
