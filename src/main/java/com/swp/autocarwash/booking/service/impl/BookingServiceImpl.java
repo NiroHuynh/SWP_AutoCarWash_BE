@@ -818,6 +818,9 @@ public class BookingServiceImpl implements BookingService {
                 .qrImageUrl(isFreeUnderSubscription
                         ? null
                         : paymentQrPort.buildQrImageUrl(depositAmount, transferContent))
+                .expiresAt(isFreeUnderSubscription
+                        ? null
+                        : saved.getCreatedAt().plusMinutes(systemSettingPort.getPendingPaymentTimeoutMinutes()))
                 .build();
     }
 
