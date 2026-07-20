@@ -83,7 +83,7 @@ public enum ErrorCode {
     BOOKING_SLOT_ALREADY_USED(
             HttpStatus.CONFLICT,
             "BOOKING_004",
-            "Booking slot already used"
+            "Vehicle has already booking this slot today"
     ),
     BOOKING_INVOICE_ALREADY_EXISTS(
             HttpStatus.CONFLICT,
@@ -94,6 +94,11 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "INVOICE_001",
             "Invoice not found"
+    ),
+    INVOICE_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "INVOICE_002",
+            "Hóa đơn không thuộc về chi nhánh của bạn."
     ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -129,6 +134,46 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "CUSTOMER_002",
             "Customer not found"
+    ),
+    EMPLOYEE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "EMPLOYEE_001",
+            "Employee not found"
+    ),
+    EMPLOYEE_FIRST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_002",
+            "First name is required"
+    ),
+    EMPLOYEE_LAST_NAME_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_003",
+            "Last name is required"
+    ),
+    EMPLOYEE_EMAIL_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_004",
+            "Email is required or format is invalid"
+    ),
+    EMPLOYEE_PHONE_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_005",
+            "Phone is required or format is invalid"
+    ),
+    EMPLOYEE_BRANCH_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_006",
+            "Branch is required"
+    ),
+    EMPLOYEE_STATUS_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_007",
+            "Status is required"
+    ),
+    EMPLOYEE_PASSWORD_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "EMPLOYEE_008",
+            "Password is required and must have at least 6 characters"
     ),
     CUSTOMER_TIER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -174,17 +219,17 @@ public enum ErrorCode {
     VALIDATION_FAILED(
             HttpStatus.BAD_REQUEST,
             "COMMON_003",
-            "Validation failed"
+                    "Validation failed"
     ),
     EMAIL_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_001",
-            "Email already exists"
+                    "Email already exists"
     ),
     PHONE_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "AUTH_002",
-            "Phone already exists"
+                    "Phone already exists"
     ),
     INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
@@ -462,7 +507,7 @@ public enum ErrorCode {
     VEHICLE_HAS_ACTIVE_BOOKING(
             HttpStatus.BAD_REQUEST,
             "VEHICLE_005",
-            "Cannot delete a vehicle with an unfinished booking."
+            "Cannot delete or transfer a vehicle with an unfinished booking."
     ),
     VEHICLE_HAS_ACTIVE_SUBSCRIPTION(
             HttpStatus.BAD_REQUEST,
@@ -508,6 +553,16 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_003",
             "Can not delete washlane in status WASHING. Please waiting for status AVAILABLE"
+    ),
+    CANNOT_MAINTAIN_WASHING_LANE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_004",
+            "Không thể chuyển làn đang rửa xe (WASHING) sang bảo trì."
+    ),
+    LANE_NOT_IN_MAINTENANCE(
+            HttpStatus.BAD_REQUEST,
+            "WASH_LANE_005",
+            "Làn này hiện không ở trạng thái bảo trì."
     ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -892,6 +947,223 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INVALID_SETTING_VALUE",
             "The setting key does not exist in the system. Please check the key and try again."
+    ),
+    REFUND_NOT_ELIGIBLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_001",
+            "Booking chưa trả cọc nên không phát sinh hoàn tiền."
+    ),
+    BOOKING_NOT_CANCELABLE(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_002",
+            "Booking không ở trạng thái có thể hủy để hoàn tiền."
+    ),
+    BOOKING_CANCEL_WINDOW_PASSED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_003",
+            "Đã quá thời hạn hủy (phải hủy trước giờ hẹn ít nhất 2 giờ)."
+    ),
+    REFUND_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "REFUND_004",
+            "Booking này đã có yêu cầu hoàn tiền."
+    ),
+    REFUND_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "REFUND_005",
+            "Booking không thuộc về khách hàng đang đăng nhập."
+    ),
+    REFUND_ACCOUNT_LOOKUP_FAILED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_006",
+            "Không tìm thấy tài khoản, vui lòng kiểm tra lại Số tài khoản."
+    ),
+    INVALID_BANK(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_007",
+            "Ngân hàng không hợp lệ."
+    ),
+    REFUND_BOOKING_ID_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_008",
+            "Booking là bắt buộc"
+    ),
+    REFUND_BANK_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_009",
+            "Ngân hàng là bắt buộc"
+    ),
+    REFUND_ACCOUNT_NUMBER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_010",
+            "Số tài khoản là bắt buộc"
+    ),
+    REFUND_ACCOUNT_HOLDER_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_011",
+            "Tên chủ tài khoản là bắt buộc"
+    ),
+    REFUND_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "REFUND_012",
+            "Không tìm thấy yêu cầu hoàn tiền."
+    ),
+    REFUND_ALREADY_PROCESSED(
+            HttpStatus.CONFLICT,
+            "REFUND_013",
+            "Yêu cầu hoàn tiền này đã được xử lý."
+    ),
+    REFUND_TRANSACTION_CODE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_014",
+            "Vui lòng nhập mã giao dịch"
+    ),
+    REFUND_METHOD_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "REFUND_015",
+            "Vui lòng chọn hình thức hoàn cọc"
+    ),
+    FAMILY_GROUP_NOT_OWNED(
+            HttpStatus.FORBIDDEN,
+            "FAMILY_003",
+            "You are not the owner of this family group."
+    ),
+    FAMILY_SUBSCRIPTION_ALREADY_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_004",
+            "This family group already has an active Family subscription."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "FAMILY_002",
+            "Family subscription not found."
+    ),
+
+    FAMILY_SUBSCRIPTION_NOT_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_011",
+            "Family subscription is not active."
+    ),
+
+    FAMILY_SUBSCRIPTION_STILL_ACTIVE(
+            HttpStatus.BAD_REQUEST,
+            "FAMILY_012",
+            "Family subscription is still active."
+    ),
+
+    UNAUTHORIZED_ACCESS(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "Unauthorized access"
+    ),
+    FROM_DATE_AND_TO_DATE_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_002",
+            "fromDate and toDate are required"
+    ),
+    GROUP_BY_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_003",
+            "groupBy is required"
+    ),
+    INVALID_GROUP_BY(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_004",
+            "Invalid groupBy value. Must be one of: HOUR, DAY, QUARTER, MONTH"
+    ),
+    HOUR_GROUPBY_REQUIRES_SAME_DATE(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_006",
+            "groupBy HOUR is only valid when fromDate equals toDate"
+    ),
+    CANNOT_FILTER_BY_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_007",
+            "Cannot filter by both provinceId and stationId at the same time"
+    ),
+    DASHBOARD_REQUIRED_FIELDS_MISSING(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_001",
+            "fromDate, toDate and groupBy are required"
+    ),
+    DASHBOARD_INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_002",
+            "fromDate must be before or equal to toDate"
+    ),
+    DASHBOARD_INVALID_GROUP_BY(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_003",
+            "Invalid groupBy value. Must be one of: HOUR, DAY, QUARTER, MONTH"
+    ),
+    DASHBOARD_HOUR_REQUIRES_SAME_DATE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_004",
+            "groupBy HOUR is only valid when fromDate equals toDate"
+    ),
+    DASHBOARD_CANNOT_FILTER_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_005",
+            "Cannot filter by both provinceId and stationId at the same time"
+    ),
+    DASHBOARD_TABLE_REQUIRED_FIELDS(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_006",
+            "fromDate and toDate are required"
+    ),
+
+    DASHBOARD_TABLE_INVALID_DATE_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_007",
+            "fromDate must be before or equal to toDate"
+    ),
+
+    DASHBOARD_TABLE_CANNOT_FILTER_BOTH_PROVINCE_AND_STATION(
+            HttpStatus.BAD_REQUEST,
+            "DASHBOARD_008",
+            "Cannot filter by both provinceId and stationId at the same time"
+    ),
+    VOUCHER_STATION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_001",
+            "The voucher is not valid for the selected station."
+    ),
+    VOUCHER_OUT_OF_STOCK(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_002",
+            "The voucher is out of stock."
+    ),
+    VOUCHER_LIST_CANNOT_BE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_003",
+            "Voucher list can not be empty"
+    ),
+    DUPLICATE_VOUCHER_CODE(
+            HttpStatus.BAD_REQUEST,
+            "VOUCHER_004",
+            "Duplicate voucher code"
+    ),
+    CANNOT_COMBINE_FILTERS(
+            HttpStatus.BAD_REQUEST,
+            "CANNOT_FILTER_BOTH_PROVINCE_AND_STATION",
+            "Can not filter combine province, commune and station at time"
+    ),
+    COMMUNE_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "COMMUNE_NOT_FOUND",
+            "Commune not found"
+    ),
+    INVALID_REQUEST_PARAMETERS(
+            HttpStatus.BAD_REQUEST,
+            "INVALID_REQUEST_PARAMETERS",
+            "Invalid request parameters"
+    ),
+    PROMOTION_TARGET_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "PROMOTION_TARGET_NOT_FOUND",
+            "Promotion target not found"
+
     );
 
 

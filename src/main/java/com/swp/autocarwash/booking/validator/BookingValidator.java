@@ -10,10 +10,12 @@ import com.swp.autocarwash.booking.repository.BookingSlotRepository;
 import com.swp.autocarwash.common.contract.customer.CustomerContract;
 import com.swp.autocarwash.common.contract.customer.VehicleContract;
 import com.swp.autocarwash.common.exception.BusinessException;
+import com.swp.autocarwash.common.exception.CustomerRestrictedException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -77,10 +79,11 @@ public class BookingValidator {
 
         // AC03: khách đang trong 14 ngày bị phạt (restricted_until còn hiệu lực)
         // -> chặn tạo booking ("Book an Appointment" bị khóa ở backend, không chỉ ẩn nút FE).
+        LocalDateTime nowVN = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         if (customer.getRestrictedUntil() != null
-                && customer.getRestrictedUntil().isAfter(
-                        LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
-            throw new BusinessException(ErrorCode.CUSTOMER_RESTRICTED);
+                && customer.getRestrictedUntil().isAfter(nowVN)) {
+            long remainingDays = Duration.between(nowVN, customer.getRestrictedUntil()).toDays() + 1;
+            throw new CustomerRestrictedException(remainingDays);
         }
 
 
@@ -116,11 +119,11 @@ public class BookingValidator {
 //        kiểm tra hết hạn
         validateSlotNotExpired(slotIds);
 
-////        kiểm tra đã booking slot này trước đó chưa
-//        validateSlotAlreadyBooked(vehicleId, slotIds);
+//        kiểm tra đã booking slot này trước đó chưa
+        validateSlotAlreadyBooked(vehicleId, slotIds);
 
 //        kiểm tra xem vehicle đã booking vào hôm nay chưa
-        validateVehicleBookedInSlotDate(vehicleId,slotIds);
+//        validateVehicleBookedInSlotDate(vehicleId,slotIds);
 
         List<BookingSlot> slots =
                 slotRepository.findByIdIn(slotIds);

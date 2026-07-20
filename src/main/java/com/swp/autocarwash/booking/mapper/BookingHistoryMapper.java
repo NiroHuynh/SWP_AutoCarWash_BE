@@ -6,6 +6,7 @@ import com.swp.autocarwash.booking.dto.response.BookingDetailResponse;
 import com.swp.autocarwash.booking.entity.Booking;
 import com.swp.autocarwash.booking.entity.BookingAddon;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
+import com.swp.autocarwash.common.contract.refund.RefundContract;
 import com.swp.autocarwash.station.entity.Station;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +42,15 @@ public class BookingHistoryMapper {
      * @param startTime      giờ bắt đầu lấy từ slot đầu tiên
      * @param endTime        giờ kết thúc lấy từ slot cuối cùng
      * @param allowedActions danh sách hành động được phép
+     * @param refund         thông tin hoàn tiền, {@code null} nếu booking chưa có yêu cầu hoàn tiền
      * @return {@link BookingCardResponse} chứa đầy đủ thông tin hiển thị trên booking card
      */
     public BookingCardResponse toBookingCardResponse(
             Booking booking,
             LocalTime startTime,
             LocalTime endTime,
-            List<String> allowedActions) {
+            List<String> allowedActions,
+            RefundContract refund) {
 // tạo constructor đổ dữ liệu vào = new
         return BookingCardResponse.builder()
                 .bookingId(booking.getId())
@@ -60,6 +63,9 @@ public class BookingHistoryMapper {
                 .startTime(startTime)
                 .endTime(endTime)
                 .allowedActions(allowedActions)
+                .refundAmount(refund != null ? refund.getAmount() : null)
+                .refundAccountNumber(refund != null ? refund.getAccountNumber() : null)
+                .refundedAt(refund != null ? refund.getRefundedAt() : null)
                 .build();
     }
 
@@ -75,6 +81,7 @@ public class BookingHistoryMapper {
      * @param voucherCode            mã voucher đã áp dụng (có thể {@code null})
      * @param voucherDiscountPercent phần trăm giảm giá voucher (có thể {@code null})
      * @param remainingAmount        số tiền còn lại sau khi trừ cọc
+     * @param refund                 thông tin hoàn tiền, {@code null} nếu booking chưa có yêu cầu hoàn tiền
      * @return {@link BookingDetailResponse} hoàn chỉnh
      */
     public BookingDetailResponse toBookingDetailResponse(
@@ -91,7 +98,8 @@ public class BookingHistoryMapper {
             SubscriptionInfo subscriptionInfo,
             Integer loyaltyPoint,
             Integer pointsEarned,
-            Integer pointsRedeemed) {
+            Integer pointsRedeemed,
+            RefundContract refund) {
 
         List<AddonInfo> addonInfos = addons.stream()
                 .map(ba -> AddonInfo.builder()
@@ -144,6 +152,10 @@ public class BookingHistoryMapper {
                 .loyaltyPoint(loyaltyPoint)
                 .pointsEarned(pointsEarned)
                 .pointsRedeemed(pointsRedeemed)
+                .refundBankName(refund != null ? refund.getBankName() : null)
+                .refundAccountNumber(refund != null ? refund.getAccountNumber() : null)
+                .refundAmount(refund != null ? refund.getAmount() : null)
+                .refundedAt(refund != null ? refund.getRefundedAt() : null)
                 .build();
     }
 }

@@ -8,8 +8,10 @@ import com.swp.autocarwash.common.exception.BusinessException;
 import com.swp.autocarwash.common.exception.code.ErrorCode;
 import com.swp.autocarwash.customer.entity.Customer;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
+import com.swp.autocarwash.loyalty.dto.request.LoyaltyEarnRequest;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyOverviewResponse;
 import com.swp.autocarwash.loyalty.dto.response.LoyaltyTransactionPageResponse;
+import com.swp.autocarwash.loyalty.dto.response.PointsConversionPreview;
 import com.swp.autocarwash.loyalty.entity.CustomerTier;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointBalance;
 import com.swp.autocarwash.loyalty.entity.LoyaltyPointTransaction;
@@ -22,6 +24,8 @@ import com.swp.autocarwash.loyalty.repository.LoyaltyPointBalanceRepository;
 import com.swp.autocarwash.loyalty.repository.LoyaltyPointTransactionRepository;
 import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import com.swp.autocarwash.loyalty.service.LoyaltyService;
+import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
+import com.swp.autocarwash.payment.event.SubscriptionInvoicePaidEvent;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -52,73 +56,102 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Transactional
     public void earnPoint(BookingCompletedEvent event) {
 
-        LoyaltyPointBalance balance = getBalance(event);
+        LoyaltyEarnRequest request =
+                LoyaltyEarnRequest.builder()
+                        .customerId(event.customerId())
+                        .customerTierId(event.customerTierId())
+                        .earnedPoint(
+                                calculatePoint(
+                                        event.totalAmount(),
+                                        event.pointMultiple()
+                                )
+                        )
+                        .sourceType(LoyaltySourceType.BOOKING)
+                        .booking(
+                                Booking.builder()
+                                        .id(event.bookingId())
+                                        .build()
+                        )
+                        .build();
 
-//        điểm tích luỹ trước khi cộng (dùng để xác định lên/xuống hạng)
-        int previousAccumulated = balance.getAccumulatedPoints();
-
-//        lấy điểm nhân của cutsomer
-        BigDecimal multiple = event.pointMultiple();
-
-        int earnedPoint = calculatePoint(event.totalAmount(), multiple);
-
-        int newBalance = balance.getTotalPoints() + earnedPoint;
-
-        balance.setTotalPoints(newBalance);
-
-        balance.setAccumulatedPoints(balance.getAccumulatedPoints() + earnedPoint);
-
-        int newAccumulated = balance.getAccumulatedPoints();
-
-        loyaltyPointBalanceRepository.save(balance);
-
-        LoyaltyPointTransaction transaction = createTransaction(event, earnedPoint, newBalance);
-
-        loyaltyPointTransactionRepository.save(transaction);
-
-        processTierUpgrade(event.customerId(), event.customerTierId(), balance);
-
-//        ghi lịch sử lên/xuống hạng (nếu hạng thay đổi)
-        loyaltyProfileService.recordTierTransitionIfChanged(
-                event.customerId(), previousAccumulated, newAccumulated, event.bookingId());
+        doEarnPoint(request);
     }
 
 
-    //    taọ loyalty point transaction
-    private LoyaltyPointTransaction createTransaction(
-            BookingCompletedEvent event,
-            Integer earnedPoint,
-            Integer newBalance
+    @Transactional
+    public void earnPointForSubscription(
+            SubscriptionInvoicePaidEvent event
     ) {
-        return LoyaltyPointTransaction.builder()
-                .customer(Customer.builder().id(event.customerId()).build())
-                .booking(Booking.builder().id(event.bookingId()).build())
-                .transactionType(LoyaltyPointTransactionType.EARN)
-                .points(earnedPoint)
-                .balanceAfter(newBalance)
-                .createdAt(LocalDateTime.now())
-                .sourceType(LoyaltySourceType.BOOKING)
+
+        Customer customer = customerRepository.findById(event.getCustomerId()).orElseThrow(
+                () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        LoyaltyEarnRequest request =
+                LoyaltyEarnRequest.builder()
+                        .customerId(event.getCustomerId())
+                        .customerTierId(customer.getCustomerTier().getId())
+                        .earnedPoint(
+                                calculatePoint(
+                                        event.getPlanPrice(),
+                                        customer.getCustomerTier().getPointMultiple()
+                                )
+                        )
+                        .sourceType(LoyaltySourceType.SUBSCRIPTION)
+                        .subscriptionInvoice(
+                                SubscriptionInvoice.builder()
+                                        .id(
+                                               event.getInvoiceId()
+                                        )
+                                        .build()
+                        )
+                        .build();
+
+        doEarnPoint(request);
+    }
+
+
+    @Override
+    @Transactional
+    public int earnPointsFromDepositRefund(Long customerId, Long bookingId, BigDecimal amount) {
+
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        int earnedPoint = calculatePoint(amount, customer.getCustomerTier().getPointMultiple());
+
+        LoyaltyEarnRequest request =
+                LoyaltyEarnRequest.builder()
+                        .customerId(customerId)
+                        .customerTierId(customer.getCustomerTier().getId())
+                        .earnedPoint(earnedPoint)
+                        .sourceType(LoyaltySourceType.DEPOSIT_REFUND)
+                        .booking(
+                                Booking.builder()
+                                        .id(bookingId)
+                                        .build()
+                        )
+                        .build();
+
+        doEarnPoint(request);
+
+        return earnedPoint;
+    }
+
+    @Override
+    public PointsConversionPreview previewPointsForAmount(Long customerId, BigDecimal amount) {
+
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        CustomerTier tier = customer.getCustomerTier();
+
+        return PointsConversionPreview.builder()
+                .tierName(tier.getTierName())
+                .pointMultiple(tier.getPointMultiple())
+                .previewPoints(calculatePoint(amount, tier.getPointMultiple()))
                 .build();
     }
 
-    //  lấy loyalty point balance của customer
-    private LoyaltyPointBalance getBalance(BookingCompletedEvent event) {
-        return loyaltyPointBalanceRepository
-                .findLoyaltyPointBalanceByCustomerId(event.customerId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOYALTY_POINT_BALANCE_NOT_FOUND));
-    }
-
-    //    tỉnh điểm thưởng
-    private int calculatePoint(
-            BigDecimal amount,
-            BigDecimal pointMultiple
-    ) {
-
-        BigDecimal basePoint = amount.divide(BigDecimal.valueOf(1000));
-
-        return basePoint.multiply(pointMultiple).intValue();
-
-    }
 
     //    sử lý tăng hạn
     private void processTierUpgrade(
@@ -297,5 +330,102 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         Customer customer = customerRepository.findByUserId(userId);
         if (customer == null) throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
         return customer;
+    }
+
+
+    @Transactional
+    protected void doEarnPoint(
+            LoyaltyEarnRequest request
+    ) {
+
+        LoyaltyPointBalance balance =
+                getBalance(request.getCustomerId());
+
+        int previousAccumulated =
+                balance.getAccumulatedPoints();
+
+        int newBalance =
+                balance.getTotalPoints()
+                        + request.getEarnedPoint();
+
+        balance.setTotalPoints(newBalance);
+
+        balance.setAccumulatedPoints(
+                balance.getAccumulatedPoints()
+                        + request.getEarnedPoint());
+
+        int newAccumulated =
+                balance.getAccumulatedPoints();
+
+        loyaltyPointBalanceRepository.save(balance);
+
+        LoyaltyPointTransaction transaction =
+                createTransaction(
+                        request,
+                        newBalance);
+
+        loyaltyPointTransactionRepository.save(transaction);
+
+        processTierUpgrade(
+                request.getCustomerId(),
+                request.getCustomerTierId(),
+                balance);
+
+        loyaltyProfileService.recordTierTransitionIfChanged(
+                request.getCustomerId(),
+                previousAccumulated,
+                newAccumulated,
+                request.getBooking() != null
+                        ? request.getBooking().getId()
+                        : null
+        );
+    }
+
+    private LoyaltyPointBalance getBalance(
+            Long customerId
+    ) {
+
+        return loyaltyPointBalanceRepository
+                .findLoyaltyPointBalanceByCustomerId(customerId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.LOYALTY_POINT_BALANCE_NOT_FOUND));
+    }
+
+    private LoyaltyPointTransaction createTransaction(
+            LoyaltyEarnRequest request,
+            Integer balanceAfter
+    ) {
+
+        return LoyaltyPointTransaction.builder()
+                .customer(
+                        Customer.builder()
+                                .id(request.getCustomerId())
+                                .build()
+                )
+                .booking(request.getBooking())
+                .subscriptionInvoice(
+                        request.getSubscriptionInvoice()
+                )
+                .transactionType(
+                        LoyaltyPointTransactionType.EARN
+                )
+                .sourceType(request.getSourceType())
+                .points(request.getEarnedPoint())
+                .balanceAfter(balanceAfter)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    //    tỉnh điểm thưởng
+    private int calculatePoint(
+            BigDecimal amount,
+            BigDecimal pointMultiple
+    ) {
+
+        BigDecimal basePoint = amount.divide(BigDecimal.valueOf(1000));
+
+        return basePoint.multiply(pointMultiple).intValue();
+
     }
 }

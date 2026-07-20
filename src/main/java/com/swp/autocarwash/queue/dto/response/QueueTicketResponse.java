@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,6 +27,7 @@ public class QueueTicketResponse {
         private String status;
         private Boolean isBooking;
         private Integer priorityScore;
+        private Instant issuedAt;
         private Long bookingId;
         private String licensePlate;
         private String customerName;

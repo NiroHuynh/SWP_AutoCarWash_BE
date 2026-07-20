@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Chức năng: 3 thẻ KPI của màn hình Quản lý khách hàng (FE-US-09 AC1).
+ * Chức năng: Thẻ KPI của màn hình Quản lý khách hàng (FE-US-09 AC1).
  */
 @Data
 @Builder
@@ -17,6 +17,4 @@ public class CustomerSummaryResponse {
     private long totalCustomers;
 
     private long newThisMonth;
-
-    private long goldMembers;
 }

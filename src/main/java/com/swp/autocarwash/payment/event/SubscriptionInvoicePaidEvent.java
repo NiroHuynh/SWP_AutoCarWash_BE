@@ -29,6 +29,9 @@ public class SubscriptionInvoicePaidEvent {
     /** Id FamilySubscription gắn với invoice (nullable). */
     private final Long familySubscriptionId;
 
+    /** Id gói đích của lần thanh toán này — dùng khi renew Family đổi sang gói khác (nullable). */
+    private final Integer subscriptionPlanId;
+
     /** BANK_TRANSFER (webhook SePay) hoặc MANUAL (xác nhận thủ công). */
     private final String paymentMethod;
 }

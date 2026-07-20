@@ -19,6 +19,7 @@ import com.swp.autocarwash.promotion.repository.VoucherUsageRepository;
 import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.entity.enums.QueueStatus;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
+import com.swp.autocarwash.queue.service.QueueTicketService;
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
@@ -58,6 +59,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
     private final BookingSlotAllocationRepository bookingSlotAllocationRepository;
     private final WashLaneRepository washLaneRepository;
     private final QueueTicketRepository queueTicketRepository;
+    private final QueueTicketService queueTicketService;
     private final SystemSettingServiceImpl systemSettingServiceImpl;
     private final VoucherUsageRepository voucherUsageRepository;
 
@@ -65,7 +67,8 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
     @Override
     public ScanVehicleResponse scanVehicle(String licensePlate) {
-        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate);
+        LocalDate today = LocalDate.now();
+        Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate, today);
 
         // TRƯỜNG HỢP 1: KHÔNG TÌM THẤY LỊCH ĐẶT TRƯỚC (KHÁCH VÃNG LAI)
         if (bookingOtp.isEmpty()) {
@@ -254,6 +257,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .ticketNumber(generateTicketNumber(slot.getStation().getId(),true))
                 .status(QueueStatus.WAITING.toString())
                 .isBooking(true)
+                .priorityScore(queueTicketService.computePriorityScore(booking.getCustomer(), true))
                 .build();
         queueTicketRepository.save(ticket);
 

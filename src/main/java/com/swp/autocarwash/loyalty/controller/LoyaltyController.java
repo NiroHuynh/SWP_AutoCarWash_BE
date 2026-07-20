@@ -59,7 +59,7 @@ public class LoyaltyController {
      * tong chi tieu nam hien tai va tien do giu hang (AC01).
      */
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<LoyaltyProfileResponse>> getProfile(
             @AuthenticationPrincipal UserCustomerDetails principal) {
         Long customerId = resolveCustomerId(principal);
@@ -74,7 +74,7 @@ public class LoyaltyController {
      * @param month thang can loc 1-12 (tuy chon, khong truyen = ca nam)
      */
     @GetMapping("/history")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<LoyaltyHistoryResponse>> getHistory(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) Integer year,
@@ -88,7 +88,7 @@ public class LoyaltyController {
      * Get Tier List: tra cuu tat ca hang thanh vien kem nguong diem va quyen loi, sap theo minPoints tang dan (AC03).
      */
     @GetMapping("/tiers")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<TierResponse>>> getTierList() {
         List<TierResponse> data = loyaltyService.getTierList();
         return ResponseEntity.ok(ApiResponse.success("Lay danh sach hang thanh vien thanh cong", data));
@@ -101,7 +101,7 @@ public class LoyaltyController {
      * @param month thang can loc 1-12 (tuy chon, khong truyen = ca nam)
      */
     @GetMapping("/tier-history")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<List<TierHistoryResponse>>> getTierHistory(
             @AuthenticationPrincipal UserCustomerDetails principal,
             @RequestParam(required = false) Integer year,

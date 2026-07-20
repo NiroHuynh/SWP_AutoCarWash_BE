@@ -43,6 +43,11 @@ public class CustomerTier {
     @Column(name = "retention_target_amount", precision = 12, scale = 2)
     private BigDecimal retentionTargetAmount;
 
+    @Builder.Default
+    @ColumnDefault("0")
+    @Column(name = "queue_priority_weight")
+    private Integer queuePriorityWeight = 0;
+
     @OneToMany(mappedBy = "customerTier", fetch = FetchType.LAZY)
     private List<TierBenefit> tierBenefits = new ArrayList<>();
 

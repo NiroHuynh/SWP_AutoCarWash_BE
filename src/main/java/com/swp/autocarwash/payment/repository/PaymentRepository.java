@@ -46,12 +46,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /**
      * Toàn bộ giao dịch thanh toán thành công cho admin đối soát (FE-61C-US-02)
      * — không giới hạn theo customer, lọc thêm theo phương thức/trạng thái/loại/
-     * khoảng ngày/Booking ID/Transaction ID/chi nhánh nếu có truyền.
+     * khoảng ngày/Booking ID/Transaction ID/chi nhánh (station/commune/province)
+     * nếu có truyền.
      *
-     * <p>Giao dịch subscription không gắn với station nào (SubscriptionInvoice
-     * không có FK station) nên khi lọc theo {@code stationId} chỉ giao dịch
-     * booking khớp đúng chi nhánh mới xuất hiện — FE hiển thị 2 tab riêng
-     * (Subscription / Booking) để tránh nhầm lẫn thay vì gộp chung 1 filter.</p>
+     * <p>Giao dịch subscription không gắn với station/commune/province nào
+     * (SubscriptionInvoice không có FK station) nên khi lọc theo bất kỳ cấp
+     * nào trong 3 cấp chi nhánh này, chỉ giao dịch booking khớp đúng mới xuất
+     * hiện — FE hiển thị 2 tab riêng (Subscription / Booking) để tránh nhầm
+     * lẫn thay vì gộp chung 1 filter.</p>
      *
      * <p>{@code SELECT DISTINCT} vì join qua {@code slotAllocations} (collection)
      * có thể nhân bản dòng nếu 1 booking có nhiều slot allocation.</p>
@@ -60,6 +62,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             SELECT DISTINCT p FROM Payment p
             LEFT JOIN p.bookingInvoice bi LEFT JOIN bi.booking b
             LEFT JOIN b.slotAllocations sa LEFT JOIN sa.bookingSlot bs LEFT JOIN bs.station st
+            LEFT JOIN st.commune cm
+            LEFT JOIN cm.province pv
             LEFT JOIN bi.customer bc LEFT JOIN bc.user bu
             LEFT JOIN p.subscriptionInvoice si LEFT JOIN si.customer sc LEFT JOIN sc.user su
             WHERE p.paymentStatus = 'SUCCESS'
@@ -71,6 +75,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
               AND (:bookingId IS NULL OR b.id = :bookingId)
               AND (:transactionId IS NULL OR p.id = :transactionId)
               AND (:stationId IS NULL OR st.id = :stationId)
+              AND (:communeId IS NULL OR cm.id = :communeId)
+              AND (:provinceId IS NULL OR pv.id = :provinceId)
               AND (:phone IS NULL OR bu.phone LIKE CONCAT('%', :phone, '%') OR su.phone LIKE CONCAT('%', :phone, '%'))
             ORDER BY p.paidAt DESC
             """)
@@ -83,5 +89,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             @Param("bookingId") Long bookingId,
             @Param("transactionId") Long transactionId,
             @Param("stationId") Integer stationId,
+            @Param("communeId") Integer communeId,
+            @Param("provinceId") Integer provinceId,
             @Param("phone") String phone);
 }

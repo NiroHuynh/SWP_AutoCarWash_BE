@@ -52,6 +52,14 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     public static final String LOYALTY_POINT_PER_VND = "LOYALTY_POINT_PER_VND";
     /** Key cau hinh so phut booking PENDING duoc cho chuyen khoan coc truoc khi tu dong huy. */
     public static final String PENDING_PAYMENT_TIMEOUT_MINUTES = "PENDING_PAYMENT_TIMEOUT_MINUTES";
+    /** Key cau hinh prefix noi dung chuyen khoan hoan tien (vd RF => RF{refundId}). Dung o phase Admin. */
+    public static final String REFUND_TRANSFER_CONTENT_PREFIX = "REFUND_TRANSFER_CONTENT_PREFIX";
+    /** Key cau hinh template noi dung chuyen khoan QR hoan tien, thay the placeholder {booking_id}. */
+    public static final String REFUND_TRANSFER_CONTENT_TEMPLATE = "REFUND_TRANSFER_CONTENT_TEMPLATE";
+    /** Key cau hinh diem uu tien cong them cho queue_ticket tao tu booking (uu tien hon khach vang lai). */
+    public static final String QUEUE_PRIORITY_BOOKING_WEIGHT = "QUEUE_PRIORITY_BOOKING_WEIGHT";
+    /** Key cau hinh so ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board. */
+    public static final String QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO = "QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO";
     private final SystemSettingRepository systemSettingRepository;
 
     /**
@@ -99,6 +107,28 @@ public class SystemSettingServiceImpl implements SystemSettingService {
                 -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
         try{
             return Integer.valueOf(timeout);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
+
+    @Override
+    public Integer getQueuePriorityBookingWeight() {
+        String weight = systemSettingRepository.findBySettingKey(QUEUE_PRIORITY_BOOKING_WEIGHT).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(weight);
+        }catch(NumberFormatException e ){
+            throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
+        }
+    }
+
+    @Override
+    public Integer getQueueBookingWalkinInterleaveRatio() {
+        String ratio = systemSettingRepository.findBySettingKey(QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO).orElseThrow(()
+                -> new BusinessException(SYSTEM_SETTING_NOT_FOUND)).getSettingValue();
+        try{
+            return Integer.valueOf(ratio);
         }catch(NumberFormatException e ){
             throw new BusinessException(INVALID_CONFIG_VALUE_FORMAT);
         }

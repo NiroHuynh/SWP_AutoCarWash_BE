@@ -8,6 +8,8 @@ public enum LoyaltySourceType {
 
     MANUAL,
 
-    ADJUSTMENT
+    ADJUSTMENT,
+
+    DEPOSIT_REFUND
 
 }

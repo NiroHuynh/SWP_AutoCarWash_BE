@@ -15,8 +15,8 @@ public interface PromotionVoucherService {
     CreatePromotionVoucherResponse createPromotionOrVoucher(CreatePromotionVoucherRequest request);
     List<PromotionTargetResponse> getAllPromotionTargets();
     List<PromotionBranchSummaryResponse> getBranchPromotionSummary(String status);
-    List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer stationId, String status);
-    void updatePromotion(Integer promotionId, UpdatePromotionRequest request);
+    List<PromotionDashboardListViewResponse> getPromotionDashboardList(Integer provinceId, Integer communeId, Integer stationId);
+    PromotionDashboardListViewResponse updatePromotion(Integer promotionId, UpdatePromotionRequest request);
     void updateVoucherFinancialRules(Integer voucherId, UpdateVoucherRequest request);
     void softDeletePromotion(Integer promotionId);
     void softDeleteStandaloneVoucher(Long voucherId);

@@ -37,4 +37,16 @@ public interface SystemSettingService {
     SystemSettingResponse createSetting(CreateSettingRequest request);
 
     SystemSettingResponse updateSetting(Long id, UpdateSettingRequest request);
+
+    /**
+     * Diem uu tien cong them cho queue_ticket duoc tao tu booking (key QUEUE_PRIORITY_BOOKING_WEIGHT),
+     * dung de xep vé booking uu tien hon vé khach vang lai trong hang cho.
+     */
+    Integer getQueuePriorityBookingWeight();
+
+    /**
+     * So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board
+     * (key QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO).
+     */
+    Integer getQueueBookingWalkinInterleaveRatio();
 }

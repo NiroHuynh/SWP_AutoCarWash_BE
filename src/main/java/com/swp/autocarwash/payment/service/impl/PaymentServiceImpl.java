@@ -1,6 +1,8 @@
 package com.swp.autocarwash.payment.service.impl;
 
 import com.swp.autocarwash.booking.entity.Booking;
+import com.swp.autocarwash.booking.entity.BookingSlot;
+import com.swp.autocarwash.booking.entity.BookingSlotAllocation;
 import com.swp.autocarwash.booking.entity.enums.BookingStatus;
 import com.swp.autocarwash.booking.event.BookingCompletedEvent;
 import com.swp.autocarwash.booking.event.BookingEventPublisher;
@@ -31,11 +33,13 @@ import com.swp.autocarwash.payment.entity.enums.PaymentType;
 import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.payment.repository.PaymentRepository;
 import com.swp.autocarwash.payment.service.PaymentService;
+import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.Math.min;
 
@@ -54,15 +59,10 @@ import static java.lang.Math.min;
  * @author Ngọc
  * @version 1.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
-
-    /**
-     * Số tiền đặt cọc cố định theo BL-BK-00 (khớp với BookingServiceImpl) —
-     * dùng để trừ vào totalAmount khi tính số tiền còn phải thu tại quầy.
-     */
-    private static final BigDecimal DEFAULT_DEPOSIT_AMOUNT = BigDecimal.valueOf(20000);
 
     private final BookingRepository bookingRepository;
     private final BookingInvoiceRepository bookingInvoiceRepository;
@@ -99,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Bước 1: Tính số tiền còn phải thu = tổng tiền - tiền cọc đã trả - điểm sử dụng (nếu có)
         BigDecimal deposit = Boolean.TRUE.equals(booking.getIsDepositPaid())
-                ? DEFAULT_DEPOSIT_AMOUNT
+                ? systemSettingService.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT)
                 : BigDecimal.ZERO;
         BigDecimal amountBeforeRedeem = booking.getTotalAmount().subtract(deposit);
         RedeemResult redeem = calculateRedeemAmount(
@@ -300,10 +300,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentTransactionHistoryResponse getTransactionHistory(
             String method, String status, String type, LocalDateTime fromDate, LocalDateTime toDate,
-            Long bookingId, Long transactionId, Integer stationId, String phone) {
+            Long bookingId, Long transactionId, Integer stationId, Integer communeId, Integer provinceId,
+            String phone) {
 
         List<Payment> payments = paymentRepository.findAllTransactions(
-                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, phone);
+                method, status, type, fromDate, toDate, bookingId, transactionId, stationId, communeId,
+                provinceId, phone);
 
         List<PaymentTransactionResponse> transactions = payments.stream()
                 .map(this::toPaymentTransactionResponse)
@@ -332,6 +334,7 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentTransactionResponse.builder()
                 .id(payment.getId())
                 .bookingId(bookingId)
+                .customerName(resolveCustomerName(payment))
                 .customerPhone(resolveCustomerPhone(payment))
                 .paymentMethod(payment.getPaymentMethod())
                 .amount(payment.getAmount())
@@ -340,12 +343,32 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
     }
 
-    private String resolveCustomerPhone(Payment payment) {
-        if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
-            return payment.getBookingInvoice().getCustomer().getUser().getPhone();
+    private String resolveCustomerName(Payment payment) {
+        try {
+            if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
+                return payment.getBookingInvoice().getCustomer().getFullName();
+            }
+            if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
+                return payment.getSubscriptionInvoice().getCustomer().getFullName();
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Payment {} tham chiếu tới customer/user không còn tồn tại (data mồ côi), bỏ qua customerName",
+                    payment.getId());
         }
-        if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
-            return payment.getSubscriptionInvoice().getCustomer().getUser().getPhone();
+        return null;
+    }
+
+    private String resolveCustomerPhone(Payment payment) {
+        try {
+            if (payment.getBookingInvoice() != null && payment.getBookingInvoice().getCustomer() != null) {
+                return payment.getBookingInvoice().getCustomer().getUser().getPhone();
+            }
+            if (payment.getSubscriptionInvoice() != null && payment.getSubscriptionInvoice().getCustomer() != null) {
+                return payment.getSubscriptionInvoice().getCustomer().getUser().getPhone();
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Payment {} tham chiếu tới customer/user không còn tồn tại (data mồ côi), bỏ qua customerPhone",
+                    payment.getId());
         }
         return null;
     }
@@ -375,11 +398,25 @@ public class PaymentServiceImpl implements PaymentService {
      */
     @Override
     @Transactional(readOnly = true)
-    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId) {
+    public InvoiceDetailResponse getInvoiceDetail(Long invoiceId, Integer staffStationId) {
         BookingInvoice invoice = bookingInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.INVOICE_NOT_FOUND));
 
         Booking booking = invoice.getBooking();
+
+        if (staffStationId != null) {
+            Integer invoiceStationId = booking == null ? null : booking.getSlotAllocations().stream()
+                    .map(BookingSlotAllocation::getBookingSlot)
+                    .filter(Objects::nonNull)
+                    .map(BookingSlot::getStation)
+                    .filter(Objects::nonNull)
+                    .map(Station::getId)
+                    .findFirst()
+                    .orElse(null);
+            if (!staffStationId.equals(invoiceStationId)) {
+                throw new BusinessException(ErrorCode.INVOICE_ACCESS_DENIED);
+            }
+        }
 
         List<InvoiceDetailResponse.ServiceLine> services = new ArrayList<>();
         if (booking != null && booking.getServicePackage() != null) {

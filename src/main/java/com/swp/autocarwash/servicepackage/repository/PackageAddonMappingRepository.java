@@ -17,10 +17,10 @@ public interface PackageAddonMappingRepository extends JpaRepository<PackageAddo
      * Lấy toàn bộ mapping của danh sách package.
      */
     @Query("""
-    SELECT m
-    FROM PackageAddonMapping m
-    WHERE m.servicePackage.id IN :packageIds
-""")
+                SELECT m
+                FROM PackageAddonMapping m
+                WHERE m.servicePackage.id IN :packageIds
+            """)
     List<PackageAddonMapping> findByServicePackageIdIn(
             @Param("packageIds") List<Integer> packageIds
     );
@@ -30,4 +30,11 @@ public interface PackageAddonMappingRepository extends JpaRepository<PackageAddo
      */
     void deleteByServicePackage_Id(Integer servicePackageId);
 
+
+    @Query("""
+            SELECT pam.addonService.id
+            FROM PackageAddonMapping pam
+            WHERE pam.servicePackage.id = :servicePackageId
+            """)
+    List<Integer> findAddonIds(Integer servicePackageId);
 }

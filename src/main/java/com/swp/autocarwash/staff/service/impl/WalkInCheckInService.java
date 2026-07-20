@@ -170,19 +170,29 @@ public class WalkInCheckInService {
             }
         }
 
-        //kiểm tra quyền lợi gói Membership trả trước
-        // nếu walkin này là customer có account tron system, coi thử customer này đang sở hữu gói membership unli/fml hay không
-        //để biết mà cho họ áp dụng sử dụng tại walkin luôn
+        // kiểm tra quyền lợi gói Membership trả trước
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
-        if(request.getCustomerId() != null && vehicleOpt.isPresent()&& request.getServicePackageId() != null){
+        if(request.getCustomerId() != null && vehicleOpt.isPresent() && request.getServicePackageId() != null){
+
+            // 1. Check xem gói mua còn hạn ACTIVE hay không
             boolean hasPackage = unlimitSubscriptionRepository.hasActiveSubscription(
-                    request.getCustomerId(), vehicleOpt.get().getId(),request.getServicePackageId() , SubscriptionStatus.ACTIVE.toString(),LocalDate.now()
+                    request.getCustomerId(), vehicleOpt.get().getId(), request.getServicePackageId(), SubscriptionStatus.ACTIVE, LocalDate.now()
             );
-            if(hasPackage){
-                //Nếu khớp gói đã mua, lấy đúng giá của gói dịch vụ trừ đi tiền được giảm
+
+            //Check xem trong ngày hôm nay xe này đã cắn lượt sử dụng gói lần nào chưa
+            boolean isAllowedToday = isSubscriptionUsageAllowedToday(
+                    (long) vehicleOpt.get().getId(), // Ép kiểu Integer ID sang Long tương ứng kiểu DB của xe nếu cần
+                    request.getServicePackageId(),
+                    LocalDate.now()
+            );
+
+            // Chỉ cho giảm trừ về 0đ nếu CÒN HẠN GÓI và CHƯA DÙNG LẦN NÀO TRONG NGÀY
+            if(hasPackage && isAllowedToday){
                 ServicePackage mainPackage = servicePackageRepository.findById(request.getServicePackageId()).get();
                 packageDiscount = mainPackage.getBasePrice();
-                //khách được free tiền gói chính nhưng vẫn phải tính tiền gói add on lẻ
+            } else if (hasPackage && !isAllowedToday) {
+                //cảnh báo ra UI để Staff giải thích cho khách
+                systemNotice += " | Notice: This subscription package has already been used once today. Standard pricing applies.";
             }
         }
 
@@ -207,7 +217,7 @@ public class WalkInCheckInService {
         if(oldBookingOpt.isPresent()){
             Booking oldBooking = oldBookingOpt.get();
             transferredCredit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
-            systemNotice +="The system found late appointment today, support auto transfer deposit to new booking";
+            systemNotice += " | The system found late appointment today, support auto transfer deposit to new booking";
         }
 
         //Công thức tính số tiền thực tế cần thu tại quầy lúc lấy xe
@@ -404,9 +414,8 @@ public class WalkInCheckInService {
             }
         }
 
-        //Kiểm tra quyền lợi gói membership unlimited (nếu là member)
+        // Kiểm tra quyền lợi gói membership unlimited (nếu là member)
         BigDecimal packageDiscount = BigDecimal.ZERO;
-        //Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
 
         if (request.getCustomerId() != null && vehicleOpt.isPresent() && request.getServicePackageId() != null) {
 
@@ -414,12 +423,19 @@ public class WalkInCheckInService {
                     request.getCustomerId(),
                     vehicleOpt.get().getId(),
                     request.getServicePackageId(),
-                    SubscriptionStatus.ACTIVE.toString(),
+                    SubscriptionStatus.ACTIVE,
                     LocalDate.now()
             );
 
-            if (hasPackage) {
-                // Khớp gói đã mua -> Miễn phí phần tiền của Gói dịch vụ chính (Vẫn tính tiền Addon nếu có)
+            //Check giới hạn 1 ngày/ 1 lần
+            boolean isAllowedToday = isSubscriptionUsageAllowedToday(
+                    (long) vehicleOpt.get().getId(),
+                    request.getServicePackageId(),
+                    LocalDate.now()
+            );
+
+            if (hasPackage && isAllowedToday) {
+                // Khớp gói đã mua và chưa dùng lần nào hôm nay -> Miễn phí tiền Gói dịch vụ chính
                 ServicePackage mainPackage = servicePackageRepository.findById(request.getServicePackageId()).get();
                 packageDiscount = mainPackage.getBasePrice();
             }
@@ -482,7 +498,9 @@ public class WalkInCheckInService {
                     .bookingType(BookingType.WALK_IN.name())
                     .createdAt(LocalDateTime.now())
                     .checkInAt(LocalDateTime.now())
-                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
+                    //.isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
+                    .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0
+                || (request.getPenaltyDepositCollected() != null && request.getPenaltyDepositCollected()))
                     .build();
             Booking savedBooking = bookingRepository.save(newBooking);
 
@@ -582,7 +600,7 @@ public class WalkInCheckInService {
                     //Trạng thái và Phân loại
                     .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé (status - NOT NULL)
                     .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
-                    .priorityScore(0)        // Điểm ưu tiên mặc định cho khách vãng lai (priority_score)
+                    .priorityScore(queueTicketService.computePriorityScore(savedBooking.getCustomer(), false)) // Tier weight (mặc định MEMBER nếu khách vãng lai chưa có tài khoản)
                     //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
                     // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
                     .build();
@@ -687,6 +705,18 @@ public class WalkInCheckInService {
                 .message("Collected 20,000 VND penalty deposit successfully for vehicle " + licensePlate + ". You may now proceed to create the walk-in order.")
                 .requiresWalkIn(false)
                 .build();
+    }
+
+    private boolean isSubscriptionUsageAllowedToday(Long vehicleId, Integer servicePackageId, LocalDate date) {
+        // Check xem trong ngày hôm đó xe này đã có booking nào sử dụng gói này mà KHÔNG PHẢI bị hủy (CANCELED) hay chưa
+        boolean hasUsedToday = bookingRepository.existsByVehicleIdAndServicePackageIdAndAppointmentDateAndStatusNot(
+                vehicleId,
+                servicePackageId,
+                date,
+                BookingStatus.CANCELED.name()
+        );
+        // Nếu chưa dùng hôm nay -> Trả về true (Cho phép áp dụng giá 0đ), ngược lại trả về false (Ép về giá gốc)
+        return !hasUsedToday;
     }
 
 }
