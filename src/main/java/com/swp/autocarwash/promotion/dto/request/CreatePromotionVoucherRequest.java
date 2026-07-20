@@ -16,6 +16,7 @@ public class CreatePromotionVoucherRequest {
 
     // ====== CHIẾN DỊCH (MODE 1 & 2) ======
     private String campaignName;
+    private String description;
     private LocalDate campaignStartDate;
     private LocalDate campaignEndDate;
     private List<Integer> targetCustomerTierIds; // Mảng ID áp dụng (ví dụ: 1, 2)
