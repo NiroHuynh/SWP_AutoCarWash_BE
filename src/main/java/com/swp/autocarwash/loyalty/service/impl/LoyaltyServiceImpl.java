@@ -26,6 +26,7 @@ import com.swp.autocarwash.loyalty.service.LoyaltyProfileService;
 import com.swp.autocarwash.loyalty.service.LoyaltyService;
 import com.swp.autocarwash.payment.entity.SubscriptionInvoice;
 import com.swp.autocarwash.payment.event.SubscriptionInvoicePaidEvent;
+import com.swp.autocarwash.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +53,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyProfileService loyaltyProfileService;
     private final SecurityUtils securityUtils;
     private final ModelMapper modelMapper;
+    private final SystemSettingService systemSettingService;
 
     //    sử lý cộng điểm sau khi hoàn thành hooking
     @Transactional
@@ -117,7 +120,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND));
 
-        int earnedPoint = calculatePoint(amount, customer.getCustomerTier().getPointMultiple());
+        int earnedPoint = calculateDepositRefundPoints(amount);
 
         LoyaltyEarnRequest request =
                 LoyaltyEarnRequest.builder()
@@ -147,9 +150,15 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         return PointsConversionPreview.builder()
                 .tierName(tier.getTierName())
-                .pointMultiple(tier.getPointMultiple())
-                .previewPoints(calculatePoint(amount, tier.getPointMultiple()))
+                .pointMultiple(BigDecimal.ONE)
+                .previewPoints(calculateDepositRefundPoints(amount))
                 .build();
+    }
+
+    //    quy đổi tiền cọc hoàn lại sang điểm theo redeem rate (không nhân hệ số hạng, bảo toàn giá trị)
+    private int calculateDepositRefundPoints(BigDecimal depositAmount) {
+        BigDecimal redeemRate = systemSettingService.getLoyaltyRedeemRate();
+        return depositAmount.divide(redeemRate, 0, RoundingMode.DOWN).intValue();
     }
 
 

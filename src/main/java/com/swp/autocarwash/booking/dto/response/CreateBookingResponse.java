@@ -2,6 +2,7 @@ package com.swp.autocarwash.booking.dto.response;
 
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -36,4 +37,7 @@ public class CreateBookingResponse {
 
     /** URL ảnh QR VietQR đã điền sẵn số tài khoản/số tiền/nội dung, FE chỉ cần {@code <img src>}. */
     private String qrImageUrl;
+
+    /** Thời điểm QR/cọc hết hạn = createdAt + PENDING_PAYMENT_TIMEOUT_MINUTES — FE dùng để hiển thị đồng hồ đếm ngược. */
+    private LocalDateTime expiresAt;
 }
