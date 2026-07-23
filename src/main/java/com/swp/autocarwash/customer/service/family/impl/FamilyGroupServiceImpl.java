@@ -517,6 +517,37 @@ public class FamilyGroupServiceImpl implements FamilyGroupService {
             }
         }
 
+//        // 3. BOOKING GUARD (AC03): Gom toàn bộ xe trong nhóm để check lịch dở dang
+//        List<FamilyMember> allMembers = familyMemberRepository.findByFamilyGroupId(targetGroup.getId());
+//
+//        // Trích xuất danh sách ID xe của toàn bộ nhóm (Bao gồm cả xe của Owner và Member phụ)
+//        List<Long> groupVehicleIds = new ArrayList<>();
+//        for (FamilyMember member : allMembers) {
+//            if (member.getVehicle() != null) {
+//                groupVehicleIds.add(member.getVehicle().getId());
+//            }
+//        }
+
+//        if (!groupVehicleIds.isEmpty()) {     //fix booking exist with family booking
+//            List<String> unfinishedStatuses = List.of(
+//                    BookingStatus.PENDING.name(),
+//                    BookingStatus.CONFIRMED.name(),
+//                    BookingStatus.CHECK_IN.name(),
+//                    BookingStatus.WASHING.name()
+//            );
+//
+//
+//            boolean hasActiveFamilyBookings = bookingRepository.existsByVehicleIdInAndStatusInAndBookingType(
+//                    groupVehicleIds,
+//                    unfinishedStatuses,
+//                    BookingType.FAMILY.name() // Chỉ kiểm tra đơn dở dang dùng gói FAMILY
+//            );
+//
+//            if (hasActiveFamilyBookings) {
+//                throw new BusinessException(ErrorCode.GROUP_HAS_ACTIVE_BOOKINGS);
+//                // Có ít nhất 1 xe đang rửa hoặc chờ rửa BẰNG GÓI FAMILY -> Chặn đứng
+//            }
+
         // 4. VÔ HIỆU HÓA GÓI CƯỚC (Hủy gói liên kết của nhóm)
 //        Optional<FamilySubscription> activeSubOpt = familySubscriptionRepository.findActiveSubscriptionByGroupId(targetGroup.getId());
 //        String subStatus = "NO_SUBSCRIPTION";
