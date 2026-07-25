@@ -117,7 +117,10 @@ public class RefundController {
             @Valid @RequestBody CreateRefundRequest request,
             @AuthenticationPrincipal UserCustomerDetails principal) {
         RefundResponse result = refundService.createRefund(request, resolveCustomerId(principal));
-        return ResponseEntity.ok(ApiResponse.success("Đã tạo yêu cầu hoàn tiền, vui lòng chờ hoàn tiền", result));
+        String message = result == null
+                ? "Booking không phát sinh cọc, đã hủy thành công"
+                : "Đã tạo yêu cầu hoàn tiền, vui lòng chờ hoàn tiền";
+        return ResponseEntity.ok(ApiResponse.success(message, result));
     }
 
     /**

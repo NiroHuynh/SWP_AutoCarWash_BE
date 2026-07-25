@@ -88,12 +88,17 @@ public class RefundServiceImpl implements RefundService {
                 bookingRefundPort.loadRefundableBooking(request.getBookingId(), customerId);
 
         // 2. Eligibility.
-        if (!Boolean.TRUE.equals(booking.getIsDepositPaid())) {
-            throw new BusinessException(ErrorCode.REFUND_NOT_ELIGIBLE);
-        }
         if (!BookingStatus.CONFIRMED.name().equals(booking.getStatus())) {
             throw new BusinessException(ErrorCode.BOOKING_NOT_CANCELABLE);
         }
+
+        // Gói không cọc (vd lượt rửa subscription/family miễn phí) -> hủy thẳng,
+        // không có gì để hoàn nên không tạo Refund, không áp dụng cửa sổ hủy 2h.
+        if (!Boolean.TRUE.equals(booking.getIsDepositPaid())) {
+            bookingRefundPort.cancelWithoutRefund(request.getBookingId());
+            return null;
+        }
+
         if (minutesUntilAppointment(booking) < CANCEL_THRESHOLD_MINUTES) {
             throw new BusinessException(ErrorCode.BOOKING_CANCEL_WINDOW_PASSED);
         }
@@ -167,8 +172,13 @@ public class RefundServiceImpl implements RefundService {
     public PointsPreviewResponse previewPointsConversion(Long bookingId, Long customerId) {
         RefundableBookingContract booking = bookingRefundPort.loadRefundableBooking(bookingId, customerId);
 
+        // Gói không cọc -> không có gì để quy đổi, trả preview 0 thay vì báo lỗi.
         if (!Boolean.TRUE.equals(booking.getIsDepositPaid())) {
-            throw new BusinessException(ErrorCode.REFUND_NOT_ELIGIBLE);
+            return PointsPreviewResponse.builder()
+                    .bookingId(bookingId)
+                    .depositAmount(BigDecimal.ZERO)
+                    .previewPoints(0)
+                    .build();
         }
 
         PointsConversionPreview preview =
