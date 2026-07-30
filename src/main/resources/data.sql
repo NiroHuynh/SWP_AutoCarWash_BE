@@ -120,27 +120,27 @@ INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, current_booking_id, is_deleted)
 VALUES
     -- Station 1: Saigon Central — 5 AVAILABLE (max lane case)
-    (1,  1, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (2,  1, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (3,  1, 'Lane 3', 'AVAILABLE', 3, NULL, false),
-    (4,  1, 'Lane 4', 'AVAILABLE', 4, NULL, false),
-    (5,  1, 'Lane 5', 'AVAILABLE', 3, NULL, false),
+    (1,  1, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (2,  1, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (3,  1, 'Lane 03', 'AVAILABLE', 3, NULL, false),
+    (4,  1, 'Lane 04', 'AVAILABLE', 4, NULL, false),
+    (5,  1, 'Lane 05', 'AVAILABLE', 3, NULL, false),
     -- Station 2: Thu Duc — 1 AVAILABLE (min lane case; also the FULL-slot station)
-    (6,  2, 'Lane 1', 'AVAILABLE', 3, NULL, false),
+    (6,  2, 'Lane 01', 'AVAILABLE', 3, NULL, false),
     -- Station 3: Hoan Kiem — 3 AVAILABLE (standard happy-path station)
-    (7,  3, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (8,  3, 'Lane 2', 'AVAILABLE', 2, NULL, false),
-    (9,  3, 'Lane 3', 'AVAILABLE', 3, NULL, false),
+    (7,  3, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (8,  3, 'Lane 02', 'AVAILABLE', 2, NULL, false),
+    (9,  3, 'Lane 03', 'AVAILABLE', 3, NULL, false),
     -- Station 4: Ba Dinh — 2 lanes, BOTH WASHING (busy negative-BR4 station)
-    (10, 4, 'Lane 1', 'WASHING',   3, 10,   false),
-    (11, 4, 'Lane 2', 'WASHING',   3, 9,    false),
+    (10, 4, 'Lane 01', 'WASHING',   3, 10,   false),
+    (11, 4, 'Lane 02', 'WASHING',   3, 9,    false),
     -- Station 5: Hai Chau — 2 AVAILABLE
-    (12, 5, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (13, 5, 'Lane 2', 'AVAILABLE', 3, NULL, false),
+    (12, 5, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (13, 5, 'Lane 02', 'AVAILABLE', 3, NULL, false),
     -- Station 6: Son Tra — 2 AVAILABLE + 1 soft-deleted (does not count)
-    (14, 6, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (15, 6, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (16, 6, 'Lane 3 (removed)', 'AVAILABLE', 3, NULL, true);
+    (14, 6, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (15, 6, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (16, 6, 'Lane 03', 'AVAILABLE', 3, NULL, true);
 
 -- =====================================================================
 -- STAFF (12)
@@ -182,11 +182,14 @@ INSERT IGNORE INTO tier_benefit
 (id, customer_tier_id, benefit_description)
 VALUES
     (1,  1,  'Basic points x1 per wash'),
+    (11,  1,  'Priority booking up to 7 days in advance'),
+    (13,  2,  'Silver points x1.2 per wash'),
     (2,  2,  'Priority booking up to 10 days in advance'),
-    (3,  3,  '5% discount on add-on service fees'),
-    (4,  3,  'Earn points x1.5 per wash'),
-    (5,  4,  'One free polishing service per quarter'),
-    (12, 2,  'Early promotional email notifications');
+    (3,  3,  'Gold points x1.5 per wash'),
+    (4,  3,  'Priority booking up to 12 days in advance'),
+
+    (5,  4,  'Platinum points x1.8 per wash'),
+    (12, 4,  'Priority booking up to 14 days in advanc');
 
 -- =====================================================================
 -- CUSTOMER (12)
@@ -407,8 +410,8 @@ VALUES
 INSERT IGNORE INTO unlimit_subscription
 (id, customer_id, vehicle_id, subscription_plan_id, last_vehicle_change_at, start_date, end_date, status, canceled_at)
 VALUES
-    (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
-    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 65 DAY),  DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
+    (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 28 DAY),  DATE_ADD(CURDATE(), INTERVAL 2 DAY),  'ACTIVE',    NULL),
+    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 31 DAY),  DATE_SUB(CURDATE(), INTERVAL 1 DAY),  'ACTIVE',    NULL),
     (3,  3,  3,  3, DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY),  DATE_ADD(CURDATE(), INTERVAL 70 DAY),  'ACTIVE',    NULL),
     (5,  5,  5,  5, NULL, DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 100 DAY), 'EXPIRED',   NULL),
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));
@@ -419,8 +422,8 @@ VALUES
 INSERT IGNORE INTO family_subscription
 (id, family_group_id, subscription_plan_id, start_date, end_date, status, canceled_at)
 VALUES
-    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 70 DAY),  DATE_SUB(CURDATE(), INTERVAL 40 DAY),  'EXPIRED',   NULL),
-    (2,  2,  7,  DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY),  'ACTIVE',    NULL),
+    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 31 DAY),  DATE_SUB(CURDATE(), INTERVAL 1 DAY),  'EXPIRED',   NULL),
+    (2,  2,  7,  DATE_SUB(CURDATE(), INTERVAL 28 DAY),   DATE_ADD(CURDATE(), INTERVAL 2 DAY),  'ACTIVE',    NULL),
     (3,  3,  8,  DATE_SUB(CURDATE(), INTERVAL 110 DAY), DATE_SUB(CURDATE(), INTERVAL 50 DAY),  'EXPIRED',   NULL),
     (5,  5,  10, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_ADD(CURDATE(), INTERVAL 265 DAY), 'ACTIVE',    NULL),
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));

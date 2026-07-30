@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,String>> handleAccessDenied(AccessDeniedException ex){
         Map<String,String> errorBody = new HashMap<>();
         errorBody.put("success", "false");
-        errorBody.put("message", "Bạn không có quyền thực hiện hành động này");
+        errorBody.put("message", "You do not have permission to perform this action");
         errorBody.put("errorCode", "AUTH_003");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody);
     }

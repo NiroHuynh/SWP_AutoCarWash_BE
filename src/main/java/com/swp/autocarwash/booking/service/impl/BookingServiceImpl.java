@@ -404,8 +404,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
 
-
-
         // Bước 6.6: Điểm loyalty — chỉ chốt & hiển thị khi booking đã CHECK_OUT
         // (COMPLETED = rửa xong nhưng chưa thanh toán nên chưa phát sinh điểm).
         // Đồng thời tránh NPE khi booking là walk-in (customer == null).
@@ -510,8 +508,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if(!BookingStatus.CHECK_IN.name().equals(booking.getStatus())){
-            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
+        if (!BookingStatus.CHECK_IN.name().equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.BOOKING_NOT_CHECKED_IN);
         }
 
         booking.setStatus(BookingStatus.NO_SHOW.name());
@@ -538,15 +536,15 @@ public class BookingServiceImpl implements BookingService {
             queueTicketRepository.save(ticket);
         });
 
-            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
-                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
-                    .vehicleId((long) booking.getVehicle().getId().intValue())
-                    .bookingId(bookingId)
-                    .bookingType(booking.getBookingType())
-                    .isDepositPaid(booking.getIsDepositPaid())
-                    .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
-                    .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
+        bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
+                .vehicleId((long) booking.getVehicle().getId().intValue())
+                .bookingId(bookingId)
+                .bookingType(booking.getBookingType())
+                .isDepositPaid(booking.getIsDepositPaid())
+                .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
+                .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
 
 
         return getBookingDetail(bookingId);
@@ -620,117 +618,69 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public CreateBookingResponse createBooking(CreateBookingRequest request) {
 
-//        validate đầu vào
+        // 1. Validate đầu vào
         bookingValidator.validateCreateBooking(request);
 
-//        lấy customer
+        // 2. Lấy thông tin Customer
         Long userId = getCurrentUserId();
         Customer customer = customerRepository.findByUserId(userId);
         if (customer == null) {
             throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
         }
 
-//      CustomerContract customer = customerPort.getCustomerByUserId(userId);
-
-//        lấy vehicle
+        // 3. Lấy thông tin Vehicle & ServicePackage
         VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
-
-//        lấy service package
         ServicePackageContract servicePackage = servicePackagePort.getById(request.getServicePackageId());
 
-        // PRICE CALCULATION
-//        tính giá service package
+        // 4. BẢNG TÍNH GIÁ (PRICE CALCULATION)
         BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
 
         // Lượt rửa được subscription miễn phí (packagePrice = 0) -> không cần đặt cọc
         boolean isFreeUnderSubscription = packagePrice.compareTo(BigDecimal.ZERO) == 0;
 
-//        tính giá addon service
+        // Tính giá addon service
         BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
 
-
-//        tổng tiền của service package và addon package
+        // Tổng tiền chưa chiết khấu
         BigDecimal subTotal = packagePrice.add(addonPrice);
 
         // Trích xuất mốc thời gian ngày hẹn để đối soát thời hạn Voucher
         LocalDate appDate = LocalDate.parse(request.getAppointmentDate());
         LocalDateTime appDateTime = appDate.atStartOfDay();
 
-        // VOUCHER
+        // 5. HỆ THỐNG GÁC CỔNG VOUCHER (CHỈ XỬ LÝ MÃ DO KHÁCH CHỦ ĐỘNG NHẬP)
         BigDecimal discountAmount = BigDecimal.ZERO;
-
         Voucher appliedVoucher = null;
-
         //HỆ THỐNG GÁC CỔNG VOUCHER
 
         Integer customerTierId = customer.getCustomerTier().getId(); // Lấy Hạng thành viên của khách hàng
 
-        //VOUCHER CONFIG 1: Tự động quét Chế độ 1 (Giảm giá sàn trực tiếp hệ thống theo Chi nhánh + Hạng xe)
-//        List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
-
-        List<Promotion> activePromos = null;
-
-        if (activePromos != null && !activePromos.isEmpty()) {
-            BigDecimal maxDiscountCalculated = BigDecimal.ZERO;
-            Voucher bestVoucher = null;
-
-            // Vòng lặp duyệt qua các chiến dịch Chế độ 1 trùng khung cấu hình để tìm deal tốt nhất
-            for (Promotion p : activePromos) {
-                List<Voucher> subVouchers = voucherRepository.findByPromotionId(p.getId());
-
-                for (Voucher tempVoucher : subVouchers) {
-                    if (tempVoucher == null || !VoucherStatus.ACTIVE.name().equalsIgnoreCase(tempVoucher.getStatus()) || Boolean.TRUE.equals(tempVoucher.getIsDeleted())) {
-                        continue;
-                    }
-
-                    // (Giữ nguyên logic tính toán thử số tiền giảm giá currentDiscount của tempVoucher...)
-                    BigDecimal currentDiscount = BigDecimal.ZERO;
-                    if (tempVoucher.getDiscountPercentage() != null) {
-                        BigDecimal percentFactor = BigDecimal.valueOf(tempVoucher.getDiscountPercentage()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-                        BigDecimal calculated = subTotal.multiply(percentFactor);
-                        currentDiscount = (tempVoucher.getMaxDiscountAmount() != null && calculated.compareTo(tempVoucher.getMaxDiscountAmount()) > 0)
-                                ? tempVoucher.getMaxDiscountAmount() : calculated;
-                    } else {
-                        currentDiscount = tempVoucher.getMaxDiscountAmount();
-                    }
-
-                    // Thuật toán tìm Max deal hời nhất cho khách
-                    if (currentDiscount.compareTo(maxDiscountCalculated) > 0 || bestVoucher == null) {
-                        maxDiscountCalculated = currentDiscount;
-                        bestVoucher = tempVoucher;
-                    }
-                }
-            }
-            // Gán mã giảm sàn tốt nhất tìm được vào đơn hàng
-            if (bestVoucher != null) {
-                appliedVoucher = bestVoucher;
-            }
-        }
-        // VOUCHER CONFIG 2: Nếu không dính Chế độ 1 nào, kiểm tra mã Voucher khách tự chọn (Chế độ 2 hoặc 3)
-        else if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+        if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             String inputCode = request.getVoucherCode().trim().toUpperCase();
             appliedVoucher = voucherRepository.findByVoucherCodeAndIsDeletedFalse(inputCode)
                     .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_INVALID));
-            // Chốt chặn A: Kiểm tra trạng thái hoạt động và cờ xóa mềm dưới DB
+
+            // Chốt chặn A: Kiểm tra trạng thái hoạt động và cờ xóa mềm
             if (!VoucherStatus.ACTIVE.name().equalsIgnoreCase(appliedVoucher.getStatus()) || Boolean.TRUE.equals(appliedVoucher.getIsDeleted())) {
                 throw new BusinessException(ErrorCode.VOUCHER_INVALID);
             }
-            //Chốt chặn B: Kiểm tra thời hạn hiệu lực dựa theo Ngày hẹn đến tiệm
+
+            // Chốt chặn B: Kiểm tra thời hạn hiệu lực dựa theo Ngày hẹn
             if (appDateTime.isBefore(appliedVoucher.getStartDate()) || appDateTime.isAfter(appliedVoucher.getExpiryDate())) {
                 throw new BusinessException(ErrorCode.VOUCHER_EXPIRED);
             }
 
-            //Chốt chặn C: Kiểm tra giới hạn số lượt sử dụng toàn hệ thống
+            // Chốt chặn C: Kiểm tra giới hạn số lượt sử dụng toàn hệ thống
             if (appliedVoucher.getUsedCount() >= appliedVoucher.getUsageLimit()) {
                 throw new BusinessException(ErrorCode.VOUCHER_USED_UP);
             }
 
-            //Chốt chặn D: Kiểm tra giá trị đơn hàng tối thiểu (minOrderValue)
+            // Chốt chặn D: Kiểm tra giá trị đơn hàng tối thiểu
             if (subTotal.compareTo(appliedVoucher.getMinOrderValue()) < 0) {
                 throw new BusinessException(ErrorCode.ORDER_VALUE_TOO_LOW);
             }
 
-            //Chốt chặn E: Đối với Chế độ 2 (Voucher Chiến dịch), kiểm tra chi nhánh áp dụng
+            // Chốt chặn E: Đối với Voucher Chiến dịch, kiểm tra chi nhánh áp dụng
             if (appliedVoucher.getPromotion() != null) {
                 List<PromotionStationMapping> mappings = promotionStationMappingRepository.findById_PromotionId(appliedVoucher.getPromotion().getId());
                 boolean isValidStation = mappings.stream().anyMatch(m -> m.getId().getStationId().equals(request.getStationId()));
@@ -740,8 +690,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        // LOGIC KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ SAU KHI CHỐT MÃ
-
+        // 6. LOGIC KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ
         if (appliedVoucher != null) {
             if (appliedVoucher.getDiscountPercentage() != null) {
                 BigDecimal percentFactor = BigDecimal.valueOf(appliedVoucher.getDiscountPercentage())
@@ -754,7 +703,7 @@ public class BookingServiceImpl implements BookingService {
                     discountAmount = calculatedDiscount;
                 }
             } else {
-                discountAmount = appliedVoucher.getMaxDiscountAmount();
+                discountAmount = appliedVoucher.getMaxDiscountAmount() != null ? appliedVoucher.getMaxDiscountAmount() : BigDecimal.ZERO;
             }
 
             if (discountAmount.compareTo(subTotal) > 0) {
@@ -774,10 +723,6 @@ public class BookingServiceImpl implements BookingService {
                 .vehicle(modelMapper.map(vehicle, Vehicle.class))
                 .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
                 .appointmentDate(appDate)
-                .status(BookingStatus.CONFIRMED.toString())
-                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
-                //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
-                //(trừ khi lượt rửa được subscription miễn phí -> CONFIRMED ngay, không cần cọc)
                 .status(isFreeUnderSubscription ? BookingStatus.CONFIRMED.toString() : BookingStatus.PENDING.toString())
                 .bookingType(bookingType.toString())
                 .totalServiceAmount(packagePrice)
@@ -789,7 +734,7 @@ public class BookingServiceImpl implements BookingService {
         booking = createBookingAddon(booking, request.getAddonServiceIds());
         booking = createBookingAlocation(booking, request.getSlotIds());
 
-        // Cập nhật số lượt dùng thời gian thực của Voucher
+        // 8. CẬP NHẬT LƯỢT DÙNG VOUCHER & TẠO LỊCH SỬ SỬ DỤNG
         if (appliedVoucher != null) {
             appliedVoucher.setUsedCount(appliedVoucher.getUsedCount() + 1);
 
@@ -798,18 +743,18 @@ public class BookingServiceImpl implements BookingService {
             }
             voucherRepository.save(appliedVoucher);
 
-            // Đúc bản ghi lịch sử voucher_usage an toàn
             createVoucherUsage(appliedVoucher, booking);
         }
 
         Booking saved = bookingRepository.save(booking);
         bookingInvoicePort.createInvoice(booking);
 
-        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn — bỏ qua nếu miễn cọc
+        // 9. TRẢ VỀ RESPONSE CHO FRONTEND
         String transferContent = isFreeUnderSubscription ? null : "BK" + saved.getId();
         BigDecimal depositAmount = isFreeUnderSubscription
                 ? BigDecimal.ZERO
                 : systemSettingPort.getDepositAmount("DEFAULT_DEPOSIT_AMOUNT");
+
         return CreateBookingResponse.builder()
                 .bookingId(saved.getId())
                 .status(saved.getStatus())
@@ -820,10 +765,213 @@ public class BookingServiceImpl implements BookingService {
                 .qrImageUrl(isFreeUnderSubscription
                         ? null
                         : paymentQrPort.buildQrImageUrl(depositAmount, transferContent))
-               .expiresAt(isFreeUnderSubscription
+                .expiresAt(isFreeUnderSubscription
                         ? null
                         : saved.getCreatedAt().plusMinutes(systemSettingPort.getPendingPaymentTimeoutMinutes()))
                 .build();
+
+////        validate đầu vào
+//        bookingValidator.validateCreateBooking(request);
+//
+////        lấy customer
+//        Long userId = getCurrentUserId();
+//        Customer customer = customerRepository.findByUserId(userId);
+//        if (customer == null) {
+//            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+//        }
+//
+////      CustomerContract customer = customerPort.getCustomerByUserId(userId);
+//
+////        lấy vehicle
+//        VehicleContract vehicle = vehiclePort.getById(request.getVehicleId());
+//
+////        lấy service package
+//        ServicePackageContract servicePackage = servicePackagePort.getById(request.getServicePackageId());
+//
+//        // PRICE CALCULATION
+////        tính giá service package
+//        BigDecimal packagePrice = getServicePackagePrice(request.getVehicleId(), request.getServicePackageId(), LocalDate.parse(request.getAppointmentDate()));
+//
+//        // Lượt rửa được subscription miễn phí (packagePrice = 0) -> không cần đặt cọc
+//        boolean isFreeUnderSubscription = packagePrice.compareTo(BigDecimal.ZERO) == 0;
+//
+////        tính giá addon service
+//        BigDecimal addonPrice = getAddonServicePrice(request.getAddonServiceIds());
+//
+//
+////        tổng tiền của service package và addon package
+//        BigDecimal subTotal = packagePrice.add(addonPrice);
+//
+//        // Trích xuất mốc thời gian ngày hẹn để đối soát thời hạn Voucher
+//        LocalDate appDate = LocalDate.parse(request.getAppointmentDate());
+//        LocalDateTime appDateTime = appDate.atStartOfDay();
+//
+//        // VOUCHER
+//        BigDecimal discountAmount = BigDecimal.ZERO;
+//
+//        Voucher appliedVoucher = null;
+//
+//        //HỆ THỐNG GÁC CỔNG VOUCHER
+//
+//        Integer customerTierId = customer.getCustomerTier().getId(); // Lấy Hạng thành viên của khách hàng
+//
+//        //VOUCHER CONFIG 1: Tự động quét Chế độ 1 (Giảm giá sàn trực tiếp hệ thống theo Chi nhánh + Hạng xe)
+//        List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
+//
+//        if (activePromos != null && !activePromos.isEmpty()) {
+//            BigDecimal maxDiscountCalculated = BigDecimal.ZERO;
+//            Voucher bestVoucher = null;
+//
+//            // Vòng lặp duyệt qua các chiến dịch Chế độ 1 trùng khung cấu hình để tìm deal tốt nhất
+//            for (Promotion p : activePromos) {
+//                List<Voucher> subVouchers = voucherRepository.findByPromotionId(p.getId());
+//
+//                for (Voucher tempVoucher : subVouchers) {
+//                    if (tempVoucher == null || !VoucherStatus.ACTIVE.name().equalsIgnoreCase(tempVoucher.getStatus()) || Boolean.TRUE.equals(tempVoucher.getIsDeleted())) {
+//                        continue;
+//                    }
+//
+//                    // (Giữ nguyên logic tính toán thử số tiền giảm giá currentDiscount của tempVoucher...)
+//                    BigDecimal currentDiscount = BigDecimal.ZERO;
+//                    if (tempVoucher.getDiscountPercentage() != null) {
+//                        BigDecimal percentFactor = BigDecimal.valueOf(tempVoucher.getDiscountPercentage()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+//                        BigDecimal calculated = subTotal.multiply(percentFactor);
+//                        currentDiscount = (tempVoucher.getMaxDiscountAmount() != null && calculated.compareTo(tempVoucher.getMaxDiscountAmount()) > 0)
+//                                ? tempVoucher.getMaxDiscountAmount() : calculated;
+//                    } else {
+//                        currentDiscount = tempVoucher.getMaxDiscountAmount();
+//                    }
+//
+//                    // Thuật toán tìm Max deal hời nhất cho khách
+//                    if (currentDiscount.compareTo(maxDiscountCalculated) > 0 || bestVoucher == null) {
+//                        maxDiscountCalculated = currentDiscount;
+//                        bestVoucher = tempVoucher;
+//                    }
+//                }
+//            }
+//            // Gán mã giảm sàn tốt nhất tìm được vào đơn hàng
+//            if (bestVoucher != null) {
+//                appliedVoucher = bestVoucher;
+//            }
+//        }
+//        // VOUCHER CONFIG 2: Nếu không dính Chế độ 1 nào, kiểm tra mã Voucher khách tự chọn (Chế độ 2 hoặc 3)
+//        else if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+//            String inputCode = request.getVoucherCode().trim().toUpperCase();
+//            appliedVoucher = voucherRepository.findByVoucherCodeAndIsDeletedFalse(inputCode)
+//                    .orElseThrow(() -> new BusinessException(ErrorCode.VOUCHER_INVALID));
+//            // Chốt chặn A: Kiểm tra trạng thái hoạt động và cờ xóa mềm dưới DB
+//            if (!VoucherStatus.ACTIVE.name().equalsIgnoreCase(appliedVoucher.getStatus()) || Boolean.TRUE.equals(appliedVoucher.getIsDeleted())) {
+//                throw new BusinessException(ErrorCode.VOUCHER_INVALID);
+//            }
+//            //Chốt chặn B: Kiểm tra thời hạn hiệu lực dựa theo Ngày hẹn đến tiệm
+//            if (appDateTime.isBefore(appliedVoucher.getStartDate()) || appDateTime.isAfter(appliedVoucher.getExpiryDate())) {
+//                throw new BusinessException(ErrorCode.VOUCHER_EXPIRED);
+//            }
+//
+//            //Chốt chặn C: Kiểm tra giới hạn số lượt sử dụng toàn hệ thống
+//            if (appliedVoucher.getUsedCount() >= appliedVoucher.getUsageLimit()) {
+//                throw new BusinessException(ErrorCode.VOUCHER_USED_UP);
+//            }
+//
+//            //Chốt chặn D: Kiểm tra giá trị đơn hàng tối thiểu (minOrderValue)
+//            if (subTotal.compareTo(appliedVoucher.getMinOrderValue()) < 0) {
+//                throw new BusinessException(ErrorCode.ORDER_VALUE_TOO_LOW);
+//            }
+//
+//            //Chốt chặn E: Đối với Chế độ 2 (Voucher Chiến dịch), kiểm tra chi nhánh áp dụng
+//            if (appliedVoucher.getPromotion() != null) {
+//                List<PromotionStationMapping> mappings = promotionStationMappingRepository.findById_PromotionId(appliedVoucher.getPromotion().getId());
+//                boolean isValidStation = mappings.stream().anyMatch(m -> m.getId().getStationId().equals(request.getStationId()));
+//                if (!isValidStation) {
+//                    throw new BusinessException(ErrorCode.VOUCHER_NOT_APPLICABLE_AT_STATION);
+//                }
+//            }
+//        }
+//
+//        // LOGIC KHẤU TRỪ TIỀN GIẢM GIÁ THỰC TẾ SAU KHI CHỐT MÃ
+//
+//        if (appliedVoucher != null) {
+//            if (appliedVoucher.getDiscountPercentage() != null) {
+//                BigDecimal percentFactor = BigDecimal.valueOf(appliedVoucher.getDiscountPercentage())
+//                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+//                BigDecimal calculatedDiscount = subTotal.multiply(percentFactor);
+//
+//                if (appliedVoucher.getMaxDiscountAmount() != null && calculatedDiscount.compareTo(appliedVoucher.getMaxDiscountAmount()) > 0) {
+//                    discountAmount = appliedVoucher.getMaxDiscountAmount();
+//                } else {
+//                    discountAmount = calculatedDiscount;
+//                }
+//            } else {
+//                discountAmount = appliedVoucher.getMaxDiscountAmount();
+//            }
+//
+//            if (discountAmount.compareTo(subTotal) > 0) {
+//                discountAmount = subTotal;
+//            }
+//
+//            // Trừ tiền thực tế
+//            subTotal = subTotal.subtract(discountAmount);
+//        }
+//
+//        // ĐÓNG GÓI BẢN GHI VÀ LƯU VẾT LỊCH SỬ THỜI GIAN THỰC
+//
+//        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+//
+//        Booking booking = Booking.builder()
+//                .customer(customer)
+//                .vehicle(modelMapper.map(vehicle, Vehicle.class))
+//                .servicePackage(modelMapper.map(servicePackage, ServicePackage.class))
+//                .appointmentDate(appDate)
+//                .status(BookingStatus.CONFIRMED.toString())
+//                .appointmentDate(LocalDate.parse(request.getAppointmentDate()))
+//                //chờ khách chuyển khoản cọc — webhook SePay sẽ chuyển sang CONFIRMED
+//                //(trừ khi lượt rửa được subscription miễn phí -> CONFIRMED ngay, không cần cọc)
+//                .status(isFreeUnderSubscription ? BookingStatus.CONFIRMED.toString() : BookingStatus.PENDING.toString())
+//                .bookingType(bookingType.toString())
+//                .totalServiceAmount(packagePrice)
+//                .totalAddonAmount(addonPrice)
+//                .voucherDiscountAmount(discountAmount)
+//                .totalAmount(subTotal)
+//                .build();
+//
+//        booking = createBookingAddon(booking, request.getAddonServiceIds());
+//        booking = createBookingAlocation(booking, request.getSlotIds());
+//
+//        // Cập nhật số lượt dùng thời gian thực của Voucher
+//        if (appliedVoucher != null) {
+//            appliedVoucher.setUsedCount(appliedVoucher.getUsedCount() + 1);
+//
+//            if (appliedVoucher.getUsedCount().equals(appliedVoucher.getUsageLimit())) {
+//                appliedVoucher.setStatus(VoucherStatus.USED_UP.name());
+//            }
+//            voucherRepository.save(appliedVoucher);
+//
+//            // Đúc bản ghi lịch sử voucher_usage an toàn
+//            createVoucherUsage(appliedVoucher, booking);
+//        }
+//
+//        Booking saved = bookingRepository.save(booking);
+//        bookingInvoicePort.createInvoice(booking);
+//
+//        //thông tin chuyển khoản cọc cho FE hiển thị QR/hướng dẫn — bỏ qua nếu miễn cọc
+//        String transferContent = isFreeUnderSubscription ? null : "BK" + saved.getId();
+//        BigDecimal depositAmount = isFreeUnderSubscription
+//                ? BigDecimal.ZERO
+//                : systemSettingPort.getDepositAmount("DEFAULT_DEPOSIT_AMOUNT");
+//        return CreateBookingResponse.builder()
+//                .bookingId(saved.getId())
+//                .status(saved.getStatus())
+//                .totalAmount(subTotal)
+//                .slotIds(request.getSlotIds())
+//                .depositAmount(depositAmount)
+//                .transferContent(transferContent)
+//                .qrImageUrl(isFreeUnderSubscription
+//                        ? null
+//                        : paymentQrPort.buildQrImageUrl(depositAmount, transferContent))
+//               .expiresAt(isFreeUnderSubscription
+//                        ? null
+//                        : saved.getCreatedAt().plusMinutes(systemSettingPort.getPendingPaymentTimeoutMinutes()))
+//                .build();
     }
 
 //        VoucherContract voucher = null;
@@ -872,7 +1020,8 @@ public class BookingServiceImpl implements BookingService {
 //
 //        Booking saved = bookingRepository.save(booking);
 //
-////        tạo booking invoice
+
+    /// /        tạo booking invoice
 //        bookingInvoicePort.createInvoice(booking);
 //
 //        return CreateBookingResponse.builder()
@@ -881,7 +1030,6 @@ public class BookingServiceImpl implements BookingService {
 //                .totalAmount(subTotal)
 //                .slotIds(request.getSlotIds())
 //                .build();
-
     private BookingType getBookingType(Long vehicleId, Integer servicePackageId, LocalDate date) {
         if (!isVehicleBookedInSlotDate(vehicleId, servicePackageId, date)){
             return BookingType.SUBSCRIPTION;
