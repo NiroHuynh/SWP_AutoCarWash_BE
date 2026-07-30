@@ -120,27 +120,27 @@ INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, current_booking_id, is_deleted)
 VALUES
     -- Station 1: Saigon Central — 5 AVAILABLE (max lane case)
-    (1,  1, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (2,  1, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (3,  1, 'Lane 3', 'AVAILABLE', 3, NULL, false),
-    (4,  1, 'Lane 4', 'AVAILABLE', 4, NULL, false),
-    (5,  1, 'Lane 5', 'AVAILABLE', 3, NULL, false),
+    (1,  1, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (2,  1, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (3,  1, 'Lane 03', 'AVAILABLE', 3, NULL, false),
+    (4,  1, 'Lane 04', 'AVAILABLE', 4, NULL, false),
+    (5,  1, 'Lane 05', 'AVAILABLE', 3, NULL, false),
     -- Station 2: Thu Duc — 1 AVAILABLE (min lane case; also the FULL-slot station)
-    (6,  2, 'Lane 1', 'AVAILABLE', 3, NULL, false),
+    (6,  2, 'Lane 01', 'AVAILABLE', 3, NULL, false),
     -- Station 3: Hoan Kiem — 3 AVAILABLE (standard happy-path station)
-    (7,  3, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (8,  3, 'Lane 2', 'AVAILABLE', 2, NULL, false),
-    (9,  3, 'Lane 3', 'AVAILABLE', 3, NULL, false),
+    (7,  3, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (8,  3, 'Lane 02', 'AVAILABLE', 2, NULL, false),
+    (9,  3, 'Lane 03', 'AVAILABLE', 3, NULL, false),
     -- Station 4: Ba Dinh — 2 lanes, BOTH WASHING (busy negative-BR4 station)
-    (10, 4, 'Lane 1', 'WASHING',   3, 10,   false),
-    (11, 4, 'Lane 2', 'WASHING',   3, 9,    false),
+    (10, 4, 'Lane 01', 'WASHING',   3, 10,   false),
+    (11, 4, 'Lane 02', 'WASHING',   3, 9,    false),
     -- Station 5: Hai Chau — 2 AVAILABLE
-    (12, 5, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (13, 5, 'Lane 2', 'AVAILABLE', 3, NULL, false),
+    (12, 5, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (13, 5, 'Lane 02', 'AVAILABLE', 3, NULL, false),
     -- Station 6: Son Tra — 2 AVAILABLE + 1 soft-deleted (does not count)
-    (14, 6, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (15, 6, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (16, 6, 'Lane 3 (removed)', 'AVAILABLE', 3, NULL, true);
+    (14, 6, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (15, 6, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (16, 6, 'Lane 03', 'AVAILABLE', 3, NULL, true);
 
 -- =====================================================================
 -- STAFF (12)
@@ -182,11 +182,14 @@ INSERT IGNORE INTO tier_benefit
 (id, customer_tier_id, benefit_description)
 VALUES
     (1,  1,  'Basic points x1 per wash'),
+    (11,  1,  'Priority booking up to 7 days in advance'),
+    (13,  2,  'Silver points x1.2 per wash'),
     (2,  2,  'Priority booking up to 10 days in advance'),
-    (3,  3,  '5% discount on add-on service fees'),
-    (4,  3,  'Earn points x1.5 per wash'),
-    (5,  4,  'One free polishing service per quarter'),
-    (12, 2,  'Early promotional email notifications');
+    (3,  3,  'Gold points x1.5 per wash'),
+    (4,  3,  'Priority booking up to 12 days in advance'),
+
+    (5,  4,  'Platinum points x1.8 per wash'),
+    (12, 4,  'Priority booking up to 14 days in advanc');
 
 -- =====================================================================
 -- CUSTOMER (12)
@@ -407,8 +410,8 @@ VALUES
 INSERT IGNORE INTO unlimit_subscription
 (id, customer_id, vehicle_id, subscription_plan_id, last_vehicle_change_at, start_date, end_date, status, canceled_at)
 VALUES
-    (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',    NULL),
-    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 65 DAY),  DATE_SUB(CURDATE(), INTERVAL 35 DAY),  'EXPIRED',   NULL),
+    (1,  1,  1,  1, NULL, DATE_SUB(CURDATE(), INTERVAL 28 DAY),  DATE_ADD(CURDATE(), INTERVAL 2 DAY),  'ACTIVE',    NULL),
+    (2,  2,  2,  2, NULL, DATE_SUB(CURDATE(), INTERVAL 31 DAY),  DATE_SUB(CURDATE(), INTERVAL 1 DAY),  'ACTIVE',    NULL),
     (3,  3,  3,  3, DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY),  DATE_ADD(CURDATE(), INTERVAL 70 DAY),  'ACTIVE',    NULL),
     (5,  5,  5,  5, NULL, DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 100 DAY), 'EXPIRED',   NULL),
     (8,  8,  8,  3, DATE_SUB(NOW(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));
@@ -419,8 +422,8 @@ VALUES
 INSERT IGNORE INTO family_subscription
 (id, family_group_id, subscription_plan_id, start_date, end_date, status, canceled_at)
 VALUES
-    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 70 DAY),  DATE_SUB(CURDATE(), INTERVAL 40 DAY),  'EXPIRED',   NULL),
-    (2,  2,  7,  DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY),  'ACTIVE',    NULL),
+    (1,  1,  6,  DATE_SUB(CURDATE(), INTERVAL 31 DAY),  DATE_SUB(CURDATE(), INTERVAL 1 DAY),  'EXPIRED',   NULL),
+    (2,  2,  7,  DATE_SUB(CURDATE(), INTERVAL 28 DAY),   DATE_ADD(CURDATE(), INTERVAL 2 DAY),  'ACTIVE',    NULL),
     (3,  3,  8,  DATE_SUB(CURDATE(), INTERVAL 110 DAY), DATE_SUB(CURDATE(), INTERVAL 50 DAY),  'EXPIRED',   NULL),
     (5,  5,  10, DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_ADD(CURDATE(), INTERVAL 265 DAY), 'ACTIVE',    NULL),
     (8,  8,  8,  DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'CANCELED', DATE_SUB(NOW(), INTERVAL 40 DAY));
@@ -2328,19 +2331,66 @@ VALUES (
            TRUE
        );
 
--- =====================================================================
--- TEST DATA: Flow "Confirmed Check-in" (StaffCheckinService) +
--- "Create Walk-in" (WalkInCheckInService) — station 10 / wash_lane 16 /
--- user+customer 30/102 / vehicle 205-207 / booking 701-711 /
--- booking_slot 9700-9758 dùng CURTIME() động, chuẩn xác khi test ngay
--- sau khi app khởi động lại (ddl-auto=create seed lại từ đầu mỗi lần).
--- =====================================================================
+-- #####################################################################
+-- #  TEST DATA + HƯỚNG DẪN TEST: FLOW 1 "Confirmed Check-in"          #
+-- #  (StaffCheckInServiceImpl) + FLOW 2 "Create Walk-in"              #
+-- #  (WalkInCheckInService)                                           #
+-- #####################################################################
+--
+-- ĐỐI TƯỢNG DÙNG TRONG 2 LUỒNG:
+--   station 10 (không có làn AVAILABLE) / wash_lane 16 (WASHING)
+--   user 30 + customer 102 (đăng nhập: hung.tran@gmail.com) — đã có sẵn
+--     violation_count=3 để test case "vượt ngưỡng vi phạm -> khoá 14 ngày"
+--   vehicle 205-216 / booking 701-711 / booking_slot 9750-9758 (FLOW 1) + 9800-9816 (FLOW 2)
+--
+-- ┌───────────────────────────────────────────────────────────────────┐
+-- │ LƯU Ý CẤU HÌNH (quan trọng để test được mỗi lần chạy):              │
+-- │  Giờ các slot là ĐỘNG theo NOW() lúc seed. Muốn giờ làm mới mỗi     │
+-- │  lần chạy app, DB phải được seed lại từ đầu -> đặt trong            │
+-- │  application.properties: spring.jpa.hibernate.ddl-auto=create       │
+-- │  (hiện đang =update -> DB cũ giữ nguyên, INSERT IGNORE sẽ KHÔNG      │
+-- │  cập nhật giờ/tên mới). Cách khác: xoá sạch bảng trước khi chạy.     │
+-- └───────────────────────────────────────────────────────────────────┘
+--
+-- CÁCH TÍNH GIỜ CHECK-IN (StaffCheckInServiceImpl):
+--   dev = phút(now - slot.start).  Đúng giờ: -15<=dev<=10 | Sớm: dev<-15 |
+--   Trễ: dev>10 (không có ngưỡng "quá trễ"). Vì code so sánh LocalTime
+--   KHÔNG có ngày nên slot vắt qua nửa đêm bị hiểu sai -> xem CẢNH BÁO dưới.
+--   Mọi start_time neo theo @grid = mốc bội số 15' gần nhất (:00/:15/:30/:45).
+--
+-- ===================== FLOW 1: CONFIRMED CHECK-IN =====================
+--  Thứ tự test (đăng nhập nhân viên, dùng chức năng Check-in theo biển số):
+--   701 (xe 51G-70108, station 2) : ĐÚNG GIỜ            -> CHECK_IN, cấp vé
+--   702 (xe 51G-70209, station 2) : ĐẾN SỚM + có làn     -> CHECK_IN (early)
+--   703 (xe 51G-70310, station 10): ĐẾN SỚM + hết làn    -> EARLY_ARRIVAL_SLOT_FULL
+--   704 (xe 51G-70411, station 2) : ĐẾN TRỄ + có làn     -> CHECK_IN (late, waived)
+--   705 (xe 51G-70512, station 10): TRỄ+hết làn, SUB chưa vượt -> NO_SHOW, +1 vi phạm
+--   706 (xe 51G-77705, station 10): TRỄ+hết làn, SUB VƯỢT ngưỡng -> NO_SHOW + khoá 14 ngày
+--   707 (xe 51G-70713, station 10): TRỄ+hết làn, ADVANCE -> NO_SHOW, requiresWalkIn=true
+--   708 (xe 51G-70814)            : CONFIRMED KHÔNG có slot -> NO_ALLOCATED_TIME_SLOT
+--   709/710 (xe 51G-99907 / 51G-71016): WALK_IN xe đang bị phạt, chưa đóng cọc
+--          -> VEHICLE_CHECKIN_RESTRICTED; sau đó thu cọc (collect-penalty-deposit)
+--          rồi check-in lại thành công.
+--
+--  CẢNH BÁO ĐỘ BỀN THỜI GIAN (do chỉ sửa data, không sửa code BE):
+--   - Case ĐÚNG GIỜ (701) và ĐẾN SỚM (702/703): hãy test trong ~10-15 phút
+--     sau khi app khởi động (dev trôi dần theo thời gian thực).
+--   - Case ĐẾN SỚM còn có thể SAI nếu test vắt qua nửa đêm (slot rơi sang
+--     hôm sau -> BE hiểu nhầm thành "trễ"). Tránh test case sớm quanh 00:00.
+--   - Case ĐẾN TRỄ (704-707): bền vô thời hạn, test lúc nào cũng đúng.
+--
+-- ===================== FLOW 2: CREATE WALK-IN =========================
+--   - Tạo walk-in mới cho xe 51G-88806 (vehicle 206): xe này có booking 711
+--     NO_SHOW hôm nay đã đóng cọc -> test "cứu cọc" (deposit chuyển sang đơn
+--     walk-in mới). Chọn slot bất kỳ trong pool 9800-9815 (đều ở tương lai).
+--   - Case slot đã đầy công suất: chọn slot 9816 (status FULL) -> báo hết chỗ.
+-- #####################################################################
 
 -- Station riêng KHÔNG có lane nào AVAILABLE, dùng cho case "hết lane trống"
 INSERT IGNORE INTO station
 (id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
 VALUES
-    (10, 'AutoWash TEST No-Lane', 'Test Address - No Available Lane', 1, true, 5, false);
+    (10, 'AutoWash Quận 7', '123 Nguyễn Thị Thập, Quận 7, TP.HCM', 1, true, 5, false);
 
 INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
@@ -2351,12 +2401,12 @@ VALUES
 INSERT IGNORE INTO user
 (id, email, phone, password_hash, role_id, is_active, created_at)
 VALUES
-    (30, 'testcase102@gmail.com', '0900009999', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY));
+    (30, 'hung.tran@gmail.com', '0900009999', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY));
 
 INSERT IGNORE INTO customer
 (id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
 VALUES
-    (102, 30, 'Test', 'ExceedLimit', '1995-01-01', 1, 3, NULL);
+    (102, 30, 'Hùng', 'Trần Mạnh', '1995-01-01', 1, 3, NULL);
 
 -- Vehicle 205: gắn với customer 102 (case vượt ngưỡng vi phạm, SUBSCRIPTION)
 -- Vehicle 206: khách vãng lai mới, sạch án, dùng cho case "cứu cọc" (rescue deposit)
@@ -2366,22 +2416,22 @@ VALUES
 INSERT IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
 VALUES
-    (205, 102, '51G-77705', 'Toyota Test', 'Trắng', 0, NULL, false),
-    (206, NULL, '51G-88806', 'Kia Test',    'Đen',   0, NULL, false),
-    (207, NULL, '51G-99907', 'Honda Test',  'Đỏ',    4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
+    (205, 102, '51G-77705', 'Toyota', 'Trắng', 0, NULL, false),
+    (206, NULL, '51G-88806', 'Kia',    'Đen',   0, NULL, false),
+    (207, NULL, '51G-99907', 'Honda',  'Đỏ',    4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
 
     -- Vehicle riêng cho từng case Flow 1 để scan biển số không bị đụng
-    -- (mỗi vehicle chỉ được gắn ĐÚNG 1 booking CONFIRMED hôm nay)
-    (208, 3,  '51G-70108', 'Test Case701', 'Trắng', 0, NULL, false),
-    (209, 4,  '51G-70209', 'Test Case702', 'Trắng', 0, NULL, false),
-    (210, 5,  '51G-70310', 'Test Case703', 'Trắng', 0, NULL, false),
-    (211, 6,  '51G-70411', 'Test Case704', 'Trắng', 0, NULL, false),
-    (212, 8,  '51G-70512', 'Test Case705', 'Trắng', 0, NULL, false),
-    (213, 10, '51G-70713', 'Test Case707', 'Trắng', 0, NULL, false),
-    (214, 11, '51G-70814', 'Test Case708', 'Trắng', 0, NULL, false),
+    -- (mỗi vehicle chỉ gắn ĐÚNG 1 booking CONFIRMED hôm nay). Chú thích case ở cuối dòng.
+    (208, 3,  '51G-70108', 'Toyota',  'Trắng', 0, NULL, false),   -- case 701 đúng giờ
+    (209, 4,  '51G-70209', 'Mazda',   'Trắng', 0, NULL, false),   -- case 702 đến sớm + có làn
+    (210, 5,  '51G-70310', 'Hyundai', 'Trắng', 0, NULL, false),   -- case 703 đến sớm + hết làn
+    (211, 6,  '51G-70411', 'Ford',    'Trắng', 0, NULL, false),   -- case 704 đến trễ + có làn
+    (212, 8,  '51G-70512', 'Kia',     'Trắng', 0, NULL, false),   -- case 705 trễ SUB chưa vượt
+    (213, 10, '51G-70713', 'Honda',   'Trắng', 0, NULL, false),   -- case 707 trễ ADVANCE
+    (214, 11, '51G-70814', 'VinFast', 'Trắng', 0, NULL, false),   -- case 708 không có slot
     -- Vehicle bị phạt RIÊNG cho case 710 (tách khỏi 202 và 207 để 3 flow
     -- không vô tình "cứu án" lẫn nhau khi chạy các case theo thứ tự khác nhau)
-    (216, NULL, '51G-71016', 'Test Case710 Penalized', 'Đen', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false);
+    (216, NULL, '51G-71016', 'Mercedes', 'Đen', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false); -- case 710 xe bị phạt
 
 -- ============================ FLOW 1: CONFIRMED CHECK-IN ============================
 -- 701 on-time | 702 early+lane | 703 early+no-lane | 704 late+lane |
@@ -2408,30 +2458,33 @@ VALUES
     (709, NULL, 202, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
     (710, NULL, 216, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0);
 
--- LƯU Ý: dùng TIME(DATE_ADD/DATE_SUB(NOW(), INTERVAL ...)) thay vì ADDTIME/SUBTIME(CURTIME(),...)
--- vì ADDTIME trên kiểu TIME thuần cộng dồn không giới hạn 24h (vd 21:30 + 5h = "26:30:00"),
--- ra giá trị TIME không hợp lệ khi Hibernate map sang java.time.LocalTime -> crash toàn bộ query.
--- TIME(DATE_ADD(NOW(),...)) tính trên DATETIME đầy đủ nên luôn "wrap" đúng qua nửa đêm.
+-- @grid = mốc bội số 15 phút gần nhất phía trước tại thời điểm seed (:00/:15/:30/:45),
+-- giây = 00. Mọi start_time bên dưới = @grid +/- bội số 15' nên luôn rơi đúng mốc 15'.
+-- Dùng DATE_ADD/DATE_SUB trên DATETIME đầy đủ để "wrap" đúng qua nửa đêm (KHÔNG dùng
+-- ADDTIME trên TIME thuần vì có thể ra "26:30:00" -> crash khi Hibernate map LocalTime).
+-- Biến session tồn tại xuyên các câu lệnh (giống SET FOREIGN_KEY_CHECKS ở đầu file).
+SET @grid := DATE_SUB(NOW(), INTERVAL MOD(TIME_TO_SEC(NOW()), 900) SECOND);
+
 INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
-    -- 9750: on-time (chỉ đúng ~10-15 phút sau lúc seed/restart)
-    (9750, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9751/9752: đến sớm +45p. KHÔNG thể kéo dài offset qua nửa đêm: confirmCheckIn tính
-    -- lệch giờ bằng LocalTime thuần (Duration.between, không biết ngày), nên nếu slot rơi
-    -- sang hôm sau, deviation bị hiểu ngược thành "trễ nhiều tiếng" thay vì "sớm". Vì vậy
-    -- case này chỉ đúng trong ~45 phút sau khi restart -> demo case này SỚM sau khi restart.
-    (9751, 2,  TIME(DATE_ADD(NOW(), INTERVAL 45 MINUTE)),      TIME(DATE_ADD(NOW(), INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9752, 10, TIME(DATE_ADD(NOW(), INTERVAL 45 MINUTE)),      TIME(DATE_ADD(NOW(), INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9753-9756: đến trễ -20p so với lúc seed -> deviation chỉ càng ngày càng dương hơn,
-    -- luôn giữ trạng thái "trễ" vô thời hạn sau khi seed, không cần lo về sau
-    (9753, 2,  TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9754, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9755, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9756, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9757/9758: giờ không quan trọng (bị chặn ở bước kiểm tra xe bị phạt trước khi tính giờ)
-    (9757, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9758, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE');
+    -- 9750: ĐÚNG GIỜ. start = @grid + 15' (mốc kế tiếp) -> dev khởi điểm [-15,0):
+    -- luôn đúng giờ lúc seed, budget ~10-25' sau khi chạy app (nên test sớm).
+    (9750, 2,  TIME(DATE_ADD(@grid, INTERVAL 15 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 30 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
+    -- 9751/9752: ĐẾN SỚM. start = @grid + 45' -> dev khởi điểm rất âm (< -15).
+    -- Giữ "sớm" ~15-30' sau khi chạy. LƯU Ý vẫn có thể SAI nếu test vắt qua nửa
+    -- đêm (slot rơi sang hôm sau -> confirmCheckIn hiểu nhầm thành "trễ").
+    (9751, 2,  TIME(DATE_ADD(@grid, INTERVAL 45 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9752, 10, TIME(DATE_ADD(@grid, INTERVAL 45 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
+    -- 9753-9756: ĐẾN TRỄ. start = @grid - 15' -> dev khởi điểm [15,30) và chỉ tăng
+    -- theo thời gian thực -> luôn giữ trạng thái "trễ", bền vô thời hạn, test lúc nào cũng đúng.
+    (9753, 2,  TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9754, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9755, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9756, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    -- 9757/9758: giờ không quan trọng (xe bị chặn ở bước kiểm tra phạt trước khi tính giờ)
+    (9757, 2,  TIME(DATE_ADD(@grid, INTERVAL 15 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 30 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9758, 2,  TIME(DATE_ADD(@grid, INTERVAL 15 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 30 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE');
 
 INSERT IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
@@ -2453,179 +2506,30 @@ INSERT IGNORE INTO booking
 VALUES
     (711, NULL, 206, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true, 149000, 0, 149000, 0, 0);
 
--- Slot pool dùng chung cho các case tạo walk-in thành công (16 slot 15 phút liên
--- tiếp tại station 2, bắt đầu 1 tiếng sau thời điểm seed để luôn nằm trong tương lai)
+-- Pool slot RIÊNG cho FLOW 2 (id 9800-9816). LƯU Ý: dải id 9700-9736 KHÔNG dùng được
+-- vì đã bị chiếm bởi refund block (9700-9702) và block INSERT tự-sinh AUTO_INCREMENT ở
+-- trên (không khai báo cột id -> ăn 9703-9736); FLOW 1 chiếm 9750-9758. Vì vậy pool này
+-- đặt ở 9800+ cho chắc chắn không đụng. 16 slot 15' liên tiếp tại station 2 hôm nay,
+-- neo @grid + 60' trở đi -> luôn ở tương lai và đúng mốc bội số 15'. Slot 9816 = FULL.
 INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
 VALUES
-    (9700, 2, TIME(DATE_ADD(NOW(), INTERVAL 60  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 75  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9701, 2, TIME(DATE_ADD(NOW(), INTERVAL 75  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 90  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9702, 2, TIME(DATE_ADD(NOW(), INTERVAL 90  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 105 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9703, 2, TIME(DATE_ADD(NOW(), INTERVAL 105 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 120 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9704, 2, TIME(DATE_ADD(NOW(), INTERVAL 120 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 135 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9705, 2, TIME(DATE_ADD(NOW(), INTERVAL 135 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 150 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9706, 2, TIME(DATE_ADD(NOW(), INTERVAL 150 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 165 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9707, 2, TIME(DATE_ADD(NOW(), INTERVAL 165 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 180 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9708, 2, TIME(DATE_ADD(NOW(), INTERVAL 180 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 195 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9709, 2, TIME(DATE_ADD(NOW(), INTERVAL 195 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 210 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9710, 2, TIME(DATE_ADD(NOW(), INTERVAL 210 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 225 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9711, 2, TIME(DATE_ADD(NOW(), INTERVAL 225 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 240 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9712, 2, TIME(DATE_ADD(NOW(), INTERVAL 240 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 255 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9713, 2, TIME(DATE_ADD(NOW(), INTERVAL 255 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 270 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9714, 2, TIME(DATE_ADD(NOW(), INTERVAL 270 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 285 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9715, 2, TIME(DATE_ADD(NOW(), INTERVAL 285 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 300 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9800, 2, TIME(DATE_ADD(@grid, INTERVAL 60  MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 75  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9801, 2, TIME(DATE_ADD(@grid, INTERVAL 75  MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 90  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9802, 2, TIME(DATE_ADD(@grid, INTERVAL 90  MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 105 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9803, 2, TIME(DATE_ADD(@grid, INTERVAL 105 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 120 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9804, 2, TIME(DATE_ADD(@grid, INTERVAL 120 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 135 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9805, 2, TIME(DATE_ADD(@grid, INTERVAL 135 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 150 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9806, 2, TIME(DATE_ADD(@grid, INTERVAL 150 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 165 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9807, 2, TIME(DATE_ADD(@grid, INTERVAL 165 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 180 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9808, 2, TIME(DATE_ADD(@grid, INTERVAL 180 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 195 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9809, 2, TIME(DATE_ADD(@grid, INTERVAL 195 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 210 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9810, 2, TIME(DATE_ADD(@grid, INTERVAL 210 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 225 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9811, 2, TIME(DATE_ADD(@grid, INTERVAL 225 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 240 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9812, 2, TIME(DATE_ADD(@grid, INTERVAL 240 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 255 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9813, 2, TIME(DATE_ADD(@grid, INTERVAL 255 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 270 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9814, 2, TIME(DATE_ADD(@grid, INTERVAL 270 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 285 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
+    (9815, 2, TIME(DATE_ADD(@grid, INTERVAL 285 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 300 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
     -- Slot đã FULL sẵn, dùng cho case "slot đã hết công suất lúc trừ chỗ" (giờ không quan
     -- trọng vì createWalkInOrder chỉ check FULL/capacity, không lọc theo ngày/giờ)
-    (9720, 2, TIME(DATE_ADD(NOW(), INTERVAL 300 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 315 MINUTE)), 1, CURDATE(), 1, 'FULL');
-
-       -- =====================================================================
--- TEST DATA: Flow "Confirmed Check-in" (StaffCheckinService) +
--- "Create Walk-in" (WalkInCheckInService) — station 10 / wash_lane 16 /
--- user+customer 30/102 / vehicle 205-207 / booking 701-711 /
--- booking_slot 9700-9758 dùng CURTIME() động, chuẩn xác khi test ngay
--- sau khi app khởi động lại (ddl-auto=create seed lại từ đầu mỗi lần).
--- =====================================================================
-
--- Station riêng KHÔNG có lane nào AVAILABLE, dùng cho case "hết lane trống"
-INSERT IGNORE INTO station
-(id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
-VALUES
-    (10, 'AutoWash TEST No-Lane', 'Test Address - No Available Lane', 1, true, 5, false);
-
-INSERT IGNORE INTO wash_lane
-(id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
-VALUES
-    (16, 10, 'Lane 1', 'WASHING', 3, false);
-
--- User + Customer với violation_count=3 sẵn (để test vượt ngưỡng vi phạm -> khoá 14 ngày)
-INSERT IGNORE INTO user
-(id, email, phone, password_hash, role_id, is_active, created_at)
-VALUES
-    (30, 'testcase102@gmail.com', '0900009999', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY));
-
-INSERT IGNORE INTO customer
-(id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
-VALUES
-    (102, 30, 'Test', 'ExceedLimit', '1995-01-01', 1, 3, NULL);
-
--- Vehicle 205: gắn với customer 102 (case vượt ngưỡng vi phạm, SUBSCRIPTION)
--- Vehicle 206: khách vãng lai mới, sạch án, dùng cho case "cứu cọc" (rescue deposit)
--- Vehicle 207: khách vãng lai đang bị phạt (tách riêng khỏi vehicle 202 để
--- case "đã đóng cọc" ở Create-walkin không vô tình xoá án của vehicle 202
--- mà Flow 1 đang phụ thuộc vào)
-INSERT IGNORE INTO vehicle
-(id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
-VALUES
-    (205, 102, '51G-77705', 'Toyota Test', 'Trắng', 0, NULL, false),
-    (206, NULL, '51G-88806', 'Kia Test',    'Đen',   0, NULL, false),
-    (207, NULL, '51G-99907', 'Honda Test',  'Đỏ',    4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
-
-    -- Vehicle riêng cho từng case Flow 1 để scan biển số không bị đụng
-    -- (mỗi vehicle chỉ được gắn ĐÚNG 1 booking CONFIRMED hôm nay)
-    (208, 3,  '51G-70108', 'Test Case701', 'Trắng', 0, NULL, false),
-    (209, 4,  '51G-70209', 'Test Case702', 'Trắng', 0, NULL, false),
-    (210, 5,  '51G-70310', 'Test Case703', 'Trắng', 0, NULL, false),
-    (211, 6,  '51G-70411', 'Test Case704', 'Trắng', 0, NULL, false),
-    (212, 8,  '51G-70512', 'Test Case705', 'Trắng', 0, NULL, false),
-    (213, 10, '51G-70713', 'Test Case707', 'Trắng', 0, NULL, false),
-    (214, 11, '51G-70814', 'Test Case708', 'Trắng', 0, NULL, false),
-    -- Vehicle bị phạt RIÊNG cho case 710 (tách khỏi 202 và 207 để 3 flow
-    -- không vô tình "cứu án" lẫn nhau khi chạy các case theo thứ tự khác nhau)
-    (216, NULL, '51G-710.16', 'Test Case710 Penalized', 'Đen', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false);
-
--- ============================ FLOW 1: CONFIRMED CHECK-IN ============================
--- 701 on-time | 702 early+lane | 703 early+no-lane | 704 late+lane |
--- 705 late+no-lane SUBSCRIPTION (chưa vượt ngưỡng) | 706 late+no-lane SUBSCRIPTION (vượt ngưỡng) |
--- 707 late+no-lane ADVANCE (requiresWalkIn) | 708 CONFIRMED không có slot (NO_ALLOCATED_TIME_SLOT) |
--- 709/710 WALK_IN + vehicle 202 đang bị phạt, chưa đóng cọc (VEHICLE_CHECKIN_RESTRICTED /
--- rồi thu cọc qua collect-penalty-deposit để check-in lại thành công)
-INSERT IGNORE INTO booking
-(id, customer_id, vehicle_id, service_package_id,
- appointment_date, status, booking_type, check_in_employee_id,
- created_at, check_in_at, check_out_at, canceled_at,
- is_deposit_paid,
- total_service_amount, total_addon_amount, total_amount,
- voucher_discount_amount, point_discount_amount)
-VALUES
-    (701, 3,  208, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (702, 4,  209, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (703, 5,  210, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (704, 6,  211, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (705, 8,  212, 1, CURDATE(), 'CONFIRMED', 'SUBSCRIPTION', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (706, 102, 205, 1, CURDATE(), 'CONFIRMED', 'SUBSCRIPTION', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true, 149000, 0, 149000, 0, 0),
-    (707, 10, 213, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (708, 11, 214, 1, CURDATE(), 'CONFIRMED', 'ADVANCE',      NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true,  149000, 0, 149000, 0, 0),
-    (709, NULL, 202, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
-    (710, NULL, 216, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0);
-
--- LƯU Ý: dùng TIME(DATE_ADD/DATE_SUB(NOW(), INTERVAL ...)) thay vì ADDTIME/SUBTIME(CURTIME(),...)
--- vì ADDTIME trên kiểu TIME thuần cộng dồn không giới hạn 24h (vd 21:30 + 5h = "26:30:00"),
--- ra giá trị TIME không hợp lệ khi Hibernate map sang java.time.LocalTime -> crash toàn bộ query.
--- TIME(DATE_ADD(NOW(),...)) tính trên DATETIME đầy đủ nên luôn "wrap" đúng qua nửa đêm.
-INSERT IGNORE INTO booking_slot
-(id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
-VALUES
-    -- 9750: on-time (chỉ đúng ~10-15 phút sau lúc seed/restart)
-    (9750, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9751/9752: đến sớm +45p. KHÔNG thể kéo dài offset qua nửa đêm: confirmCheckIn tính
-    -- lệch giờ bằng LocalTime thuần (Duration.between, không biết ngày), nên nếu slot rơi
-    -- sang hôm sau, deviation bị hiểu ngược thành "trễ nhiều tiếng" thay vì "sớm". Vì vậy
-    -- case này chỉ đúng trong ~45 phút sau khi restart -> demo case này SỚM sau khi restart.
-    (9751, 2,  TIME(DATE_ADD(NOW(), INTERVAL 45 MINUTE)),      TIME(DATE_ADD(NOW(), INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9752, 10, TIME(DATE_ADD(NOW(), INTERVAL 45 MINUTE)),      TIME(DATE_ADD(NOW(), INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9753-9756: đến trễ -20p so với lúc seed -> deviation chỉ càng ngày càng dương hơn,
-    -- luôn giữ trạng thái "trễ" vô thời hạn sau khi seed, không cần lo về sau
-    (9753, 2,  TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9754, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9755, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    (9756, 10, TIME(DATE_SUB(NOW(), INTERVAL 20 MINUTE)),      TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)),   5, CURDATE(), 1, 'AVAILABLE'),
-    -- 9757/9758: giờ không quan trọng (bị chặn ở bước kiểm tra xe bị phạt trước khi tính giờ)
-    (9757, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9758, 2,  TIME(NOW()),                                    TIME(DATE_ADD(NOW(), INTERVAL 15 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE');
-
-INSERT IGNORE INTO booking_slot_allocation
-(booking_id, booking_slot_id)
-VALUES
-    (701, 9750), (702, 9751), (703, 9752), (704, 9753), (705, 9754),
-    (706, 9755), (707, 9756), (709, 9757), (710, 9758);
-    -- 708 KHÔNG có allocation (test NO_ALLOCATED_TIME_SLOT)
-
--- ============================ FLOW 2: CREATE WALK-IN ============================
--- Booking 711: đơn NO_SHOW hôm nay của vehicle 206, đã đóng cọc, chưa bị tịch thu
--- -> test "cứu cọc" khi vehicle 206 quay lại tạo walk-in mới cùng biển số.
-INSERT IGNORE INTO booking
-(id, customer_id, vehicle_id, service_package_id,
- appointment_date, status, booking_type, check_in_employee_id,
- created_at, check_in_at, check_out_at, canceled_at,
- is_deposit_paid,
- total_service_amount, total_addon_amount, total_amount,
- voucher_discount_amount, point_discount_amount)
-VALUES
-    (711, NULL, 206, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true, 149000, 0, 149000, 0, 0);
-
--- Slot pool dùng chung cho các case tạo walk-in thành công (16 slot 15 phút liên
--- tiếp tại station 2, bắt đầu 1 tiếng sau thời điểm seed để luôn nằm trong tương lai)
-INSERT IGNORE INTO booking_slot
-(id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
-VALUES
-    (9700, 2, TIME(DATE_ADD(NOW(), INTERVAL 60  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 75  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9701, 2, TIME(DATE_ADD(NOW(), INTERVAL 75  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 90  MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9702, 2, TIME(DATE_ADD(NOW(), INTERVAL 90  MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 105 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9703, 2, TIME(DATE_ADD(NOW(), INTERVAL 105 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 120 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9704, 2, TIME(DATE_ADD(NOW(), INTERVAL 120 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 135 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9705, 2, TIME(DATE_ADD(NOW(), INTERVAL 135 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 150 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9706, 2, TIME(DATE_ADD(NOW(), INTERVAL 150 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 165 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9707, 2, TIME(DATE_ADD(NOW(), INTERVAL 165 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 180 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9708, 2, TIME(DATE_ADD(NOW(), INTERVAL 180 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 195 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9709, 2, TIME(DATE_ADD(NOW(), INTERVAL 195 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 210 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9710, 2, TIME(DATE_ADD(NOW(), INTERVAL 210 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 225 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9711, 2, TIME(DATE_ADD(NOW(), INTERVAL 225 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 240 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9712, 2, TIME(DATE_ADD(NOW(), INTERVAL 240 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 255 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9713, 2, TIME(DATE_ADD(NOW(), INTERVAL 255 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 270 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9714, 2, TIME(DATE_ADD(NOW(), INTERVAL 270 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 285 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    (9715, 2, TIME(DATE_ADD(NOW(), INTERVAL 285 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 300 MINUTE)), 5, CURDATE(), 0, 'AVAILABLE'),
-    -- Slot đã FULL sẵn, dùng cho case "slot đã hết công suất lúc trừ chỗ" (giờ không quan
-    -- trọng vì createWalkInOrder chỉ check FULL/capacity, không lọc theo ngày/giờ)
-    (9720, 2, TIME(DATE_ADD(NOW(), INTERVAL 300 MINUTE)), TIME(DATE_ADD(NOW(), INTERVAL 315 MINUTE)), 1, CURDATE(), 1, 'FULL');
-
-
+    (9816, 2, TIME(DATE_ADD(@grid, INTERVAL 300 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 315 MINUTE)), 1, CURDATE(), 1, 'FULL');

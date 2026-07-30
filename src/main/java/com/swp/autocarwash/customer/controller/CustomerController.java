@@ -162,7 +162,7 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long customerId) {
         List<String> blockingPlates = customerService.deleteCustomer(customerId);
         if (!blockingPlates.isEmpty()) {
-            String message = "Không thể xóa: xe " + String.join(", ", blockingPlates) + " đang có đặt lịch hoạt động";
+            String message = "Cannot delete: vehicle(s) " + String.join(", ", blockingPlates) + " have active bookings";
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(message, ErrorCode.CUSTOMER_HAS_ACTIVE_BOOKING.getCode(), null));
         }

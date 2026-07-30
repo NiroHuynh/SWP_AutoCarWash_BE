@@ -37,4 +37,12 @@ public interface BookingRefundPort {
      * @param bookingId mã booking
      */
     void markRefunded(Long bookingId);
+
+    /**
+     * Hủy booking trực tiếp (CANCELED), không phát sinh Refund — dùng khi booking chưa
+     * từng đặt cọc (vd lượt rửa subscription/family miễn phí) nên không có gì để hoàn.
+     *
+     * @param bookingId mã booking
+     */
+    void cancelWithoutRefund(Long bookingId);
 }

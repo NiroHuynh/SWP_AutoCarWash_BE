@@ -29,9 +29,13 @@ public interface RefundService {
     /**
      * Customer xác nhận hủy booking và tạo yêu cầu hoàn tiền (AC3).
      *
+     * <p>Nếu booking chưa từng đặt cọc ({@code isDepositPaid = false}, vd lượt rửa
+     * subscription/family miễn phí), booking được hủy thẳng và method trả về {@code null}
+     * (không có Refund nào được tạo).</p>
+     *
      * @param request  thông tin nhận hoàn tiền
      * @param customerId id customer đang đăng nhập (từ JWT)
-     * @return chi tiết refund vừa tạo
+     * @return chi tiết refund vừa tạo, hoặc {@code null} nếu booking không có cọc để hoàn
      */
     RefundResponse createRefund(CreateRefundRequest request, Long customerId);
 
