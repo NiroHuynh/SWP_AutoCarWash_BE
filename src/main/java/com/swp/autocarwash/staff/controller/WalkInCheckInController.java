@@ -4,7 +4,7 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
 import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.*;
-import com.swp.autocarwash.staff.service.impl.WalkInCheckInService;
+import com.swp.autocarwash.staff.service.impl.WalkInCheckInServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class WalkInCheckInController {
 
-    private final WalkInCheckInService walkInCheckInService;
+    private final WalkInCheckInServiceImpl walkInCheckInService;
 
     @GetMapping("/check-phone")
     public ResponseEntity<ApiResponse<CheckPhoneResponse>> checkCustomerPhone(@RequestParam String phone){
