@@ -1,4 +1,4 @@
-package com.swp.autocarwash.staff.service.impl;
+package com.swp.autocarwash.staff.service;
 
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;

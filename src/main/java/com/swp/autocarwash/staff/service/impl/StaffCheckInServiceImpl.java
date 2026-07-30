@@ -22,6 +22,7 @@ import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
 import com.swp.autocarwash.queue.service.QueueTicketService;
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;
+import com.swp.autocarwash.staff.service.StaffCheckinService;
 import com.swp.autocarwash.system.service.impl.SystemSettingServiceImpl;
 import com.swp.autocarwash.wash.entity.enums.WashLaneStatus;
 import com.swp.autocarwash.wash.repository.custom.WashLaneRepository;
@@ -36,7 +37,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class StaffCheckInServiceImpl implements StaffCheckinService{
+public class StaffCheckInServiceImpl implements StaffCheckinService {
 
     //AC-02: Đến trước tối đa 15 phút vẫn coi là "đúng giờ"
     private static final long EARLY_THRESHOLD_MINUTES = 15;
@@ -67,7 +68,9 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
     @Override
     public ScanVehicleResponse scanVehicle(String licensePlate) {
+
         LocalDate today = LocalDate.now();
+        //tìm booking trong ngày, lấy đơn có giờ sớm nhất để check-in
         Optional<Booking> bookingOtp = bookingRepository.findConfirmedBookingTodayByLicensePlate(licensePlate, today);
 
         // TRƯỜNG HỢP 1: KHÔNG TÌM THẤY LỊCH ĐẶT TRƯỚC (KHÁCH VÃNG LAI)
@@ -116,6 +119,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         // 4. Lấy thông tin hóa đơn tài chính chi tiết từ BookingInvoice
         Optional<BookingInvoice> invoiceOpt = bookingInvoiceRepository.findByBooking_Id(booking.getId());
 
+        //block code dự phòng
         BigDecimal totalAmount = booking.getTotalAmount() != null ? booking.getTotalAmount() : BigDecimal.ZERO;
         BigDecimal remainingAmount = totalAmount; // Mặc định thu bằng tổng tiền nếu không tìm thấy invoice
         BigDecimal servicePrice = booking.getTotalServiceAmount() != null ? booking.getTotalServiceAmount() : BigDecimal.ZERO;
@@ -124,10 +128,11 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 ? booking.getServicePackage().getName()
                 : null;
 
+        //th có booking invoice
         if (invoiceOpt.isPresent()) {
             BookingInvoice invoice = invoiceOpt.get();
-            totalAmount = invoice.getRawAmount();
-            remainingAmount = invoice.getFinalAmount(); // Số tiền thực tế cần thu nốt tại quầy (Checkout)
+            totalAmount = invoice.getRawAmount();   //tiền gốc chưa áp dụng giảm giá
+            remainingAmount = invoice.getFinalAmount(); // tiền phải thanh toán sau khi áp dụng giảm giá
             servicePrice = invoice.getServiceAmount();
             voucherDiscountAmount = invoice.getVoucherDiscount() != null ? invoice.getVoucherDiscount() : BigDecimal.ZERO;
         }
@@ -146,16 +151,18 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         }
 
         //Đóng dữ liệu
+        // trả 1 cục thông tin sử dụng luôn cho phan hóa đơn checkout
+        //sd xuyên 1 luồng checkin -> washing -> checkout
         return ScanVehicleResponse.builder()
                 .bookingId(booking.getId())
                 .licensePlate(licensePlate)
                 .customerName(customerName)
                 .slotStartTime(startTime)
                 .slotEndTime(endTime)
-                .hasBooking(true)
-                .isVehiclePenalized(isVehiclePenalized(vehicle))
+                .hasBooking(true) //xe có đặt lịch trước?
+                .isVehiclePenalized(isVehiclePenalized(vehicle)) // xe dính phạt -> thu cọc?
 
-                // Điền các trường đồng bộ dữ liệu
+
                 .appointmentDate(booking.getAppointmentDate())
                 .bookingType(booking.getBookingType())
                 .brandName(vehicle.getBrandName())
@@ -163,7 +170,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 .customerTier(customerTier)
 
                 .depositAmount(systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT))
-                .depositPaid(booking.getIsDepositPaid() != null && booking.getIsDepositPaid())
+                .depositPaid(booking.getIsDepositPaid() != null && booking.getIsDepositPaid())  //đã cọc?
 
                 .remainingAmount(remainingAmount)
                 .serviceName(serviceName)
@@ -175,7 +182,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
                 .status(booking.getStatus())
                 .technicianName(booking.getCheckInEmployee() != null ? booking.getCheckInEmployee().getFullName() : "NONE")
-                .totalAmount(totalAmount)
+                .totalAmount(totalAmount)   //tổng tien gốc
                 .voucherCode(voucherCode)
                 .voucherDiscountAmount(voucherDiscountAmount)
                 .voucherDiscountPercent(voucherDiscountPercent)
@@ -188,9 +195,11 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 && vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now());
     }
 
-    //tính độ lệch thời gian check in so với booking(sớm, trễ)
+
     @Override
     public CheckInResultResponse confirmCheckIn(Long bookingId) {
+
+        //tìm booking
         Booking booking  = bookingRepository.findById(bookingId).orElseThrow(() -> new BusinessException(ErrorCode.BOOKING_NOT_FOUND));
         List<BookingSlot> slots = bookingSlotAllocationRepository.findBookingSLotsByBookingId(bookingId);
         if (slots.isEmpty()) {
@@ -204,6 +213,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         }
         Integer currentStationId = firstSlot.getStation().getId();
 
+        //check nếu là vãng lai -> bị phạt -> phai cọc -> check đã cọc chưa?
         if (booking.getBookingType().equals(BookingType.WALK_IN.toString())) {
             Vehicle vehicle = booking.getVehicle();
             if (isVehiclePenalized(vehicle) && !Boolean.TRUE.equals(booking.getIsDepositPaid())) {
@@ -216,8 +226,11 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
         LocalTime now = LocalTime.now();
         long minutesDeviation = Duration.between(scheduledStart, now).toMinutes();
         // > 0: trễ | < 0: sớm | 0: đúng giờ chính xác
+        //đúng gio -15p sớm đến 10p trễ
         boolean isOnTime = minutesDeviation >= -EARLY_THRESHOLD_MINUTES && minutesDeviation <= LATE_THRESHOLD_MINUTES;
+        // quá sớm, sớm hơn 15p
         boolean isEarly = minutesDeviation < -EARLY_THRESHOLD_MINUTES;
+
         // còn lại: isLate = minutesDeviation > LATE_THRESHOLD_MINUTES
 
         if (isOnTime) {
@@ -230,7 +243,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
                 currentStationId, WashLaneStatus.AVAILABLE.toString());
 
         if (isEarly) {
-            // Subtask 3.3: luồng "ĐẾN SỚM" (> 15 phút)
+            //luồng "ĐẾN SỚM" (> 15 phút) -> còn lane trống -> cho vô
             if (hasAvailableLane) {
                 return doCheckIn(booking, slots.get(0), (int) minutesDeviation,
                         "Checked in early - lane available");
@@ -238,7 +251,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
             throw new BusinessException(ErrorCode. EARLY_ARRIVAL_SLOT_FULL);
         }
 
-        // Subtask 3.4: luồng "ĐẾN TRỄ" (> 10 phút)
+        //luồng "ĐẾN TRỄ" (> 10 phút)
         return handleLateArrival(booking, slots.get(0), (int) minutesDeviation, hasAvailableLane);
     }
 
@@ -247,9 +260,10 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
      * cập nhật Booking sang CHECKED_IN và cấp vé queue_ticket mới.
      */
     private CheckInResultResponse doCheckIn(Booking booking, BookingSlot slot, int minutesDeviation, String message) {
+        //đến đúng giờ, checkin bình thường
         booking.setStatus(BookingStatus.CHECK_IN.toString());
         booking.setCheckInAt(LocalDateTime.now());
-         Booking savedBooking = bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
 
         QueueTicket ticket = QueueTicket.builder()
                 .station(slot.getStation())
@@ -295,6 +309,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
             int newViolationCount = (customer.getViolationCount() == null ? 0 : customer.getViolationCount()) + 1;
             customer.setViolationCount(newViolationCount);
 
+            //vi phạm >3 cập nhật khóa đặt lịch
             if (newViolationCount > VIOLATION_LIMIT) {
                 customer.setRestrictedUntil(Instant.now().plus(RESTRICTION_DAYS, ChronoUnit.DAYS));
             }
@@ -323,10 +338,10 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
     public synchronized String generateTicketNumber(int stationId, boolean isBooked) {
 
-        // Bước 2.1: Xác định Prefix theo loại khách
+        //Xác định Prefix theo loại khách
         String prefix = isBooked ? "B" : "W";
 
-        // Bước 2.2: Đếm số vé đã cấp trong ngày hôm nay tại chi nhánh nàystart
+        //Đếm số vé đã cấp trong ngày hôm nay tại chi nhánh nàystart
 
         LocalDate today = LocalDate.now();
         LocalDateTime localStart = today.atStartOfDay();
@@ -338,7 +353,7 @@ public class StaffCheckInServiceImpl implements StaffCheckinService{
 
         long nextNumber = countToday + 1;
 
-        // Bước 2.3: Định dạng chuỗi số đủ 3 chữ số, ghép với Prefix
+        //Định dạng chuỗi số đủ 3 chữ số, ghép với Prefix
         return prefix + String.format("%03d", nextNumber);
     }
 

@@ -37,7 +37,7 @@ public class ScanVehicleResponse {
     private String color;
     private String customerTier;
     private BigDecimal depositAmount;
-    private boolean depositPaid; // Đồng bộ loại bỏ tiền tố "is"
+    private boolean depositPaid;
     private BigDecimal remainingAmount;
     private String serviceName;
     private BigDecimal servicePrice;

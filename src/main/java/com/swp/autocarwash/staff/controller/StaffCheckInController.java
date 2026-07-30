@@ -4,7 +4,7 @@ import com.swp.autocarwash.common.response.ApiResponse;
 import com.swp.autocarwash.staff.dto.request.ScanVehicleRequest;
 import com.swp.autocarwash.staff.dto.response.CheckInResultResponse;
 import com.swp.autocarwash.staff.dto.response.ScanVehicleResponse;
-import com.swp.autocarwash.staff.service.impl.StaffCheckinService;
+import com.swp.autocarwash.staff.service.StaffCheckinService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
