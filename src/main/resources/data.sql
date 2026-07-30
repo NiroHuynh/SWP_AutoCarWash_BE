@@ -444,27 +444,28 @@ VALUES
     (12, 5,  NULL, 5,    18000000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY),   NULL,0);
 
 -- =====================================================================
--- PROMOTION (10)
+-- PROMOTION (12)
 -- =====================================================================
 INSERT IGNORE INTO promotion
 (id, title, description, start_date, end_date, status, created_at, is_deleted)
 VALUES
-    (1,  'Summer Promotion',                'Discount on wash packages during summer', DATE_SUB(CURDATE(), INTERVAL 30 DAY),  DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY), FALSE),
-    (2,  'Weekend Discount',                'Weekend offer for customers', DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 50 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 10 DAY), FALSE),
-    (3,  'New Customer Offer',             'For customers using the service for the first time', DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 5 DAY), FALSE),
-    (4,  'Flash Sale Tet',                    'Tet holiday promotion', DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 180 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
-    (5,  'Company Anniversary',                  'Celebrating the company founding anniversary', DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 90 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
-    (6,  'New Branch Grand Opening',     'Grand opening promotion', DATE_SUB(CURDATE(), INTERVAL 2 DAY),   DATE_ADD(CURDATE(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY), FALSE),
-    (7,  'Black Friday',                       'Biggest sale of the year', DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
-    (8,  'Double Points',                  'Earn 2x points for every wash', DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), FALSE),
-    (9,  'Rainy Season Offer',                     'Rainy season promotion', DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), FALSE),
-    (11, 'Family Combo',                     'Offer for the family package', DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE),
-    (10, 'Vibrant Summer Campaign', 'Deep discount for summer days', DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'ACTIVE', DATE_SUB(NOW(), INTERVAL 7 DAY), FALSE),
--- Campaign 2: Upcoming, starts next month
-    (20, 'Autumn Welcome Campaign', 'Promotion to welcome the new month', DATE_ADD(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 55 DAY), 'UPCOMING', DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE);
+    (1,  'Summer Promotion',          'Discount on wash packages during summer',          DATE_SUB(CURDATE(), INTERVAL 30 DAY),  DATE_ADD(CURDATE(), INTERVAL 15 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 30 DAY),  FALSE),
+    (2,  'Weekend Discount',          'Weekend offer for customers',                      DATE_SUB(CURDATE(), INTERVAL 10 DAY),  DATE_ADD(CURDATE(), INTERVAL 50 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 10 DAY),  FALSE),
+    (3,  'New Customer Offer',        'For customers using the service for the first time',DATE_SUB(CURDATE(), INTERVAL 5 DAY),   DATE_ADD(CURDATE(), INTERVAL 25 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 5 DAY),   FALSE),
+    (4,  'Flash Sale Tet',            'Tet holiday promotion',                            DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_SUB(CURDATE(), INTERVAL 180 DAY), 'EXPIRED',  DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
+    (5,  'Company Anniversary',       'Celebrating the company founding anniversary',     DATE_SUB(CURDATE(), INTERVAL 100 DAY), DATE_SUB(CURDATE(), INTERVAL 90 DAY),  'EXPIRED',  DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
+    (6,  'New Branch Grand Opening',  'Grand opening promotion',                          DATE_SUB(CURDATE(), INTERVAL 2 DAY),   DATE_ADD(CURDATE(), INTERVAL 40 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 2 DAY),   FALSE),
+    (7,  'Black Friday',              'Biggest sale of the year',                         DATE_SUB(CURDATE(), INTERVAL 220 DAY), DATE_SUB(CURDATE(), INTERVAL 218 DAY), 'EXPIRED',  DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
+    (8,  'Double Points',             'Earn 2x points for every wash',                    DATE_SUB(CURDATE(), INTERVAL 15 DAY),  DATE_ADD(CURDATE(), INTERVAL 10 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 15 DAY),  FALSE),
+    (9,  'Rainy Season Offer',        'Rainy season promotion',                           DATE_SUB(CURDATE(), INTERVAL 60 DAY),  DATE_SUB(CURDATE(), INTERVAL 30 DAY),  'EXPIRED',  DATE_SUB(NOW(), INTERVAL 60 DAY),  FALSE),
+    (10, 'Vibrant Summer Campaign',   'Deep discount for summer days',                    DATE_SUB(CURDATE(), INTERVAL 7 DAY),   DATE_ADD(CURDATE(), INTERVAL 20 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),   FALSE),
+    -- Fix: Family Combo giờ có voucher code riêng, không còn tự động apply khi booking
+    (11, 'Family Combo',              'Offer for the family package',                     DATE_SUB(CURDATE(), INTERVAL 1 DAY),   DATE_ADD(CURDATE(), INTERVAL 60 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 1 DAY),   FALSE),
+    -- Upcoming campaign
+    (20, 'Autumn Welcome Campaign',   'Promotion to welcome the new month',               DATE_ADD(CURDATE(), INTERVAL 25 DAY),  DATE_ADD(CURDATE(), INTERVAL 55 DAY),  'UPCOMING', DATE_SUB(NOW(), INTERVAL 1 DAY),   FALSE);
 
 -- =====================================================================
--- PROMOTION TARGET (4) - ids khớp với customer_tier: 1=MEMBER, 2=SILVER, 3=GOLD, 4=PLATINUM
+-- PROMOTION TARGET (4)
 -- =====================================================================
 INSERT IGNORE INTO promotion_target
 (id, target_name, target_code, description)
@@ -475,48 +476,57 @@ VALUES
     (4, 'Platinum Tier', 'PLATINUM', 'Platinum tier customer');
 
 -- =====================================================================
--- PROMOTION TARGET MAPPING (15)
+-- PROMOTION STATION MAPPING
 -- =====================================================================
-
 INSERT IGNORE INTO promotion_station_mapping (promotion_id, station_id) VALUES
-                                                                            (10, 1), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 1
-                                                                            (10, 2), -- Chiến dịch Hè Rực Rỡ áp dụng cho Quận 7
-                                                                            (20, 1); -- Chiến dịch Chào Thu CHỈ áp dụng cho Quận 1
+                                                                            (10, 1),  -- Vibrant Summer Campaign → Quận 1
+                                                                            (10, 2),  -- Vibrant Summer Campaign → Quận 7
+                                                                            (20, 1);  -- Autumn Welcome Campaign → Quận 1
 
+-- =====================================================================
+-- PROMOTION TARGET MAPPING
+-- =====================================================================
 INSERT IGNORE INTO promotion_target_mapping
 (promotion_id, promotion_target_id)
 VALUES
-    (1, 1), (1, 2), (1, 3), (1, 4),
-    (2, 1), (2, 2), (2, 3), (2, 4),
-    (3, 1), (3, 2), (3, 3), (3, 4),
-    (4, 1), (4, 2), (4, 3), (4, 4),
-    (5, 1), (5, 2), (5, 3), (5, 4),
-    (6, 1), (6, 2), (6, 3), (6, 4),
-    (7, 1), (7, 2), (7, 3), (7, 4),
-    (8, 1), (8, 2), (8, 3),
-    (9, 1), (9, 2), (9, 3), (9, 4),
+    (1,  1), (1,  2), (1,  3), (1,  4),
+    (2,  1), (2,  2), (2,  3), (2,  4),
+    (3,  1), (3,  2), (3,  3), (3,  4),
+    (4,  1), (4,  2), (4,  3), (4,  4),
+    (5,  1), (5,  2), (5,  3), (5,  4),
+    (6,  1), (6,  2), (6,  3), (6,  4),
+    (7,  1), (7,  2), (7,  3), (7,  4),
+    (8,  1), (8,  2), (8,  3),
+    (9,  1), (9,  2), (9,  3), (9,  4),
     (10, 1), (10, 2), (10, 3), (10, 4);
 
 -- =====================================================================
--- VOUCHER (12)
+-- VOUCHER (14 + 2 standalone)
 -- =====================================================================
 INSERT IGNORE INTO voucher
-(id, promotion_id, voucher_code, max_discount_amount, min_order_value, usage_limit, used_count, expiry_date, status, start_date, reusable, discount_percentage, created_at, is_deleted)
+(id, promotion_id, voucher_code, max_discount_amount, min_order_value,
+ usage_limit, used_count, expiry_date, status, start_date, reusable,
+ discount_percentage, created_at, is_deleted)
 VALUES
-    (1,  1,    'SUMMER10',  50000,  100000, 200, 35,  DATE_ADD(NOW(), INTERVAL 15 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 30 DAY), true,  10, DATE_SUB(NOW(), INTERVAL 30 DAY), FALSE),
-    (2,  2,    'WEEKEND15', 60000,  150000, 150, 40,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 10 DAY), true,  15, DATE_SUB(NOW(), INTERVAL 10 DAY), FALSE),
-    (3,  3,    'NEWCUS20',  40000,  0,      500, 120, DATE_ADD(NOW(), INTERVAL 25 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 5 DAY),  false, 20, DATE_SUB(NOW(), INTERVAL 5 DAY), FALSE),
-    (4,  4,    'TETSALE',   100000, 200000, 100, 100, DATE_SUB(NOW(), INTERVAL 180 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 200 DAY), false, 25, DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
-    (5,  5,    'BDAY2025',  80000,  0,      50,  50,  DATE_SUB(NOW(), INTERVAL 90 DAY), 'USED_UP', DATE_SUB(NOW(), INTERVAL 100 DAY), false, 30, DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
-    (6,  6,    'GRANDOPEN', 70000,  100000, 300, 60,  DATE_ADD(NOW(), INTERVAL 40 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 2 DAY),  true,  20, DATE_SUB(NOW(), INTERVAL 2 DAY), FALSE),
-    (7,  7,    'BLACKFRI',  150000, 300000, 80,  80,  DATE_SUB(NOW(), INTERVAL 218 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 220 DAY), false, 35, DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
-    (8,  8,    'DOUBLEPT',  100000,   50000,      1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 15 DAY), true,  10, DATE_SUB(NOW(), INTERVAL 15 DAY), FALSE),
-    (9,  9,    'RAINY10',   30000,  50000,  120, 120, DATE_SUB(NOW(), INTERVAL 30 DAY), 'EXPIRED', DATE_SUB(NOW(), INTERVAL 60 DAY), false, 10, DATE_SUB(NOW(), INTERVAL 60 DAY), FALSE),
-    (10, 10,   'FAMILY5',   45000,  100000, 200, 18,  DATE_ADD(NOW(), INTERVAL 60 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 1 DAY),  true,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE),
-    (11, NULL, 'WELCOME50', 50000,  10000,      1000, 5,   DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 3 DAY),  false, 5, DATE_SUB(NOW(), INTERVAL 3 DAY), FALSE),
-    (12, NULL, 'VIP100',    100000, 500000, 30,  4,   DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',  DATE_SUB(NOW(), INTERVAL 7 DAY),  true,  10, DATE_SUB(NOW(), INTERVAL 7 DAY), FALSE),
-    (101, NULL, 'VOUCHER_LE_ACTIVE', 30000, 50000, 100, 0, DATE_ADD(NOW(), INTERVAL 20 DAY), 'ACTIVE', DATE_SUB(NOW(), INTERVAL 7 DAY), true, 10, DATE_SUB(NOW(), INTERVAL 7 DAY), FALSE),
-    (102, NULL, 'VOUCHER_LE_UPCOMING', 40000, 60000, 150, 0, DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), true, 15, DATE_SUB(NOW(), INTERVAL 1 DAY), FALSE);
+    -- Promotion vouchers
+    (1,  1,  'SUMMER10',    50000,  100000, 200,  35,  DATE_ADD(NOW(), INTERVAL 15 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 30 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 30 DAY),  FALSE),
+    (2,  2,  'WEEKEND15',   60000,  150000, 150,  40,  DATE_ADD(NOW(), INTERVAL 50 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 10 DAY),  TRUE,  15, DATE_SUB(NOW(), INTERVAL 10 DAY),  FALSE),
+    (3,  3,  'NEWCUS20',    40000,  0,      500,  120, DATE_ADD(NOW(), INTERVAL 25 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 5 DAY),   TRUE,  20, DATE_SUB(NOW(), INTERVAL 5 DAY),   FALSE),
+    (4,  4,  'TETSALE',     100000, 200000, 100,  100, DATE_SUB(NOW(), INTERVAL 180 DAY), 'EXPIRED',  DATE_SUB(NOW(), INTERVAL 200 DAY), TRUE,  25, DATE_SUB(NOW(), INTERVAL 200 DAY), FALSE),
+    (5,  5,  'BDAY2025',    80000,  0,      50,   50,  DATE_SUB(NOW(), INTERVAL 90 DAY),  'USED_UP',  DATE_SUB(NOW(), INTERVAL 100 DAY), TRUE,  30, DATE_SUB(NOW(), INTERVAL 100 DAY), FALSE),
+    (6,  6,  'GRANDOPEN',   70000,  100000, 300,  60,  DATE_ADD(NOW(), INTERVAL 40 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 2 DAY),   TRUE,  20, DATE_SUB(NOW(), INTERVAL 2 DAY),   FALSE),
+    (7,  7,  'BLACKFRI',    150000, 300000, 80,   80,  DATE_SUB(NOW(), INTERVAL 218 DAY), 'EXPIRED',  DATE_SUB(NOW(), INTERVAL 220 DAY), TRUE,  35, DATE_SUB(NOW(), INTERVAL 220 DAY), FALSE),
+    (8,  8,  'DOUBLEPT',    100000, 50000,  1000, 230, DATE_ADD(NOW(), INTERVAL 10 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 15 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 15 DAY),  FALSE),
+    (9,  9,  'RAINY10',     30000,  50000,  120,  120, DATE_SUB(NOW(), INTERVAL 30 DAY),  'EXPIRED',  DATE_SUB(NOW(), INTERVAL 60 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 60 DAY),  FALSE),
+    (10, 10, 'FAMILY5',     45000,  100000, 200,  18,  DATE_ADD(NOW(), INTERVAL 20 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),   TRUE,  5,  DATE_SUB(NOW(), INTERVAL 7 DAY),   FALSE),
+    -- Fix: Family Combo (#11) nay có mã voucher riêng — khách phải nhập code mới được giảm giá
+    (13, 11, 'FAMILYCOMBO', 45000,  100000, 200,  0,   DATE_ADD(NOW(), INTERVAL 60 DAY),  'ACTIVE',   DATE_SUB(NOW(), INTERVAL 1 DAY),   TRUE,  5,  DATE_SUB(NOW(), INTERVAL 1 DAY),   FALSE),
+
+    -- Standalone vouchers (promotion_id = NULL — áp dụng toàn hệ thống)
+    (11, NULL, 'WELCOME50',           50000,  10000,  1000, 5,  DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 3 DAY),  TRUE,  5,  DATE_SUB(NOW(), INTERVAL 3 DAY),  FALSE),
+    (12, NULL, 'VIP100',              100000, 500000, 30,   4,  DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
+    (101, NULL, 'VOUCHER_LE_ACTIVE',  30000,  50000,  100,  0,  DATE_ADD(NOW(), INTERVAL 20 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
+    (102, NULL, 'VOUCHER_LE_UPCOMING',40000,  60000,  150,  0,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE);
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -524,24 +534,21 @@ VALUES
 INSERT IGNORE INTO voucher_usage
 (id, voucher_id, customer_id, booking_id, used_at, status)
 VALUES
-    (1,  1,  1,  NULL, DATE_SUB(NOW(), INTERVAL 25 DAY), 'USED'),
-    (2,  1,  2,  NULL, DATE_SUB(NOW(), INTERVAL 20 DAY), 'USED'),
-    (3,  2,  3,  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),  'USED'),
-    (4,  3,  4,  NULL, DATE_SUB(NOW(), INTERVAL 4 DAY),  'USED'),
-    (5,  4,  5,  NULL, DATE_SUB(NOW(), INTERVAL 190 DAY),'USED'),
-    (6,  5,  6,  NULL, DATE_SUB(NOW(), INTERVAL 95 DAY), 'USED'),
-    (7,  6,  7,  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'USED'),
-    (8,  7,  8,  NULL, DATE_SUB(NOW(), INTERVAL 219 DAY),'USED'),
-    (9,  8,  9,  NULL, DATE_SUB(NOW(), INTERVAL 10 DAY), 'USED'),
-    (10, 9,  10, NULL, DATE_SUB(NOW(), INTERVAL 45 DAY), 'USED'),
-    (11, 10, 11, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),  'USED'),
-    (12, 11, 12, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY),  'USED'),
-    (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),  'USED'),
-    -- APPLIED: voucher held on a still-PENDING booking (3) that has not been finalized
-    (14, 3,  3,  3,    DATE_SUB(NOW(), INTERVAL 1 HOUR), 'APPLIED'),
-    -- REVERTED: booking 15 was CANCELED, so the voucher hold was released back
-    (15, 12, 4,  15,   DATE_SUB(NOW(), INTERVAL 5 DAY),  'REVERTED');
-
+    (1,  1,  1,  NULL, DATE_SUB(NOW(), INTERVAL 25 DAY),  'USED'),
+    (2,  1,  2,  NULL, DATE_SUB(NOW(), INTERVAL 20 DAY),  'USED'),
+    (3,  2,  3,  NULL, DATE_SUB(NOW(), INTERVAL 8 DAY),   'USED'),
+    (4,  3,  4,  NULL, DATE_SUB(NOW(), INTERVAL 4 DAY),   'USED'),
+    (5,  4,  5,  NULL, DATE_SUB(NOW(), INTERVAL 190 DAY), 'USED'),
+    (6,  5,  6,  NULL, DATE_SUB(NOW(), INTERVAL 95 DAY),  'USED'),
+    (7,  6,  7,  NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),   'USED'),
+    (8,  7,  8,  NULL, DATE_SUB(NOW(), INTERVAL 219 DAY), 'USED'),
+    (9,  8,  9,  NULL, DATE_SUB(NOW(), INTERVAL 10 DAY),  'USED'),
+    (10, 9,  10, NULL, DATE_SUB(NOW(), INTERVAL 45 DAY),  'USED'),
+    (11, 10, 11, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY),   'USED'),
+    (12, 11, 12, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY),   'USED'),
+    (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),   'USED'),
+    (14, 3,  3,  3,    DATE_SUB(NOW(), INTERVAL 1 HOUR),  'APPLIED'),
+    (15, 12, 4,  15,   DATE_SUB(NOW(), INTERVAL 5 DAY),   'REVERTED');
 -- =====================================================================
 -- BOOKING (25)
 -- appointment_date is always relative to CURDATE()/NOW() so "upcoming"

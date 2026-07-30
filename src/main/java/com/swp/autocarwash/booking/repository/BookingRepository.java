@@ -990,5 +990,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("provinceId") Integer provinceId
     );
 
+    @Query("""
+        SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END
+        FROM Booking b
+        WHERE b.vehicle.id = :vehicleId
+          AND b.servicePackage.id = :servicePackageId
+          AND b.appointmentDate = :appointmentDate
+          AND b.status IN (
+                'PENDING',
+                'CONFIRMED',
+                'CHECKED_IN',
+                'WASHING',
+                'COMPLETED'
+          )
+    """)
+    boolean existsEffectiveBooking(
+            @Param("vehicleId") Long vehicleId,
+            @Param("servicePackageId") Integer servicePackageId,
+            @Param("appointmentDate") LocalDate appointmentDate
+    );
 
 }

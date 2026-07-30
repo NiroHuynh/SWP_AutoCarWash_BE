@@ -156,6 +156,7 @@ public class PaymentServiceImpl implements PaymentService {
         booking.setStatus(BookingStatus.CHECK_OUT.name());
         booking.setCheckOutAt(LocalDateTime.now());
         booking.setPointDiscountAmount(redeem.getRedeemAmount());
+        booking.setTotalAmount(booking.getTotalAmount().subtract(redeem.getRedeemAmount()));
         bookingRepository.save(booking);
 
         updateAndCreatePointBalanceAndTransaction(booking.getCustomer(),booking,redeem.getUsedPoints());

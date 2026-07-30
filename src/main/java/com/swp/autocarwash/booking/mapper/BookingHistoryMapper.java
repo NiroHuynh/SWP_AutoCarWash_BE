@@ -84,7 +84,7 @@ public class BookingHistoryMapper {
      * @param refund                 thông tin hoàn tiền, {@code null} nếu booking chưa có yêu cầu hoàn tiền
      * @return {@link BookingDetailResponse} hoàn chỉnh
      */
-    public BookingDetailResponse toBookingDetailResponse(
+    public BookingDetailResponse    toBookingDetailResponse(
             Booking booking,
             LocalTime startTime,
             LocalTime endTime,

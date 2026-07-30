@@ -666,7 +666,9 @@ public class BookingServiceImpl implements BookingService {
         Integer customerTierId = customer.getCustomerTier().getId(); // Lấy Hạng thành viên của khách hàng
 
         //VOUCHER CONFIG 1: Tự động quét Chế độ 1 (Giảm giá sàn trực tiếp hệ thống theo Chi nhánh + Hạng xe)
-        List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
+//        List<Promotion> activePromos = promotionRepository.findActiveDirectPromotionsForUser(request.getStationId(), appDate, customerTierId);
+
+        List<Promotion> activePromos = null;
 
         if (activePromos != null && !activePromos.isEmpty()) {
             BigDecimal maxDiscountCalculated = BigDecimal.ZERO;
@@ -765,7 +767,7 @@ public class BookingServiceImpl implements BookingService {
 
         // ĐÓNG GÓI BẢN GHI VÀ LƯU VẾT LỊCH SỬ THỜI GIAN THỰC
 
-        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId(),appDate);
 
         Booking booking = Booking.builder()
                 .customer(customer)
@@ -880,11 +882,19 @@ public class BookingServiceImpl implements BookingService {
 //                .slotIds(request.getSlotIds())
 //                .build();
 
-    private BookingType getBookingType(Long vehicleId, Integer servicePackageId) {
-        if (hasSubscription(vehicleId, servicePackageId)){
+    private BookingType getBookingType(Long vehicleId, Integer servicePackageId, LocalDate date) {
+        if (!isVehicleBookedInSlotDate(vehicleId, servicePackageId, date)){
             return BookingType.SUBSCRIPTION;
         }
         return BookingType.ADVANCE;
+    }
+
+    private boolean isVehicleBookedInSlotDate(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate date
+    ) {
+       return  bookingRepository.existsEffectiveBooking(vehicleId,servicePackageId, date);
     }
 
     private void createVoucherUsage(Voucher voucher, Booking booking) {
