@@ -1010,4 +1010,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("appointmentDate") LocalDate appointmentDate
     );
 
+//    @Query("SELECT COUNT(b) > 0 FROM Booking b " +
+//            "WHERE b.vehicle.id IN :vehicleIds " +
+//            "AND b.status IN :statuses " +
+//            "AND b.bookingType = :bookingType") //Chỉ lọc các đơn thuộc loại FAMILY
+//    boolean existsByVehicleIdInAndStatusInAndBookingType(
+//            @Param("vehicleIds") List<Long> vehicleIds,
+//            @Param("statuses") List<String> statuses,
+//            @Param("bookingType") String bookingType
+//    );
 }

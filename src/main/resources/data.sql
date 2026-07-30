@@ -529,7 +529,9 @@ VALUES
     (11, NULL, 'WELCOME50',           50000,  10000,  1000, 5,  DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 3 DAY),  TRUE,  5,  DATE_SUB(NOW(), INTERVAL 3 DAY),  FALSE),
     (12, NULL, 'VIP100',              100000, 500000, 30,   4,  DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
     (101, NULL, 'VOUCHER_LE_ACTIVE',  30000,  50000,  100,  0,  DATE_ADD(NOW(), INTERVAL 20 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
-    (102, NULL, 'VOUCHER_LE_UPCOMING',40000,  60000,  150,  0,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE);
+    (102, NULL, 'VOUCHER_LE_UPCOMING',40000,  60000,  150,  0,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE),
+    -- Autumn Welcome Campaign (#20) — UPCOMING, starts next month
+    (14, 20, 'AUTUMN2026',           50000,  100000, 300,  0,  DATE_ADD(NOW(), INTERVAL 55 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 25 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE);
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -552,6 +554,7 @@ VALUES
     (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),   'USED'),
     (14, 3,  3,  3,    DATE_SUB(NOW(), INTERVAL 1 HOUR),  'APPLIED'),
     (15, 12, 4,  15,   DATE_SUB(NOW(), INTERVAL 5 DAY),   'REVERTED');
+
 -- =====================================================================
 -- BOOKING (25)
 -- appointment_date is always relative to CURDATE()/NOW() so "upcoming"
@@ -1932,27 +1935,34 @@ VALUES
 -- SYSTEM SETTING (10)
 -- =====================================================================
 INSERT IGNORE INTO system_setting
-(setting_key, setting_value, description, data_type, is_active)
+(setting_key, setting_value, description, data_type, is_active, category)
 VALUES
-    ('DEPOSIT_PERCENT',             '30',      'Deposit percent',                                'NUMBER',  true),
-    ('MAX_BOOKING_DAY',             '30',      'Maximum booking day',                            'NUMBER',  true),
-    ('DEFAULT_DEPOSIT_AMOUNT',      '20000',   'Default deposit amount',                         'NUMBER',  true),
-    ('CANCEL_THRESHOLD_MINUTES',    '120',     'Minutes before appointment a booking can be CANCELED', 'NUMBER', true),
-    ('PENDING_PAYMENT_TIMEOUT_MINUTES', '5',   'Minutes a PENDING booking may await deposit transfer before auto-cancel', 'NUMBER', true),
-    ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
-    ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
-    ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
-    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3','So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board','NUMBER', true),
-    ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
-    ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
-    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
-    ('LOYALTY_RESET_MONTH_DAY',     '01-01',   'Annual loyalty point reset date (MM-DD)',        'STRING',  true),
-    ('LOYALTY_EARN_RATE_VND_PER_POINT', '1000', 'Customer earns 1 loyalty point for every 1,000 VND spent','NUMBER', TRUE),
-    ( 'LOYALTY_REDEEM_RATE_VND_PER_POINT', '100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER', TRUE),
-    -- MAX_VIOLATION_LIMIT: matches the hard-coded VIOLATION_LIMIT=3 in code (docs/seed.md 4.4)
-    ('MAX_VIOLATION_LIMIT',         '3',       'Max cancellations/no-shows before a 14-day restriction', 'NUMBER', true),
-    ('REFUND_TRANSFER_CONTENT_PREFIX', 'RF',   'Prefix for refund bank-transfer content (RF{refundId})', 'STRING', true),
-    ('REFUND_TRANSFER_CONTENT_TEMPLATE', 'Hoan tien coc booking {booking_id}', 'Bank-transfer content template for deposit refunds; replace {booking_id}', 'STRING', true);
+    -- Payment & Deposit
+    ('DEPOSIT_PERCENT',                      '30',                                    'Deposit percent',                                                                          'NUMBER',  true, 'Payment & Deposit'),
+    ('DEFAULT_DEPOSIT_AMOUNT',               '20000',                                 'Default deposit amount',                                                                   'NUMBER',  true, 'Payment & Deposit'),
+    ('PENDING_PAYMENT_TIMEOUT_MINUTES',      '5',                                     'Minutes a PENDING booking may await deposit transfer before auto-cancel',                  'NUMBER',  true, 'Payment & Deposit'),
+    ('REFUND_TRANSFER_CONTENT_PREFIX',       'RF',                                    'Prefix for refund bank-transfer content (RF{refundId})',                                   'STRING',  true, 'Payment & Deposit'),
+    ('REFUND_TRANSFER_CONTENT_TEMPLATE',     'Hoan tien coc booking {booking_id}',    'Bank-transfer content template for deposit refunds; replace {booking_id}',                'STRING',  true, 'Payment & Deposit'),
+
+    -- Booking Rules
+    ('MAX_BOOKING_DAY',                      '30',                                    'Maximum booking day',                                                                      'NUMBER',  true, 'Booking Rules'),
+    ('CANCEL_THRESHOLD_MINUTES',             '120',                                   'Minutes before appointment a booking can be CANCELED',                                     'NUMBER',  true, 'Booking Rules'),
+    ('QUEUE_PRIORITY_BOOKING_WEIGHT',        '3',                                     'Priority weight given to booking-based queue tickets',                                     'NUMBER',  true, 'Booking Rules'),
+    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3',                                     'So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board',            'NUMBER',  true, 'Booking Rules'),
+    ('MAX_VIOLATION_LIMIT',                  '3',                                     'Max cancellations/no-shows before a 14-day restriction',                                   'NUMBER',  true, 'Booking Rules'),
+
+    -- Loyalty Program
+    ('LOYALTY_POINT_PER_VND',               '1000',                                  'VND spent per loyalty point earned',                                                       'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_EARN_RATE_VND_PER_POINT',     '1000',                                  'Customer earns 1 loyalty point for every 1,000 VND spent',                                'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_REDEEM_RATE_VND_PER_POINT',   '100',                                   '1 loyalty point can be redeemed for 100 VND',                                             'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_RESET_MONTH_DAY',             '01-01',                                 'Annual loyalty point reset date (MM-DD)',                                                  'STRING',  true, 'Loyalty Program'),
+
+    -- System
+    ('MAX_VEHICLE_PER_FAMILY',              '5',                                     'Maximum vehicles allowed per family subscription',                                         'NUMBER',  true, 'System'),
+    ('SUPPORT_HOTLINE',                     '1900-1234',                             'Customer support hotline number',                                                          'STRING',  true, 'System'),
+    ('MAINTENANCE_MODE',                    'false',                                 'Whether the system is in maintenance mode',                                                'BOOLEAN', true, 'System'),
+    ('REVIEW_EDIT_WINDOW_HOURS',            '24',                                    'Hours a customer may edit their review after posting',                                     'NUMBER',  true, 'System');
+
 
 -- =====================================================================
 -- ENUM/BR COVERAGE COMPLETION (docs/seed.md §1, §2) — added while
@@ -2498,7 +2508,7 @@ INSERT IGNORE INTO booking_slot_allocation
 VALUES
     (701, 9750), (702, 9751), (703, 9752), (704, 9753), (705, 9754),
     (706, 9755), (707, 9756), (709, 9757), (710, 9758);
-    -- 708 KHÔNG có allocation (test NO_ALLOCATED_TIME_SLOT)
+-- 708 KHÔNG có allocation (test NO_ALLOCATED_TIME_SLOT)
 
 -- ============================ FLOW 2: CREATE WALK-IN ============================
 -- Booking 711: đơn NO_SHOW hôm nay của vehicle 206, đã đóng cọc, chưa bị tịch thu
@@ -2540,3 +2550,59 @@ VALUES
     -- Slot đã FULL sẵn, dùng cho case "slot đã hết công suất lúc trừ chỗ" (giờ không quan
     -- trọng vì createWalkInOrder chỉ check FULL/capacity, không lọc theo ngày/giờ)
     (9816, 2, TIME(DATE_ADD(@grid, INTERVAL 300 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 315 MINUTE)), 1, CURDATE(), 1, 'FULL');
+
+INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, booked_count, status) VALUES
+                                                                                                          (3, '20:00:00', '20:15:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '20:15:00', '20:30:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '20:30:00', '20:45:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '20:45:00', '21:00:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '21:00:00', '21:15:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '21:15:00', '21:30:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '21:30:00', '21:45:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '21:45:00', '22:00:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '22:00:00', '22:15:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '22:15:00', '22:30:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '22:30:00', '22:45:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '22:45:00', '23:00:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '23:00:00', '23:15:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '23:15:00', '23:30:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '23:30:00', '23:45:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                          (3, '23:45:00', '00:00:00', 3, '2026-07-30', 0, 'AVAILABLE');
+# Insert 6 tài khoản mới (vừa đăng ký, kèm 1 xe mỗi người)
+
+
+INSERT IGNORE INTO user
+(id, email, phone, password_hash, role_id, is_active, created_at)
+VALUES
+    (31, 'tam@gmail.com',  '0900002015', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    (32, 'son@gmail.com',  '0900002016', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (33, 'hanh@gmail.com', '0900002017', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (34, 'dat@gmail.com',  '0900002018', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+    (35, 'ly@gmail.com',   '0900002019', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    (36, 'bao@gmail.com',  '0900002020', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 5 DAY));
+
+INSERT IGNORE INTO customer
+(id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
+VALUES
+    (13, 31, 'Tâm',  'Vũ',    '1997-03-10', 1, 0, NULL),
+    (14, 32, 'Sơn',  'Đặng',  '1994-06-21', 1, 0, NULL),
+    (15, 33, 'Hạnh', 'Lê',    '1999-01-15', 1, 0, NULL),
+    (16, 34, 'Đạt',  'Phan',  '1996-11-02', 1, 0, NULL),
+    (17, 35, 'Ly',   'Trịnh', '1998-08-27', 1, 0, NULL),
+    (18, 36, 'Bảo',  'Đinh',  '1993-05-19', 1, 0, NULL);
+
+INSERT IGNORE INTO loyalty_point_balance
+(customer_id, total_points, accumulated_points)
+VALUES
+    (13, 0, 0), (14, 0, 0), (15, 0, 0), (16, 0, 0), (17, 0, 0), (18, 0, 0);
+
+INSERT IGNORE INTO vehicle
+(id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
+VALUES
+    (16, 13, '51D-16116', 'Toyota',  'Trắng', 0, NULL, false),
+    (17, 14, '51E-16217', 'Honda',   'Đen',   0, NULL, false),
+    (18, 15, '51F-16318', 'Mazda',   'Bạc',   0, NULL, false),
+    (19, 16, '51G-16419', 'Kia',     'Đỏ',    0, NULL, false),
+    (20, 17, '51H-16520', 'Hyundai', 'Xanh',  0, NULL, false),
+    (21, 18, '51K-16621', 'Ford',    'Trắng', 0, NULL, false);
+
