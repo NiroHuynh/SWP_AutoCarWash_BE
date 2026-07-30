@@ -2560,3 +2560,41 @@ INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, 
                                                                                                           (3, '23:15:00', '23:30:00', 3, '2026-07-30', 0, 'AVAILABLE'),
                                                                                                           (3, '23:30:00', '23:45:00', 3, '2026-07-30', 0, 'AVAILABLE'),
                                                                                                           (3, '23:45:00', '00:00:00', 3, '2026-07-30', 0, 'AVAILABLE');
+# Insert 6 tài khoản mới (vừa đăng ký, kèm 1 xe mỗi người)
+
+
+INSERT IGNORE INTO user
+(id, email, phone, password_hash, role_id, is_active, created_at)
+VALUES
+    (31, 'tam@gmail.com',  '0900002015', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    (32, 'son@gmail.com',  '0900002016', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (33, 'hanh@gmail.com', '0900002017', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (34, 'dat@gmail.com',  '0900002018', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+    (35, 'ly@gmail.com',   '0900002019', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    (36, 'bao@gmail.com',  '0900002020', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 5 DAY));
+
+INSERT IGNORE INTO customer
+(id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
+VALUES
+    (13, 31, 'Tâm',  'Vũ',    '1997-03-10', 1, 0, NULL),
+    (14, 32, 'Sơn',  'Đặng',  '1994-06-21', 1, 0, NULL),
+    (15, 33, 'Hạnh', 'Lê',    '1999-01-15', 1, 0, NULL),
+    (16, 34, 'Đạt',  'Phan',  '1996-11-02', 1, 0, NULL),
+    (17, 35, 'Ly',   'Trịnh', '1998-08-27', 1, 0, NULL),
+    (18, 36, 'Bảo',  'Đinh',  '1993-05-19', 1, 0, NULL);
+
+INSERT IGNORE INTO loyalty_point_balance
+(customer_id, total_points, accumulated_points)
+VALUES
+    (13, 0, 0), (14, 0, 0), (15, 0, 0), (16, 0, 0), (17, 0, 0), (18, 0, 0);
+
+INSERT IGNORE INTO vehicle
+(id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
+VALUES
+    (16, 13, '51D-16116', 'Toyota',  'Trắng', 0, NULL, false),
+    (17, 14, '51E-16217', 'Honda',   'Đen',   0, NULL, false),
+    (18, 15, '51F-16318', 'Mazda',   'Bạc',   0, NULL, false),
+    (19, 16, '51G-16419', 'Kia',     'Đỏ',    0, NULL, false),
+    (20, 17, '51H-16520', 'Hyundai', 'Xanh',  0, NULL, false),
+    (21, 18, '51K-16621', 'Ford',    'Trắng', 0, NULL, false);
+
