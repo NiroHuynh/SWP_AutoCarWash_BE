@@ -121,4 +121,36 @@ public class BookingRefundAdapter implements BookingRefundPort {
         booking.setStatus(BookingStatus.REFUNDED.name());
         bookingRepository.save(booking);
     }
+
+    @Override
+    @Transactional
+    public void cancelWithoutRefund(Long bookingId) {
+        Booking booking = bookingRepository.findDetailById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
+
+        booking.setStatus(BookingStatus.CANCELED.name());
+        booking.setCanceledAt(LocalDateTime.now(ZONE));
+        bookingRepository.save(booking);
+
+        List<BookingSlotAllocation> allocations =
+                bookingSlotAllocationRepository.findByBookingId(bookingId);
+        for (BookingSlotAllocation allocation : allocations) {
+            BookingSlot slot = allocation.getBookingSlot();
+            slot.setBookedCount(slot.getBookedCount() - 1);
+            slotRepository.save(slot);
+        }
+
+        if (booking.getCheckInEmployee() != null) {
+            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                    .vehicleId(booking.getVehicle().getId())
+                    .bookingId(bookingId)
+                    .canceledByStaffId(null)
+                    .bookingType(booking.getBookingType())
+                    .isDepositPaid(booking.getIsDepositPaid())
+                    .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
+                    .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant())
+                    .build());
+        }
+    }
 }

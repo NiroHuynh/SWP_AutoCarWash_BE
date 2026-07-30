@@ -64,7 +64,7 @@ public class RefundController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<DepositAmountResponse>> getDepositAmount() {
         DepositAmountResponse result = refundService.getDepositAmount();
-        return ResponseEntity.ok(ApiResponse.success("Lấy số tiền cọc thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Deposit amount retrieved successfully", result));
     }
 
     /**
@@ -80,7 +80,7 @@ public class RefundController {
                         .shortCode(bank.getShortCode())
                         .build())
                 .toList();
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách ngân hàng thành công", banks));
+        return ResponseEntity.ok(ApiResponse.success("Bank list retrieved successfully", banks));
     }
 
     /**
@@ -92,7 +92,7 @@ public class RefundController {
             @RequestParam String bin,
             @RequestParam String accountNumber) {
         AccountLookupResponse result = refundService.lookupAccount(bin, accountNumber);
-        return ResponseEntity.ok(ApiResponse.success("Tra cứu tài khoản thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Account lookup successful", result));
     }
 
     /**
@@ -105,7 +105,7 @@ public class RefundController {
             @RequestParam Long bookingId,
             @AuthenticationPrincipal UserCustomerDetails principal) {
         PointsPreviewResponse result = refundService.previewPointsConversion(bookingId, resolveCustomerId(principal));
-        return ResponseEntity.ok(ApiResponse.success("Xem trước số điểm quy đổi thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Points conversion preview retrieved successfully", result));
     }
 
     /**
@@ -117,7 +117,10 @@ public class RefundController {
             @Valid @RequestBody CreateRefundRequest request,
             @AuthenticationPrincipal UserCustomerDetails principal) {
         RefundResponse result = refundService.createRefund(request, resolveCustomerId(principal));
-        return ResponseEntity.ok(ApiResponse.success("Đã tạo yêu cầu hoàn tiền, vui lòng chờ hoàn tiền", result));
+        String message = result == null
+                ? "Booking has no deposit, cancelled successfully"
+                : "Refund request created, please wait for the refund to be processed";
+        return ResponseEntity.ok(ApiResponse.success(message, result));
     }
 
     /**
@@ -136,7 +139,7 @@ public class RefundController {
         Pageable pageable = PageRequest.of(page, size);
         RefundListPageResponse result = refundService.listRefundsForAdmin(
                 status, year, month, stationId, keyword, pageable);
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách hoàn tiền thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Refund list retrieved successfully", result));
     }
 
     /**
@@ -146,7 +149,7 @@ public class RefundController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RefundDetailResponse>> getRefundDetail(@PathVariable Long id) {
         RefundDetailResponse result = refundService.getRefundDetail(id);
-        return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết hoàn tiền thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Refund detail retrieved successfully", result));
     }
 
     /**
@@ -160,6 +163,6 @@ public class RefundController {
             @AuthenticationPrincipal UserCustomerDetails principal) {
         RefundDetailResponse result = refundService.confirmRefund(
                 id, request.getTransactionCode(), principal.getUser().getId());
-        return ResponseEntity.ok(ApiResponse.success("Xác nhận hoàn tiền thành công", result));
+        return ResponseEntity.ok(ApiResponse.success("Refund confirmed successfully", result));
     }
 }
