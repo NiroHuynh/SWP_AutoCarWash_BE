@@ -120,27 +120,27 @@ INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, current_booking_id, is_deleted)
 VALUES
     -- Station 1: Saigon Central — 5 AVAILABLE (max lane case)
-    (1,  1, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (2,  1, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (3,  1, 'Lane 3', 'AVAILABLE', 3, NULL, false),
-    (4,  1, 'Lane 4', 'AVAILABLE', 4, NULL, false),
-    (5,  1, 'Lane 5', 'AVAILABLE', 3, NULL, false),
+    (1,  1, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (2,  1, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (3,  1, 'Lane 03', 'AVAILABLE', 3, NULL, false),
+    (4,  1, 'Lane 04', 'AVAILABLE', 4, NULL, false),
+    (5,  1, 'Lane 05', 'AVAILABLE', 3, NULL, false),
     -- Station 2: Thu Duc — 1 AVAILABLE (min lane case; also the FULL-slot station)
-    (6,  2, 'Lane 1', 'AVAILABLE', 3, NULL, false),
+    (6,  2, 'Lane 01', 'AVAILABLE', 3, NULL, false),
     -- Station 3: Hoan Kiem — 3 AVAILABLE (standard happy-path station)
-    (7,  3, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (8,  3, 'Lane 2', 'AVAILABLE', 2, NULL, false),
-    (9,  3, 'Lane 3', 'AVAILABLE', 3, NULL, false),
+    (7,  3, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (8,  3, 'Lane 02', 'AVAILABLE', 2, NULL, false),
+    (9,  3, 'Lane 03', 'AVAILABLE', 3, NULL, false),
     -- Station 4: Ba Dinh — 2 lanes, BOTH WASHING (busy negative-BR4 station)
-    (10, 4, 'Lane 1', 'WASHING',   3, 10,   false),
-    (11, 4, 'Lane 2', 'WASHING',   3, 9,    false),
+    (10, 4, 'Lane 01', 'WASHING',   3, 10,   false),
+    (11, 4, 'Lane 02', 'WASHING',   3, 9,    false),
     -- Station 5: Hai Chau — 2 AVAILABLE
-    (12, 5, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (13, 5, 'Lane 2', 'AVAILABLE', 3, NULL, false),
+    (12, 5, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (13, 5, 'Lane 02', 'AVAILABLE', 3, NULL, false),
     -- Station 6: Son Tra — 2 AVAILABLE + 1 soft-deleted (does not count)
-    (14, 6, 'Lane 1', 'AVAILABLE', 3, NULL, false),
-    (15, 6, 'Lane 2', 'AVAILABLE', 3, NULL, false),
-    (16, 6, 'Lane 3 (removed)', 'AVAILABLE', 3, NULL, true);
+    (14, 6, 'Lane 01', 'AVAILABLE', 3, NULL, false),
+    (15, 6, 'Lane 02', 'AVAILABLE', 3, NULL, false),
+    (16, 6, 'Lane 03', 'AVAILABLE', 3, NULL, true);
 
 -- =====================================================================
 -- STAFF (12)
