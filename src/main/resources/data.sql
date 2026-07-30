@@ -529,7 +529,9 @@ VALUES
     (11, NULL, 'WELCOME50',           50000,  10000,  1000, 5,  DATE_ADD(NOW(), INTERVAL 90 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 3 DAY),  TRUE,  5,  DATE_SUB(NOW(), INTERVAL 3 DAY),  FALSE),
     (12, NULL, 'VIP100',              100000, 500000, 30,   4,  DATE_ADD(NOW(), INTERVAL 45 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
     (101, NULL, 'VOUCHER_LE_ACTIVE',  30000,  50000,  100,  0,  DATE_ADD(NOW(), INTERVAL 20 DAY), 'ACTIVE',   DATE_SUB(NOW(), INTERVAL 7 DAY),  TRUE,  10, DATE_SUB(NOW(), INTERVAL 7 DAY),  FALSE),
-    (102, NULL, 'VOUCHER_LE_UPCOMING',40000,  60000,  150,  0,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE);
+    (102, NULL, 'VOUCHER_LE_UPCOMING',40000,  60000,  150,  0,  DATE_ADD(NOW(), INTERVAL 50 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 20 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE),
+    -- Autumn Welcome Campaign (#20) — UPCOMING, starts next month
+    (14, 20, 'AUTUMN2026',           50000,  100000, 300,  0,  DATE_ADD(NOW(), INTERVAL 55 DAY), 'UPCOMING', DATE_ADD(NOW(), INTERVAL 25 DAY), TRUE,  15, DATE_SUB(NOW(), INTERVAL 1 DAY),  FALSE);
 
 -- =====================================================================
 -- VOUCHER USAGE (15)
@@ -552,7 +554,6 @@ VALUES
     (13, 2,  1,  NULL, DATE_SUB(NOW(), INTERVAL 6 DAY),   'USED'),
     (14, 3,  3,  3,    DATE_SUB(NOW(), INTERVAL 1 HOUR),  'APPLIED'),
     (15, 12, 4,  15,   DATE_SUB(NOW(), INTERVAL 5 DAY),   'REVERTED');
-
 
 -- =====================================================================
 -- BOOKING (25)
@@ -1934,27 +1935,34 @@ VALUES
 -- SYSTEM SETTING (10)
 -- =====================================================================
 INSERT IGNORE INTO system_setting
-(setting_key, setting_value, description, data_type, is_active)
+(setting_key, setting_value, description, data_type, is_active, category)
 VALUES
-    ('DEPOSIT_PERCENT',             '30',      'Deposit percent',                                'NUMBER',  true),
-    ('MAX_BOOKING_DAY',             '30',      'Maximum booking day',                            'NUMBER',  true),
-    ('DEFAULT_DEPOSIT_AMOUNT',      '20000',   'Default deposit amount',                         'NUMBER',  true),
-    ('CANCEL_THRESHOLD_MINUTES',    '120',     'Minutes before appointment a booking can be CANCELED', 'NUMBER', true),
-    ('PENDING_PAYMENT_TIMEOUT_MINUTES', '5',   'Minutes a PENDING booking may await deposit transfer before auto-cancel', 'NUMBER', true),
-    ('LOYALTY_POINT_PER_VND',       '1000',    'VND spent per loyalty point earned',             'NUMBER',  true),
-    ('MAX_VEHICLE_PER_FAMILY',      '5',       'Maximum vehicles allowed per family subscription','NUMBER', true),
-    ('QUEUE_PRIORITY_BOOKING_WEIGHT','3',      'Priority weight given to booking-based queue tickets','NUMBER', true),
-    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3','So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board','NUMBER', true),
-    ('SUPPORT_HOTLINE',             '1900-1234','Customer support hotline number',               'STRING',  true),
-    ('MAINTENANCE_MODE',            'false',   'Whether the system is in maintenance mode',      'BOOLEAN', true),
-    ('REVIEW_EDIT_WINDOW_HOURS',    '24',      'Hours a customer may edit their review after posting', 'NUMBER', true),
-    ('LOYALTY_RESET_MONTH_DAY',     '01-01',   'Annual loyalty point reset date (MM-DD)',        'STRING',  true),
-    ('LOYALTY_EARN_RATE_VND_PER_POINT', '1000', 'Customer earns 1 loyalty point for every 1,000 VND spent','NUMBER', TRUE),
-    ( 'LOYALTY_REDEEM_RATE_VND_PER_POINT', '100', '1 loyalty point can be redeemed for 100 VND', 'NUMBER', TRUE),
-    -- MAX_VIOLATION_LIMIT: matches the hard-coded VIOLATION_LIMIT=3 in code (docs/seed.md 4.4)
-    ('MAX_VIOLATION_LIMIT',         '3',       'Max cancellations/no-shows before a 14-day restriction', 'NUMBER', true),
-    ('REFUND_TRANSFER_CONTENT_PREFIX', 'RF',   'Prefix for refund bank-transfer content (RF{refundId})', 'STRING', true),
-    ('REFUND_TRANSFER_CONTENT_TEMPLATE', 'Hoan tien coc booking {booking_id}', 'Bank-transfer content template for deposit refunds; replace {booking_id}', 'STRING', true);
+    -- Payment & Deposit
+    ('DEPOSIT_PERCENT',                      '30',                                    'Deposit percent',                                                                          'NUMBER',  true, 'Payment & Deposit'),
+    ('DEFAULT_DEPOSIT_AMOUNT',               '20000',                                 'Default deposit amount',                                                                   'NUMBER',  true, 'Payment & Deposit'),
+    ('PENDING_PAYMENT_TIMEOUT_MINUTES',      '5',                                     'Minutes a PENDING booking may await deposit transfer before auto-cancel',                  'NUMBER',  true, 'Payment & Deposit'),
+    ('REFUND_TRANSFER_CONTENT_PREFIX',       'RF',                                    'Prefix for refund bank-transfer content (RF{refundId})',                                   'STRING',  true, 'Payment & Deposit'),
+    ('REFUND_TRANSFER_CONTENT_TEMPLATE',     'Hoan tien coc booking {booking_id}',    'Bank-transfer content template for deposit refunds; replace {booking_id}',                'STRING',  true, 'Payment & Deposit'),
+
+    -- Booking Rules
+    ('MAX_BOOKING_DAY',                      '30',                                    'Maximum booking day',                                                                      'NUMBER',  true, 'Booking Rules'),
+    ('CANCEL_THRESHOLD_MINUTES',             '120',                                   'Minutes before appointment a booking can be CANCELED',                                     'NUMBER',  true, 'Booking Rules'),
+    ('QUEUE_PRIORITY_BOOKING_WEIGHT',        '3',                                     'Priority weight given to booking-based queue tickets',                                     'NUMBER',  true, 'Booking Rules'),
+    ('QUEUE_BOOKING_WALKIN_INTERLEAVE_RATIO','3',                                     'So ve booking hien thi lien tiep truoc khi xen 1 ve walk-in tren queue board',            'NUMBER',  true, 'Booking Rules'),
+    ('MAX_VIOLATION_LIMIT',                  '3',                                     'Max cancellations/no-shows before a 14-day restriction',                                   'NUMBER',  true, 'Booking Rules'),
+
+    -- Loyalty Program
+    ('LOYALTY_POINT_PER_VND',               '1000',                                  'VND spent per loyalty point earned',                                                       'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_EARN_RATE_VND_PER_POINT',     '1000',                                  'Customer earns 1 loyalty point for every 1,000 VND spent',                                'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_REDEEM_RATE_VND_PER_POINT',   '100',                                   '1 loyalty point can be redeemed for 100 VND',                                             'NUMBER',  true, 'Loyalty Program'),
+    ('LOYALTY_RESET_MONTH_DAY',             '01-01',                                 'Annual loyalty point reset date (MM-DD)',                                                  'STRING',  true, 'Loyalty Program'),
+
+    -- System
+    ('MAX_VEHICLE_PER_FAMILY',              '5',                                     'Maximum vehicles allowed per family subscription',                                         'NUMBER',  true, 'System'),
+    ('SUPPORT_HOTLINE',                     '1900-1234',                             'Customer support hotline number',                                                          'STRING',  true, 'System'),
+    ('MAINTENANCE_MODE',                    'false',                                 'Whether the system is in maintenance mode',                                                'BOOLEAN', true, 'System'),
+    ('REVIEW_EDIT_WINDOW_HOURS',            '24',                                    'Hours a customer may edit their review after posting',                                     'NUMBER',  true, 'System');
+
 
 -- =====================================================================
 -- ENUM/BR COVERAGE COMPLETION (docs/seed.md §1, §2) — added while
