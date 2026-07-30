@@ -482,7 +482,14 @@ public class WalkInCheckInService {
             BigDecimal totalDiscountAmount = packageDiscount.add(penaltyDeposit).add(creditFromOldBooking);
 
             //Áp dụng công thức tính số tiền khách thực tế phải thu nốt khi lấy xe (final_amount)
-            BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDiscountAmount);
+            //BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDiscountAmount);
+
+        //Giảm giá thực sự (Chỉ bao gồm giảm trừ từ gói cước Membership/Unlimited)
+        BigDecimal realPackageDiscount = packageDiscount;
+        //Tổng tất cả các khoản đã trả trước / được khấu trừ (Gồm: Giảm giá gói + Tiền cọc phạt + Cọc đơn cũ)
+        BigDecimal totalDeduction = realPackageDiscount.add(penaltyDeposit).add(creditFromOldBooking);
+        //Số tiền thực tế khách phải trả nốt khi Checkout tại quầy
+        BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDeduction);
 
             if (remainingBalanceAtCheckout.compareTo(BigDecimal.ZERO) < 0) {
                 remainingBalanceAtCheckout = BigDecimal.ZERO;
@@ -558,6 +565,8 @@ public class WalkInCheckInService {
             // Payment page luôn hiện Total Due = 0 cho mọi đơn walk-in.
             savedBooking.setTotalServiceAmount(serviceAmount);
             savedBooking.setTotalAddonAmount(addonAmount);
+            //Lưu số tiền giảm giá từ gói (Package Discount)
+            savedBooking.setVoucherDiscountAmount(realPackageDiscount);
             savedBooking.setTotalAmount(remainingBalanceAtCheckout);
             bookingRepository.save(savedBooking);
 
@@ -568,7 +577,7 @@ public class WalkInCheckInService {
                     .customer(savedBooking.getCustomer()) // Khóa ngoại khách hàng (customer_id), tự động lấy từ booking (có thể null nếu khách vãng lai mới)
                     //Các trường dòng tiền tổng
                     .rawAmount(rawAmount) // Tổng tiền gốc ban đầu (serviceAmount + addonAmount)
-                    .discountAmount(totalDiscountAmount) // Tổng số tiền được giảm trừ/khấu trừ
+                    .discountAmount(realPackageDiscount) // Tổng số tiền được giảm trừ/khấu trừ
                     .finalAmount(remainingBalanceAtCheckout) // Số tiền thực tế khách cần móc bóp trả lúc Checkout
                     //Các trường bóc tách doanh thu dịch vụ cụ thể
                     .serviceAmount(serviceAmount) // Tổng giá trị của riêng dịch vụ chính
