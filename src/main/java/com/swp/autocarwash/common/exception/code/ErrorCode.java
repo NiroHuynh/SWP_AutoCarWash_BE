@@ -98,7 +98,7 @@ public enum ErrorCode {
     INVOICE_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
             "INVOICE_002",
-            "Hóa đơn không thuộc về chi nhánh của bạn."
+            "This invoice does not belong to your station."
     ),
     PROVINCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -194,7 +194,7 @@ public enum ErrorCode {
     CUSTOMER_HAS_ACTIVE_BOOKING(
             HttpStatus.BAD_REQUEST,
             "CUSTOMER_006",
-            "Không thể xóa: khách hàng đang có đặt lịch hoạt động"
+            "Cannot delete: customer has active bookings."
     ),
     BOOKING_PRICE_CALCULATION_FAILED(
             HttpStatus.BAD_REQUEST,
@@ -557,12 +557,12 @@ public enum ErrorCode {
     CANNOT_MAINTAIN_WASHING_LANE(
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_004",
-            "Không thể chuyển làn đang rửa xe (WASHING) sang bảo trì."
+            "Cannot switch a lane that is washing (WASHING) to maintenance."
     ),
     LANE_NOT_IN_MAINTENANCE(
             HttpStatus.BAD_REQUEST,
             "WASH_LANE_005",
-            "Làn này hiện không ở trạng thái bảo trì."
+            "This lane is not currently under maintenance."
     ),
     LOYALTY_BALANCE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -951,77 +951,77 @@ public enum ErrorCode {
     REFUND_NOT_ELIGIBLE(
             HttpStatus.BAD_REQUEST,
             "REFUND_001",
-            "Booking chưa trả cọc nên không phát sinh hoàn tiền."
+            "Booking has no deposit paid, so there is nothing to refund."
     ),
     BOOKING_NOT_CANCELABLE(
             HttpStatus.BAD_REQUEST,
             "REFUND_002",
-            "Booking không ở trạng thái có thể hủy để hoàn tiền."
+            "Booking is not in a status eligible for refund cancellation."
     ),
     BOOKING_CANCEL_WINDOW_PASSED(
             HttpStatus.BAD_REQUEST,
             "REFUND_003",
-            "Đã quá thời hạn hủy (phải hủy trước giờ hẹn ít nhất 2 giờ)."
+            "Cancellation window has passed (must cancel at least 2 hours before the appointment)."
     ),
     REFUND_ALREADY_EXISTS(
             HttpStatus.CONFLICT,
             "REFUND_004",
-            "Booking này đã có yêu cầu hoàn tiền."
+            "This booking already has a refund request."
     ),
     REFUND_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
             "REFUND_005",
-            "Booking không thuộc về khách hàng đang đăng nhập."
+            "This booking does not belong to the logged-in customer."
     ),
     REFUND_ACCOUNT_LOOKUP_FAILED(
             HttpStatus.BAD_REQUEST,
             "REFUND_006",
-            "Không tìm thấy tài khoản, vui lòng kiểm tra lại Số tài khoản."
+            "Account not found, please check the account number again."
     ),
     INVALID_BANK(
             HttpStatus.BAD_REQUEST,
             "REFUND_007",
-            "Ngân hàng không hợp lệ."
+            "Invalid bank."
     ),
     REFUND_BOOKING_ID_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_008",
-            "Booking là bắt buộc"
+            "Booking is required."
     ),
     REFUND_BANK_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_009",
-            "Ngân hàng là bắt buộc"
+            "Bank is required."
     ),
     REFUND_ACCOUNT_NUMBER_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_010",
-            "Số tài khoản là bắt buộc"
+            "Account number is required."
     ),
     REFUND_ACCOUNT_HOLDER_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_011",
-            "Tên chủ tài khoản là bắt buộc"
+            "Account holder name is required."
     ),
     REFUND_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "REFUND_012",
-            "Không tìm thấy yêu cầu hoàn tiền."
+            "Refund request not found."
     ),
     REFUND_ALREADY_PROCESSED(
             HttpStatus.CONFLICT,
             "REFUND_013",
-            "Yêu cầu hoàn tiền này đã được xử lý."
+            "This refund request has already been processed."
     ),
     REFUND_TRANSACTION_CODE_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_014",
-            "Vui lòng nhập mã giao dịch"
+            "Please enter the transaction code."
     ),
     REFUND_METHOD_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "REFUND_015",
-            "Vui lòng chọn hình thức hoàn cọc"
+            "Please select a refund method."
     ),
     FAMILY_GROUP_NOT_OWNED(
             HttpStatus.FORBIDDEN,

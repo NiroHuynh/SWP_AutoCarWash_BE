@@ -37,6 +37,8 @@ public class DepositConfiscationScheduler {
      * Chạy vào 23:59:00 mỗi ngày (giờ server).
      * Cron format Spring: giây phút giờ ngày-trong-tháng tháng ngày-trong-tuần.
      */
+    //test tự động thu cọc cuối ngày thì set 10s để demo
+    //test tự động transfer cọc booking trong ngày thì set 23:59
     //@Scheduled(cron = "0 59 23 * * ? ")
     @Scheduled(cron = "*/10 * * * * ?")
     @Transactional  //rollback nếu thất bại giữa chừng
