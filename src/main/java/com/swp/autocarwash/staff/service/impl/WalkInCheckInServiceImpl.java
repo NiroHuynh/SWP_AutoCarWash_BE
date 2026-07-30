@@ -31,6 +31,7 @@ import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
 import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.*;
 import com.swp.autocarwash.staff.mapper.WalkInMapper;
+import com.swp.autocarwash.staff.service.WalkInCheckInService;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
@@ -55,7 +56,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class WalkInCheckInService {
+public class WalkInCheckInServiceImpl implements WalkInCheckInService {
 
     private final CustomerRepository customerRepository;
     private final VehicleRepository vehicleRepository;
@@ -77,6 +78,7 @@ public class WalkInCheckInService {
 
 
     //Kiểm tra sdt để phân loại đối tượng khách cũ/mới(SELECT)
+    @Override
     public CheckPhoneResponse checkPhone(String phone){
         Optional<Customer> customerOpt = customerRepository.findByUserPhone(phone);
         if(customerOpt.isEmpty()){
@@ -142,6 +144,7 @@ public class WalkInCheckInService {
 
     //API tính hoá đơn tạm tính + auto load slot trống(READ)
 
+    @Override
     public BookingSummaryResponse calculateInvoice(CalculateInvoiceRequest request){
 
         // Khởi tạo raw
@@ -312,7 +315,7 @@ public class WalkInCheckInService {
 
     //BẤM NÚT XÁC NHẬN TẠO ĐƠN THẬT(GHI DỮ LIỆU ĐỒNG THỜI TRANSACTION)
     //tránh mất tiền cọc: kiểu chọn nhưng chưa xác nhận thì k có chuyển cọc đi lung tung -> mất cọc
-
+    @Override
     public CreateWalkInResponse createWalkInOrder(CreateWalkInRequest request) {
 
         //Cứu cọc, tìm đơn trễ hẹn trong ngày
@@ -640,6 +643,7 @@ public class WalkInCheckInService {
         }
 
     // Lấy toàn bộ danh sách gói dịch vụ và addon phục vụ việc dựng Form chọn tại quầy (Dùng vòng lặp truyền thống)
+    @Override
     public WalkInFormDataResponse getWalkInFormData() {
 
         // =========================================================================
@@ -704,6 +708,7 @@ public class WalkInCheckInService {
      * API XÁC NHẬN THU TIỀN CỌC PHẠT 20K TẠI QUẦY (TRƯỚC KHI TẠO ĐƠN)
      * Luồng đi: Staff thấy thông báo phạt -> Thu 20k tiền mặt của khách -> Bấm nút [XÁC NHẬN ĐÃ THU]
      */
+    @Override
     @Transactional
     public CheckInResultResponse collectWalkInPenaltyDeposit(String licensePlate) {
 
