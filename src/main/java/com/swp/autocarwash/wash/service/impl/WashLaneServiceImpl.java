@@ -42,7 +42,6 @@ public class WashLaneServiceImpl implements WashLaneService {
     private void syncCapacity(Station station) {
         long activeLaneCount = washLaneRepository.countByStationIdAndIsDeletedFalseAndStatusNot(
                 station.getId(), WashLaneStatus.MAINTENANCE.name());
-
         station.setMaxWashCapacity((int) activeLaneCount);
         stationRepository.save(station);
 

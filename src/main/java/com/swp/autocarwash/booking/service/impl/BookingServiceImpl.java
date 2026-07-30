@@ -404,8 +404,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
 
-
-
         // Bước 6.6: Điểm loyalty — chỉ chốt & hiển thị khi booking đã CHECK_OUT
         // (COMPLETED = rửa xong nhưng chưa thanh toán nên chưa phát sinh điểm).
         // Đồng thời tránh NPE khi booking là walk-in (customer == null).
@@ -510,8 +508,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findDetailById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BOOKING_NOT_FOUND));
 
-        if(!BookingStatus.CHECK_IN.name().equals(booking.getStatus())){
-            throw new BusinessException(ErrorCode. BOOKING_NOT_CHECKED_IN);
+        if (!BookingStatus.CHECK_IN.name().equals(booking.getStatus())) {
+            throw new BusinessException(ErrorCode.BOOKING_NOT_CHECKED_IN);
         }
 
         booking.setStatus(BookingStatus.NO_SHOW.name());
@@ -538,15 +536,15 @@ public class BookingServiceImpl implements BookingService {
             queueTicketRepository.save(ticket);
         });
 
-            bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
-                    .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
-                    .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
-                    .vehicleId((long) booking.getVehicle().getId().intValue())
-                    .bookingId(bookingId)
-                    .bookingType(booking.getBookingType())
-                    .isDepositPaid(booking.getIsDepositPaid())
-                    .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
-                    .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
+        bookingEventPublisher.publishBookingCanceled(BookingCanceledEvent.builder()
+                .customerId(booking.getCustomer() != null ? booking.getCustomer().getId() : null)
+                .canceledByStaffId(actingUserId) // id chỗ này lấy theo userId chứ ko lấy theo id staff vì 2 id này khác nhau nên để đơn giản thì lấy userId, nếu sau này muốn dùng các thông tin khác của staff thì có thể join vào bảng staff
+                .vehicleId((long) booking.getVehicle().getId().intValue())
+                .bookingId(bookingId)
+                .bookingType(booking.getBookingType())
+                .isDepositPaid(booking.getIsDepositPaid())
+                .checkInAt(booking.getCheckInAt().atZone(ZONE).toInstant())
+                .canceledAt(booking.getCanceledAt().atZone(ZONE).toInstant()).build());
 
 
         return getBookingDetail(bookingId);
@@ -653,6 +651,9 @@ public class BookingServiceImpl implements BookingService {
         // 5. HỆ THỐNG GÁC CỔNG VOUCHER (CHỈ XỬ LÝ MÃ DO KHÁCH CHỦ ĐỘNG NHẬP)
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher appliedVoucher = null;
+        //HỆ THỐNG GÁC CỔNG VOUCHER
+
+        Integer customerTierId = customer.getCustomerTier().getId(); // Lấy Hạng thành viên của khách hàng
 
         if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             String inputCode = request.getVoucherCode().trim().toUpperCase();
@@ -713,8 +714,9 @@ public class BookingServiceImpl implements BookingService {
             subTotal = subTotal.subtract(discountAmount);
         }
 
-        // 7. ĐÓNG GÓI BẢN GHI BOOKING
-        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId());
+        // ĐÓNG GÓI BẢN GHI VÀ LƯU VẾT LỊCH SỬ THỜI GIAN THỰC
+
+        BookingType bookingType = getBookingType(vehicle.getId(), servicePackage.getId(),appDate);
 
         Booking booking = Booking.builder()
                 .customer(customer)
@@ -1018,7 +1020,8 @@ public class BookingServiceImpl implements BookingService {
 //
 //        Booking saved = bookingRepository.save(booking);
 //
-////        tạo booking invoice
+
+    /// /        tạo booking invoice
 //        bookingInvoicePort.createInvoice(booking);
 //
 //        return CreateBookingResponse.builder()
@@ -1027,12 +1030,19 @@ public class BookingServiceImpl implements BookingService {
 //                .totalAmount(subTotal)
 //                .slotIds(request.getSlotIds())
 //                .build();
-
-    private BookingType getBookingType(Long vehicleId, Integer servicePackageId) {
-        if (hasSubscription(vehicleId, servicePackageId)){
+    private BookingType getBookingType(Long vehicleId, Integer servicePackageId, LocalDate date) {
+        if (!isVehicleBookedInSlotDate(vehicleId, servicePackageId, date)){
             return BookingType.SUBSCRIPTION;
         }
         return BookingType.ADVANCE;
+    }
+
+    private boolean isVehicleBookedInSlotDate(
+            Long vehicleId,
+            Integer servicePackageId,
+            LocalDate date
+    ) {
+       return  bookingRepository.existsEffectiveBooking(vehicleId,servicePackageId, date);
     }
 
     private void createVoucherUsage(Voucher voucher, Booking booking) {

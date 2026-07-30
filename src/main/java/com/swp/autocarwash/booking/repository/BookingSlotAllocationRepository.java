@@ -33,13 +33,13 @@ public interface BookingSlotAllocationRepository
      *
      * @param bookingId mã định danh của lịch đặt cần truy vấn
      * @return danh sách {@link BookingSlotAllocation} đã eager-fetch {@code bookingSlot},
-     *         sắp xếp theo {@code startTime} tăng dần
+     * sắp xếp theo {@code startTime} tăng dần
      */
     @Query("SELECT bsa FROM BookingSlotAllocation bsa " +
-           "JOIN FETCH bsa.bookingSlot bs " +
-           "LEFT JOIN FETCH bs.station " +
-           "WHERE bsa.booking.id = :bookingId " +
-           "ORDER BY bs.startTime ASC")
+            "JOIN FETCH bsa.bookingSlot bs " +
+            "LEFT JOIN FETCH bs.station " +
+            "WHERE bsa.booking.id = :bookingId " +
+            "ORDER BY bs.startTime ASC")
     public List<BookingSlotAllocation> findByBookingId(@Param("bookingId") Long bookingId);
 
     /**
@@ -55,39 +55,38 @@ public interface BookingSlotAllocationRepository
     //Vbinh
     //Lấy danh sách khung giờ/slot booking mà đơn hàng này đã chiếm/booked
     @Query("""
-            SELECT bsa.bookingSlot FROM BookingSlotAllocation bsa
-                WHERE bsa.booking.id = :bookingId
-                ORDER BY bsa.bookingSlot.startTime ASC
-    """)
+                    SELECT bsa.bookingSlot FROM BookingSlotAllocation bsa
+                        WHERE bsa.booking.id = :bookingId
+                        ORDER BY bsa.bookingSlot.startTime ASC
+            """)
     List<BookingSlot> findBookingSLotsByBookingId(
             @Param("bookingId") Long bookingId
     );
 
 
-
-//    kiểm tra xem xe đó có đăng ký slot được chọn trước đó chưa
+    //    kiểm tra xem xe đó có đăng ký slot được chọn trước đó chưa
     @Query("""
-    SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
-    FROM BookingSlotAllocation bsa
-    WHERE bsa.booking.vehicle.id = :vehicleId
-      AND bsa.bookingSlot.id IN :slotIds
-      AND bsa.booking.status <> 'CANCELED'
-""")
+                SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
+                FROM BookingSlotAllocation bsa
+                WHERE bsa.booking.vehicle.id = :vehicleId
+                  AND bsa.bookingSlot.id IN :slotIds
+                  AND bsa.booking.status <> 'CANCELED'
+            """)
     boolean existsConflictSlot(
             @Param("vehicleId") Long vehicleId,
             @Param("slotIds") List<Long> slotIds
     );
 
-//    kiểm tra vehicle đã booking vào hôm nay chưa
+    //    kiểm tra vehicle đã booking vào hôm nay chưa
     @Query("""
-    SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
-    FROM BookingSlotAllocation bsa
-    JOIN bsa.booking b
-    JOIN bsa.bookingSlot bs
-    WHERE b.vehicle.id = :vehicleId
-      AND bs.date = :slotDate
-      AND b.status <> 'CANCELED'
-""")
+                SELECT CASE WHEN COUNT(bsa) > 0 THEN true ELSE false END
+                FROM BookingSlotAllocation bsa
+                JOIN bsa.booking b
+                JOIN bsa.bookingSlot bs
+                WHERE b.vehicle.id = :vehicleId
+                  AND bs.date = :slotDate
+                  AND b.status <> 'CANCELED'
+            """)
     boolean existsVehicleBookedOnSlotDate(
             @Param("vehicleId") Long vehicleId,
             @Param("slotDate") LocalDate slotDate
