@@ -39,8 +39,8 @@ public class DepositConfiscationScheduler {
      */
     //test tự động thu cọc cuối ngày thì set 10s để demo
     //test tự động transfer cọc booking trong ngày thì set 23:59
-    //@Scheduled(cron = "0 59 23 * * ? ")
-    @Scheduled(cron = "*/10 * * * * ?")
+    @Scheduled(cron = "0 59 23 * * ? ")
+    //@Scheduled(cron = "*/10 * * * * ?")
     @Transactional  //rollback nếu thất bại giữa chừng
     public void confiscateNoShowDeposit(){
         LocalDate today = LocalDate.now();
