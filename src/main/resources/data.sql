@@ -237,15 +237,15 @@ VALUES
     (14, 2,  '51B-14141', 'Toyota',   'Yellow', 0, NULL, false),
     (15, 3,  '51C-15151', 'Kia',      'Orange', 0, NULL, false),
 
-    (201, 100, '51G-111.11', 'Toyota Vios', 'Đen', 0, NULL, false),
-    (202, NULL, '51G-222.22', 'Kia Morning', 'Đỏ', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
+    (201, 100, '51G-111.11', 'Toyota Vios', 'Black', 0, NULL, false),
+    (202, NULL, '51G-222.22', 'Kia Morning', 'Red', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
 
-    (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, FALSE);
+    (203, 101, '51G-333.33', 'Honda City', 'White', 0, NULL, FALSE);
 
 
-# (203, NULL, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false)
+# (203, NULL, '51G-333.33', 'Honda City', 'White', 0, NULL, false)
 
-#     (203, 101, '51G-333.33', 'Honda City', 'Trắng', 0, NULL, false);
+#     (203, 101, '51G-333.33', 'Honda City', 'White', 0, NULL, false);
 
 -- =====================================================================
 -- FAMILY GROUP (10)
@@ -2375,44 +2375,21 @@ VALUES (
 --   KHÔNG có ngày nên slot vắt qua nửa đêm bị hiểu sai -> xem CẢNH BÁO dưới.
 --   Mọi start_time neo theo @grid = mốc bội số 15' gần nhất (:00/:15/:30/:45).
 --
--- ===================== FLOW 1: CONFIRMED CHECK-IN =====================
---  Thứ tự test (đăng nhập nhân viên, dùng chức năng Check-in theo biển số):
---   701 (xe 51G-70108, station 2) : ĐÚNG GIỜ            -> CHECK_IN, cấp vé
---   702 (xe 51G-70209, station 2) : ĐẾN SỚM + có làn     -> CHECK_IN (early)
---   703 (xe 51G-70310, station 10): ĐẾN SỚM + hết làn    -> EARLY_ARRIVAL_SLOT_FULL
---   704 (xe 51G-70411, station 2) : ĐẾN TRỄ + có làn     -> CHECK_IN (late, waived)
---   705 (xe 51G-70512, station 10): TRỄ+hết làn, SUB chưa vượt -> NO_SHOW, +1 vi phạm
---   706 (xe 51G-77705, station 10): TRỄ+hết làn, SUB VƯỢT ngưỡng -> NO_SHOW + khoá 14 ngày
---   707 (xe 51G-70713, station 10): TRỄ+hết làn, ADVANCE -> NO_SHOW, requiresWalkIn=true
---   708 (xe 51G-70814)            : CONFIRMED KHÔNG có slot -> NO_ALLOCATED_TIME_SLOT
---   709/710 (xe 51G-99907 / 51G-71016): WALK_IN xe đang bị phạt, chưa đóng cọc
---          -> VEHICLE_CHECKIN_RESTRICTED; sau đó thu cọc (collect-penalty-deposit)
---          rồi check-in lại thành công.
---
---  CẢNH BÁO ĐỘ BỀN THỜI GIAN (do chỉ sửa data, không sửa code BE):
---   - Case ĐÚNG GIỜ (701) và ĐẾN SỚM (702/703): hãy test trong ~10-15 phút
---     sau khi app khởi động (dev trôi dần theo thời gian thực).
---   - Case ĐẾN SỚM còn có thể SAI nếu test vắt qua nửa đêm (slot rơi sang
---     hôm sau -> BE hiểu nhầm thành "trễ"). Tránh test case sớm quanh 00:00.
---   - Case ĐẾN TRỄ (704-707): bền vô thời hạn, test lúc nào cũng đúng.
---
--- ===================== FLOW 2: CREATE WALK-IN =========================
---   - Tạo walk-in mới cho xe 51G-88806 (vehicle 206): xe này có booking 711
---     NO_SHOW hôm nay đã đóng cọc -> test "cứu cọc" (deposit chuyển sang đơn
---     walk-in mới). Chọn slot bất kỳ trong pool 9800-9815 (đều ở tương lai).
---   - Case slot đã đầy công suất: chọn slot 9816 (status FULL) -> báo hết chỗ.
 -- #####################################################################
 
--- Station riêng KHÔNG có lane nào AVAILABLE, dùng cho case "hết lane trống"
-INSERT IGNORE INTO station
-(id, station_name, address, commune_id, is_operating, max_wash_capacity, is_deleted)
-VALUES
-    (10, 'AutoWash Quận 7', '123 Nguyễn Thị Thập, Quận 7, TP.HCM', 1, true, 5, false);
 
+-- Toàn bộ FLOW 1 + FLOW 2 chạy trên station 2 (AutoWash Thu Duc).
+-- Trạng thái "hết làn" KHÔNG seed cứng: tester tự đẩy xe vào làn để chiếm chỗ
+--   PATCH /api/queue/{bookingId}/start     -> lane sang WASHING (chiếm 1 làn)
+--   PATCH /api/queue/{bookingId}/complete  -> lane về AVAILABLE (trả làn)
+-- Station 2 đã có lane 6 ở block WASH LANE phía trên; thêm lane 17 nữa để phải
+-- chiếm đủ 2 làn mới ra được case "hết chỗ" (id 16 đã bị lane soft-deleted của
+-- station 6 chiếm, dùng lại sẽ bị INSERT IGNORE nuốt im lặng).
 INSERT IGNORE INTO wash_lane
 (id, station_id, lane_name, status, booking_walkin_ratio, is_deleted)
 VALUES
-    (16, 10, 'Lane 1', 'WASHING', 3, false);
+    (17, 2, 'Lane 02', 'AVAILABLE', 3, false);
+
 
 -- User + Customer với violation_count=3 sẵn (để test vượt ngưỡng vi phạm -> khoá 14 ngày)
 INSERT IGNORE INTO user
@@ -2420,10 +2397,12 @@ INSERT IGNORE INTO user
 VALUES
     (30, 'hung.tran@gmail.com', '0900009999', '$2a$12$WhHm2jB6QFfK5d6vCknUuO92SYuVKK8k7Qjsd6kfiA3hhC2MGUyhK', 3, true, DATE_SUB(NOW(), INTERVAL 30 DAY));
 
+
 INSERT IGNORE INTO customer
 (id, user_id, first_name, last_name, birthday, customer_tier_id, violation_count, restricted_until)
 VALUES
     (102, 30, 'Hùng', 'Trần Mạnh', '1995-01-01', 1, 3, NULL);
+
 
 -- Vehicle 205: gắn với customer 102 (case vượt ngưỡng vi phạm, SUBSCRIPTION)
 -- Vehicle 206: khách vãng lai mới, sạch án, dùng cho case "cứu cọc" (rescue deposit)
@@ -2433,22 +2412,24 @@ VALUES
 INSERT IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
 VALUES
-    (205, 102, '51G-77705', 'Toyota', 'Trắng', 0, NULL, false),
-    (206, NULL, '51G-88806', 'Kia',    'Đen',   0, NULL, false),
-    (207, NULL, '51G-99907', 'Honda',  'Đỏ',    4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
+    (205, 102, '51G-77705', 'Toyota', 'White', 0, NULL, false),
+    (206, NULL, '51G-88806', 'Kia',    'Black', 0, NULL, false),
+    (207, NULL, '51G-99907', 'Honda',  'Red',   4, DATE_ADD(NOW(), INTERVAL 5 DAY), false),
+
 
     -- Vehicle riêng cho từng case Flow 1 để scan biển số không bị đụng
     -- (mỗi vehicle chỉ gắn ĐÚNG 1 booking CONFIRMED hôm nay). Chú thích case ở cuối dòng.
-    (208, 3,  '51G-70108', 'Toyota',  'Trắng', 0, NULL, false),   -- case 701 đúng giờ
-    (209, 4,  '51G-70209', 'Mazda',   'Trắng', 0, NULL, false),   -- case 702 đến sớm + có làn
-    (210, 5,  '51G-70310', 'Hyundai', 'Trắng', 0, NULL, false),   -- case 703 đến sớm + hết làn
-    (211, 6,  '51G-70411', 'Ford',    'Trắng', 0, NULL, false),   -- case 704 đến trễ + có làn
-    (212, 8,  '51G-70512', 'Kia',     'Trắng', 0, NULL, false),   -- case 705 trễ SUB chưa vượt
-    (213, 10, '51G-70713', 'Honda',   'Trắng', 0, NULL, false),   -- case 707 trễ ADVANCE
-    (214, 11, '51G-70814', 'VinFast', 'Trắng', 0, NULL, false),   -- case 708 không có slot
+    (208, 3,  '51G-70108', 'Toyota',  'White', 0, NULL, false),   -- case 701 đúng giờ
+    (209, 4,  '51G-70209', 'Mazda',   'White', 0, NULL, false),   -- case 702 đến sớm + có làn
+    (210, 5,  '51G-70310', 'Hyundai', 'White', 0, NULL, false),   -- case 703 đến sớm + hết làn
+    (211, 6,  '51G-70411', 'Ford',    'White', 0, NULL, false),   -- case 704 đến trễ + có làn
+    (212, 8,  '51G-70512', 'Kia',     'White', 0, NULL, false),   -- case 705 trễ SUB chưa vượt
+    (213, 10, '51G-70713', 'Honda',   'White', 0, NULL, false),   -- case 707 trễ ADVANCE
+    (214, 11, '51G-70814', 'VinFast', 'White', 0, NULL, false),   -- case 708 không có slot
     -- Vehicle bị phạt RIÊNG cho case 710 (tách khỏi 202 và 207 để 3 flow
     -- không vô tình "cứu án" lẫn nhau khi chạy các case theo thứ tự khác nhau)
-    (216, NULL, '51G-71016', 'Mercedes', 'Đen', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false); -- case 710 xe bị phạt
+    (216, NULL, '51G-71016', 'Mercedes', 'Black', 4, DATE_ADD(NOW(), INTERVAL 5 DAY), false); -- case 710 xe bị phạt
+
 
 -- ============================ FLOW 1: CONFIRMED CHECK-IN ============================
 -- 701 on-time | 702 early+lane | 703 early+no-lane | 704 late+lane |
@@ -2475,12 +2456,14 @@ VALUES
     (709, NULL, 202, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0),
     (710, NULL, 216, 1, CURDATE(), 'CONFIRMED', 'WALK_IN',   NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, false, 149000, 0, 149000, 0, 0);
 
+
 -- @grid = mốc bội số 15 phút gần nhất phía trước tại thời điểm seed (:00/:15/:30/:45),
 -- giây = 00. Mọi start_time bên dưới = @grid +/- bội số 15' nên luôn rơi đúng mốc 15'.
 -- Dùng DATE_ADD/DATE_SUB trên DATETIME đầy đủ để "wrap" đúng qua nửa đêm (KHÔNG dùng
 -- ADDTIME trên TIME thuần vì có thể ra "26:30:00" -> crash khi Hibernate map LocalTime).
 -- Biến session tồn tại xuyên các câu lệnh (giống SET FOREIGN_KEY_CHECKS ở đầu file).
 SET @grid := DATE_SUB(NOW(), INTERVAL MOD(TIME_TO_SEC(NOW()), 900) SECOND);
+
 
 INSERT IGNORE INTO booking_slot
 (id, station_id, start_time, end_time, max_capacity, date, booked_count, status)
@@ -2492,16 +2475,17 @@ VALUES
     -- Giữ "sớm" ~15-30' sau khi chạy. LƯU Ý vẫn có thể SAI nếu test vắt qua nửa
     -- đêm (slot rơi sang hôm sau -> confirmCheckIn hiểu nhầm thành "trễ").
     (9751, 2,  TIME(DATE_ADD(@grid, INTERVAL 45 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9752, 10, TIME(DATE_ADD(@grid, INTERVAL 45 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9752, 2,  TIME(DATE_ADD(@grid, INTERVAL 45 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 60 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
     -- 9753-9756: ĐẾN TRỄ. start = @grid - 15' -> dev khởi điểm [15,30) và chỉ tăng
     -- theo thời gian thực -> luôn giữ trạng thái "trễ", bền vô thời hạn, test lúc nào cũng đúng.
     (9753, 2,  TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9754, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9755, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
-    (9756, 10, TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9754, 2,  TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9755, 2,  TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
+    (9756, 2,  TIME(DATE_SUB(@grid, INTERVAL 15 MINUTE)), TIME(@grid), 5, CURDATE(), 1, 'AVAILABLE'),
     -- 9757/9758: giờ không quan trọng (xe bị chặn ở bước kiểm tra phạt trước khi tính giờ)
     (9757, 2,  TIME(DATE_ADD(@grid, INTERVAL 15 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 30 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE'),
     (9758, 2,  TIME(DATE_ADD(@grid, INTERVAL 15 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 30 MINUTE)), 5, CURDATE(), 1, 'AVAILABLE');
+
 
 INSERT IGNORE INTO booking_slot_allocation
 (booking_id, booking_slot_id)
@@ -2509,6 +2493,7 @@ VALUES
     (701, 9750), (702, 9751), (703, 9752), (704, 9753), (705, 9754),
     (706, 9755), (707, 9756), (709, 9757), (710, 9758);
 -- 708 KHÔNG có allocation (test NO_ALLOCATED_TIME_SLOT)
+
 
 -- ============================ FLOW 2: CREATE WALK-IN ============================
 -- Booking 711: đơn NO_SHOW hôm nay của vehicle 206, đã đóng cọc, chưa bị tịch thu
@@ -2522,6 +2507,7 @@ INSERT IGNORE INTO booking
  voucher_discount_amount, point_discount_amount)
 VALUES
     (711, NULL, 206, 1, CURDATE(), 'NO_SHOW', 'ADVANCE', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL, true, 149000, 0, 149000, 0, 0);
+
 
 -- Pool slot RIÊNG cho FLOW 2 (id 9800-9816). LƯU Ý: dải id 9700-9736 KHÔNG dùng được
 -- vì đã bị chiếm bởi refund block (9700-9702) và block INSERT tự-sinh AUTO_INCREMENT ở
@@ -2551,9 +2537,10 @@ VALUES
     -- trọng vì createWalkInOrder chỉ check FULL/capacity, không lọc theo ngày/giờ)
     (9816, 2, TIME(DATE_ADD(@grid, INTERVAL 300 MINUTE)), TIME(DATE_ADD(@grid, INTERVAL 315 MINUTE)), 1, CURDATE(), 1, 'FULL');
 
+
 INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, booked_count, status) VALUES
-                                                                                                          (3, '00:00:00', '00:15:00', 3, '2026-07-31', 0, 'AVAILABLE'),
-                                                                                                          (3, '00:15:00', '00:30:00', 3, '2026-07-31', 0, 'AVAILABLE'),
+                                                                                                          (3, '20:00:00', '20:15:00', 3, '2026-07-30', 0, 'AVAILABLE'),
+                                                                                                        (3, '00:15:00', '00:30:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '00:30:00', '00:45:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '00:45:00', '01:00:00', 3, '2026-07-31', 0, 'AVAILABLE'),
 
@@ -2571,7 +2558,6 @@ INSERT INTO booking_slot (station_id, start_time, end_time, max_capacity, date, 
                                                                                                           (3, '03:15:00', '03:30:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '03:30:00', '03:45:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '03:45:00', '04:00:00', 3, '2026-07-31', 0, 'AVAILABLE'),
-
                                                                                                           (3, '04:00:00', '04:15:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '04:15:00', '04:30:00', 3, '2026-07-31', 0, 'AVAILABLE'),
                                                                                                           (3, '04:30:00', '04:45:00', 3, '2026-07-31', 0, 'AVAILABLE'),
@@ -2612,10 +2598,10 @@ VALUES
 INSERT IGNORE INTO vehicle
 (id, customer_id, license_plate, brand_name, color, violation_count, restricted_until, is_deleted)
 VALUES
-    (16, 13, '51D-16116', 'Toyota',  'Trắng', 0, NULL, false),
-    (17, 14, '51E-16217', 'Honda',   'Đen',   0, NULL, false),
-    (18, 15, '51F-16318', 'Mazda',   'Bạc',   0, NULL, false),
-    (19, 16, '51G-16419', 'Kia',     'Đỏ',    0, NULL, false),
-    (20, 17, '51H-16520', 'Hyundai', 'Xanh',  0, NULL, false),
-    (21, 18, '51K-16621', 'Ford',    'Trắng', 0, NULL, false);
+    (16, 13, '51D-16116', 'Toyota',  'White',  0, NULL, false),
+    (17, 14, '51E-16217', 'Honda',   'Black',  0, NULL, false),
+    (18, 15, '51F-16318', 'Mazda',   'Silver', 0, NULL, false),
+    (19, 16, '51G-16419', 'Kia',     'Red',    0, NULL, false),
+    (20, 17, '51H-16520', 'Hyundai', 'Blue',   0, NULL, false),
+    (21, 18, '51K-16621', 'Ford',    'White',  0, NULL, false);
 

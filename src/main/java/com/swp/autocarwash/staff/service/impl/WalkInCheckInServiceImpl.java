@@ -17,6 +17,7 @@ import com.swp.autocarwash.customer.entity.Vehicle;
 import com.swp.autocarwash.customer.repository.CustomerRepository;
 import com.swp.autocarwash.customer.repository.VehicleRepository;
 import com.swp.autocarwash.payment.entity.BookingInvoice;
+import com.swp.autocarwash.payment.entity.enums.BookingInvoiceStatus;
 import com.swp.autocarwash.payment.repository.BookingInvoiceRepository;
 import com.swp.autocarwash.queue.entity.QueueTicket;
 import com.swp.autocarwash.queue.repository.custom.QueueTicketRepository;
@@ -31,6 +32,7 @@ import com.swp.autocarwash.staff.dto.request.CalculateInvoiceRequest;
 import com.swp.autocarwash.staff.dto.request.CreateWalkInRequest;
 import com.swp.autocarwash.staff.dto.response.*;
 import com.swp.autocarwash.staff.mapper.WalkInMapper;
+import com.swp.autocarwash.staff.service.WalkInCheckInService;
 import com.swp.autocarwash.station.entity.Station;
 import com.swp.autocarwash.station.repository.StationRepository;
 import com.swp.autocarwash.subscription.entity.FamilySubscription;
@@ -55,7 +57,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class WalkInCheckInService {
+public class WalkInCheckInServiceImpl implements WalkInCheckInService {
 
     private final CustomerRepository customerRepository;
     private final VehicleRepository vehicleRepository;
@@ -76,7 +78,8 @@ public class WalkInCheckInService {
     private final PackageAddonMappingRepository packageAddonMapping;
 
 
-    //Kiểm tra sdt để phân loại đối tượng khách cũ/mới(SELECT)
+    //Kiểm tra sdt để phân loại đối tượng khách
+    @Override
     public CheckPhoneResponse checkPhone(String phone){
         Optional<Customer> customerOpt = customerRepository.findByUserPhone(phone);
         if(customerOpt.isEmpty()){
@@ -88,7 +91,7 @@ public class WalkInCheckInService {
         //khách hàng đã có account trong hệ thống
         Customer customer = customerOpt.get();
         List<Vehicle> savedVehicles = vehicleRepository.findByCustomerIdAndIsDeletedFalse(customer.getId());
-        // 1. Chuyển thực thể sang DTO thô bằng Mapper trước
+        // Chuyển thực thể sang DTO -> đưa ra list xe của account này
         List<CheckPhoneResponse.VehicleDTO> vehiclesDTO = walkinMapper.toVehicleDTOList(savedVehicles);
 
         LocalDate today = LocalDate.now();
@@ -131,6 +134,7 @@ public class WalkInCheckInService {
                         .build());
             }
             // Gán mảng các gói tìm được (có thể rỗng, có thể có 1 gói, hoặc cả 2 gói) vào xe
+            // sở hữu gói -> hiển thị giá về 0 đồng
             vehicleDTO.setSubscriptionInfo(activeSubs);
         }
 
@@ -142,11 +146,12 @@ public class WalkInCheckInService {
 
     //API tính hoá đơn tạm tính + auto load slot trống(READ)
 
+    @Override
     public BookingSummaryResponse calculateInvoice(CalculateInvoiceRequest request){
 
         // Khởi tạo raw
         //nếu penalty deposit tồn tại thì transferredCredit không tồn tại và ngược lại
-        BigDecimal rawAmount = BigDecimal.ZERO;
+        BigDecimal rawAmount = BigDecimal.ZERO; // giá gói chính + addon
         BigDecimal packageDiscount = BigDecimal.ZERO;
         BigDecimal penaltyDeposit = BigDecimal.ZERO;
         BigDecimal transferredCredit = BigDecimal.ZERO;
@@ -160,7 +165,7 @@ public class WalkInCheckInService {
             rawAmount = rawAmount.add(servicePackage.getBasePrice());
         }
 
-        // 2. Lặp qua danh sách Addon dịch vụ đi kèm để cộng dồn vào tổng tiền gốc
+        //Lặp qua danh sách Addon dịch vụ đi kèm để cộng dồn vào tổng tiền gốc
         if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
             for (Integer addonId : request.getAddonIds()) {
                 AddonService addon = addonServiceRepository.findById(addonId)
@@ -174,14 +179,14 @@ public class WalkInCheckInService {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
         if(request.getCustomerId() != null && vehicleOpt.isPresent() && request.getServicePackageId() != null){
 
-            // 1. Check xem gói mua còn hạn ACTIVE hay không
+            //Check xem gói mua còn hạn ACTIVE hay không
             boolean hasPackage = unlimitSubscriptionRepository.hasActiveSubscription(
                     request.getCustomerId(), vehicleOpt.get().getId(), request.getServicePackageId(), SubscriptionStatus.ACTIVE, LocalDate.now()
             );
 
-            //Check xem trong ngày hôm nay xe này đã cắn lượt sử dụng gói lần nào chưa
+            //Check xem trong ngày hôm nay xe này đã có lượt sử dụng gói lần nào chưa
             boolean isAllowedToday = isSubscriptionUsageAllowedToday(
-                    (long) vehicleOpt.get().getId(), // Ép kiểu Integer ID sang Long tương ứng kiểu DB của xe nếu cần
+                    (long) vehicleOpt.get().getId(),
                     request.getServicePackageId(),
                     LocalDate.now()
             );
@@ -201,9 +206,10 @@ public class WalkInCheckInService {
             Vehicle vehicle = vehicleOpt.get();
             if(request.getCustomerId() == null && vehicle.getViolationCount() != null && vehicle.getViolationCount() > 3
                     && vehicle.getRestrictedUntil()!=null&& vehicle.getRestrictedUntil().isAfter(Instant.now())){
+                //systemSettingServiceImpl.getMaxViolationLimit("MAX_VIOLATION_LIMIT")
                 penaltyDeposit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
                 //kích hoạt mức nộp tiền cọc 20k trước vào sử dụng dịch vụ
-                isActionBlock = true; //báo hiệu khoá nút CONFIRM CHECK IN, đòi đóng cọc trước
+                isActionBlock = true; //khoá nút CONFIRM CHECK IN, đòi đóng cọc trước
                 systemNotice = "The system require staff get deposit before confirm check-in";
 
             }
@@ -211,7 +217,6 @@ public class WalkInCheckInService {
 
         //Chế độ xem số tiền "Cứu cọc" từ đơn trễ hẹn trong ngày
         //với cái xe này thì trong ngày nay có booking nào để chuyển cọc
-
         Optional<Booking> oldBookingOpt = bookingRepository.findBookingToRescueDeposit(request.getLicensePlate(),LocalDate.now(),
                 BookingStatus.NO_SHOW.toString());
         if(oldBookingOpt.isPresent()){
@@ -226,12 +231,12 @@ public class WalkInCheckInService {
             remainingBalance = BigDecimal.ZERO;
         }
 
-        // ==================== TỰ ĐỘNG GOM CỤM SLOT THÔNG MINH ĐỂ HIỂN THỊ UI ====================
+        //Hiển thị slot cho đặt, gom slot trả về slot tương ứng tổng thời gian cần thiết
         if (request.getStationId() == null) {
             throw new BusinessException(ErrorCode.STATION_NOT_FOUND);
         }
 
-        // 1. Tính tổng số slot bắt buộc cần có (Gói chính + Các Addon)
+        //Tính tổng số slot bắt buộc cần có (Gói chính + Các Addon)
         ServicePackage servicePackage = servicePackageRepository.findById(request.getServicePackageId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SERVICE_PACKAGE_NOT_EXIST));
         int totalRequiredSlots = servicePackage.getRequiredSlot();
@@ -246,7 +251,7 @@ public class WalkInCheckInService {
             }
         }
 
-        // 2. Lấy toàn bộ các slot còn trống trong ngày hôm nay từ thời điểm hiện tại trở đi
+        //Lấy toàn bộ các slot còn trống trong ngày hôm nay từ thời điểm hiện tại trở đi
         LocalTime currentSystemTime = LocalTime.now();
         List<BookingSlot> dbSlots = bookingSlotRepository.findAvailableSlotsByStationAndDate(request.getStationId(), LocalDate.now(), currentSystemTime);
 
@@ -257,22 +262,23 @@ public class WalkInCheckInService {
 
         List<BookingSummaryResponse.AvailableSlotDTO> validStartSlots = new ArrayList<>();
 
-        // 3. Thuật toán quét chuỗi liên tiếp (Sliding Window)
+        //Thuật toán quét chuỗi liên tiếp
         for (int i = 0; i <= sortedDbSlots.size() - totalRequiredSlots; i++) {
             boolean isBlockValid = true;
+
             List<Long> clusterSlotIds = new ArrayList<>();
 
             // Kiểm tra xem từ vị trí i có đủ 'totalRequiredSlots' liên tiếp không
             for (int j = 0; j < totalRequiredSlots; j++) {
                 BookingSlot current = sortedDbSlots.get(i + j);
 
-                // Điều kiện 1: Slot đó không được FULL công suất
+                //Slot đó không được FULL công suất
                 if ("FULL".equals(current.getStatus()) || current.getBookedCount() >= current.getMaxCapacity()) {
                     isBlockValid = false;
                     break;
                 }
 
-                // Điều kiện 2: Tính liên tiếp về mặt thời gian (chỉ check từ phần tử thứ 2 của cụm)
+                //Tính liên tiếp về mặt thời gian (chỉ check từ phần tử thứ 2 của cụm)
                 if (j > 0) {
                     BookingSlot previous = sortedDbSlots.get(i + j - 1);
                     if (!previous.getEndTime().equals(current.getStartTime())) {
@@ -291,7 +297,7 @@ public class WalkInCheckInService {
                         .slotId (startSlot.getId()) // Gửi ID của slot bắt đầu
                         .startTime(startSlot.getStartTime())
                         .endTime(sortedDbSlots.get(i + totalRequiredSlots - 1).getEndTime()) // End time là của slot cuối cụm
-                        .associatedSlotIds(clusterSlotIds) //Trả về cả mảng ID để FE bấm 1 phát gửi lên hết cả cụm này luôn!
+                        .associatedSlotIds(clusterSlotIds) //Trả về cả mảng ID để FE bấm 1 phát gửi lên hết cả cụm này
                         .build();
 
                 validStartSlots.add(dto);
@@ -310,9 +316,9 @@ public class WalkInCheckInService {
                 .build();
     }
 
-    //BẤM NÚT XÁC NHẬN TẠO ĐƠN THẬT(GHI DỮ LIỆU ĐỒNG THỜI TRANSACTION)
+    //BẤM NÚT XÁC NHẬN TẠO ĐƠN THẬT
     //tránh mất tiền cọc: kiểu chọn nhưng chưa xác nhận thì k có chuyển cọc đi lung tung -> mất cọc
-
+    @Override
     public CreateWalkInResponse createWalkInOrder(CreateWalkInRequest request) {
 
         //Cứu cọc, tìm đơn trễ hẹn trong ngày
@@ -325,7 +331,7 @@ public class WalkInCheckInService {
             creditFromOldBooking = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
 
             // Đổi trạng thái sang CANCELED để bảo vệ tiền cọc không bị con bot Cron-job quét nuốt cọc cuối ngày
-            oldBooking.setStatus("CANCELED");
+            oldBooking.setStatus(BookingStatus.CANCELED.name()  );
             bookingRepository.save(oldBooking);
         }
 
@@ -342,7 +348,7 @@ public class WalkInCheckInService {
         //Đăng ký hoặc cập nhật thông tin phương tiện (Lấy thực thể xe lên trước để validate)
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateAndIsDeletedFalse(request.getLicensePlate());
 
-        // LOGIC: VALIDATE XE CÓ THUỘC CUSTOMER ĐÓ HAY KHÔNG
+        // VALIDATE XE CÓ THUỘC CUSTOMER ĐÓ HAY KHÔNG
         // Nếu là khách vãng lai hoàn toàn thì ko check
         if (request.getCustomerId() != null && vehicleOpt.isPresent()) {
             Vehicle vehicle = vehicleOpt.get();
@@ -351,7 +357,7 @@ public class WalkInCheckInService {
             }
         }
 
-        //LOGIC: MỘT XE KHÔNG THỂ ĐẶT TRÙNG KHUNG GIỜ NHIỀU ĐƠN TRONG NGÀY
+        //MỘT XE KHÔNG THỂ ĐẶT TRÙNG KHUNG GIỜ NHIỀU ĐƠN TRONG NGÀY
         if (request.getChosenSlotIds() != null && !request.getChosenSlotIds().isEmpty() && vehicleOpt.isPresent()) {
             boolean isDuplicateBooking = bookingRepository.existsByVehicleIdAndDateAndSlotIds(
                     vehicleOpt.get().getId(),
@@ -369,7 +375,7 @@ public class WalkInCheckInService {
             throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
         }
 
-        // LOGIC MỚI: TÍNH TỔNG SỐ SLOT YÊU CẦU BAO GỒM CẢ ADD-ON
+        // LOGIC: TÍNH TỔNG SỐ SLOT YÊU CẦU BAO GỒM CẢ ADD-ON
         int totalRequiredSlotCount = 0;
         if (servicePackage != null) {
             totalRequiredSlotCount += servicePackage.getRequiredSlot();
@@ -399,7 +405,6 @@ public class WalkInCheckInService {
         for (int i = 0; i < sortedSlots.size() - 1; i++) {
             LocalTime currentEnd = sortedSlots.get(i).getEndTime();
             LocalTime nextStart = sortedSlots.get(i + 1).getStartTime();
-            // Nếu rời rạc lập tức chặn lại chống hack data gửi từ Postman
             if (!currentEnd.equals(nextStart)) {
                 throw new BusinessException(ErrorCode.SLOTS_MUST_BE_CONSECUTIVE);
             }
@@ -451,10 +456,10 @@ public class WalkInCheckInService {
             if (vehicle.getViolationCount() != null && vehicle.getViolationCount() > 3
                     && vehicle.getRestrictedUntil() != null && vehicle.getRestrictedUntil().isAfter(Instant.now())) {
 
-                // Lấy số tiền phạt cấu hình từ hệ thống (Ví dụ: 20.000đ)
+                // Lấy số tiền phạt cấu hình từ hệ thống
                 penaltyDeposit = systemSettingServiceImpl.getDepositAmount(SystemSettingServiceImpl.DEFAULT_DEPOSIT_AMOUNT);
 
-                //PHÂN NHÁNH 1: FE gửi lên báo chưa thu tiền (Lần bấm đầu tiên)
+                //FE gửi lên báo chưa thu tiền
                 if (request.getPenaltyDepositCollected() == null || !request.getPenaltyDepositCollected()) {
                     // Chặn đứng diện tạo đơn và bắn lỗi để FE mở Popup thu tiền tại quầy
                     throw new BusinessException(ErrorCode.PENALTY_DEPOSIT_NOT_CONFIRMED);
@@ -476,28 +481,16 @@ public class WalkInCheckInService {
                 return vehicleRepository.save(newVehicle);
             });
 
-//            //Tính toán tổng số tiền được giảm giá (discount_amount)
-//            // Tổng giảm giá ở bước Check-in = Tiền giảm trừ gói Unlimited + Tiền cọc phạt thu trước + Tiền cứu cọc trễ hẹn
-//            // (Bản chất penaltyDeposit và creditFromOld Booking thu trước đều làm giảm số tiền phải thu lúc Checkout)
-//            BigDecimal totalDiscountAmount = packageDiscount.add(penaltyDeposit).add(creditFromOldBooking);
-//
-//            //Áp dụng công thức tính số tiền khách thực tế phải thu nốt khi lấy xe (final_amount)
-//            BigDecimal remainingBalanceAtCheckout = rawAmount.subtract(totalDiscountAmount);
-//
-//            if (remainingBalanceAtCheckout.compareTo(BigDecimal.ZERO) < 0) {
-//                remainingBalanceAtCheckout = BigDecimal.ZERO;
-//            }
-
-        // 1. Giảm giá THẬT sự từ hệ thống (Chỉ gồm giảm giá gói cước Membership/Unlimited)
+        //Giảm giá THẬT sự từ hệ thống (Chỉ gồm giảm giá gói cước Membership/Unlimited)
         BigDecimal realPackageDiscount = packageDiscount;
 
-        // 2. Tổng giá trị đơn hàng sau khi ĐÃ TRỪ GIẢM GIÁ (Chuẩn ngữ nghĩa totalAmount, KHÔNG TRỪ CỌC)
+        //Tổng giá trị đơn hàng sau khi ĐÃ TRỪ GIẢM GIÁ, không trừ cọc
         BigDecimal totalAmountAfterDiscount = rawAmount.subtract(realPackageDiscount);
         if (totalAmountAfterDiscount.compareTo(BigDecimal.ZERO) < 0) {
             totalAmountAfterDiscount = BigDecimal.ZERO;
         }
 
-        // 3. Số tiền thực tế còn lại cần thu lúc Checkout (Dùng để trả về cho FE hiển thị tạm tính nếu cần)
+        //Số tiền thực tế còn lại cần thu lúc Checkout
         BigDecimal remainingBalanceAtCheckout = totalAmountAfterDiscount
                 .subtract(penaltyDeposit)
                 .subtract(creditFromOldBooking);
@@ -515,13 +508,12 @@ public class WalkInCheckInService {
                     .bookingType(BookingType.WALK_IN.name())
                     .createdAt(LocalDateTime.now())
                     .checkInAt(LocalDateTime.now())
-                    //.isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0 || penaltyDeposit.compareTo(BigDecimal.ZERO) > 0)
                     .isDepositPaid(creditFromOldBooking.compareTo(BigDecimal.ZERO) > 0
                 || (request.getPenaltyDepositCollected() != null && request.getPenaltyDepositCollected()))
                     .build();
             Booking savedBooking = bookingRepository.save(newBooking);
 
-            //LOGIC: KHẤU TRỪ CÔNG SUẤT SLOT VÀ LƯU BẢNG BOOKING_SLOT_ALLOCATION
+            //TRỪ CÔNG SUẤT SLOT VÀ LƯU BẢNG BOOKING_SLOT_ALLOCATION
             for (BookingSlot slot : selectedSlots) {
                 if ("FULL".equals(slot.getStatus()) || slot.getBookedCount() >= slot.getMaxCapacity()) {
                     throw new BusinessException(ErrorCode.SERVICE_SLOT_NOT_AVAILABLE);
@@ -553,7 +545,7 @@ public class WalkInCheckInService {
                 }
             }
 
-            //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung (Addon) để lưu báo cáo
+            //Tách biệt doanh thu dịch vụ chính và dịch vụ bổ sung addon để lưu thống kê
             BigDecimal serviceAmount = BigDecimal.ZERO;
             BigDecimal addonAmount = BigDecimal.ZERO;
             //ServicePackage servicePackage = null;
@@ -562,7 +554,7 @@ public class WalkInCheckInService {
                 serviceAmount = servicePackage.getBasePrice();
             }
 
-            //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG (BookingInvoice)
+            //TÍNH TOÁN CHI TIẾT DÒNG TIỀN VÀ PHÁT HÀNH HÓA ĐƠN TỔNG BookingInvoice
             if (request.getAddonIds() != null && !request.getAddonIds().isEmpty()) {
                 for (Integer addonId : request.getAddonIds()) {
                     AddonService addon = addonServiceRepository.findById(addonId).get();
@@ -571,19 +563,19 @@ public class WalkInCheckInService {
             }
 
             // Ghi lại đúng số tiền lên chính Booking (không chỉ BookingInvoice) — nếu không,
-            // các field này giữ nguyên default 0 (@Builder.Default), khiến GET booking detail /
+            // các field này giữ nguyên default 0  khiến GET booking detail /
             // Payment page luôn hiện Total Due = 0 cho mọi đơn walk-in.
             savedBooking.setTotalServiceAmount(serviceAmount);
             savedBooking.setTotalAddonAmount(addonAmount);
             savedBooking.setVoucherDiscountAmount(realPackageDiscount);
-        savedBooking.setTotalAmount(totalAmountAfterDiscount);
+            savedBooking.setTotalAmount(totalAmountAfterDiscount);
             bookingRepository.save(savedBooking);
 
             //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ BOOKING_INVOICE
-            //LOGIC: LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
+            //LƯU DATA XUỐNG BẢNG BOOKING_INVOICE KHI HOÀN TẤT CHECK-IN
             BookingInvoice invoice = BookingInvoice.builder()
-                    .booking(savedBooking) // Khóa ngoại duy nhất trỏ tới Booking (booking_id)
-                    .customer(savedBooking.getCustomer()) // Khóa ngoại khách hàng (customer_id), tự động lấy từ booking (có thể null nếu khách vãng lai mới)
+                    .booking(savedBooking)
+                    .customer(savedBooking.getCustomer()) //có thể null nếu khách vãng lai mới
                     //Các trường dòng tiền tổng
                     .rawAmount(rawAmount) // Tổng tiền gốc ban đầu (serviceAmount + addonAmount)
                     .discountAmount(realPackageDiscount) // Chỉ lưu giảm giá gói thật
@@ -595,10 +587,10 @@ public class WalkInCheckInService {
                     .voucherDiscount(BigDecimal.ZERO)
                     .pointDiscount(BigDecimal.ZERO)
                     //Trạng thái và Thời gian
-                    .status("PENDING") // Trạng thái hóa đơn ban đầu: Chờ rửa xe xong khách ra trả tiền mới đổi sang PAID
+                    .status(BookingInvoiceStatus.PENDING.name()) // Trạng thái hóa đơn ban đầu: Chờ rửa xe xong khách ra trả tiền mới đổi sang PAID
                     .paidAt(null) // Chưa thanh toán thành công lúc check-in nên để null
                     .build();
-            // Thực hiện lưu chính thức xuống bảng booking_invoice dưới DB
+
             bookingInvoiceRepository.save(invoice);
 
             //CẤP PHÁT SỐ VÉ THỨ TỰ HÀNG ĐỢI VẬT LÝ (QueueTicket)
@@ -612,22 +604,19 @@ public class WalkInCheckInService {
 
             //KHỞI TẠO ĐẦY ĐỦ THỰC THỂ QUEUE_TICKET THEO DB
             QueueTicket ticket = QueueTicket.builder()
-                    .station(currentStation) //Vé thuộc chi nhánh nào (station_id - NOT NULL)
-                    .booking(savedBooking)   // Khóa ngoại trỏ sang lịch hẹn vừa tạo (booking_id - NULLABLE)
-                    .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị (ticket_number - NOT NULL)
+                    .station(currentStation) //Vé thuộc chi nhánh nào
+                    .booking(savedBooking)   //trỏ sang lịch hẹn vừa tạo booking_id
+                    .ticketNumber(nextTicketNumber) // Số thứ tự hiển thị ticket_number
                     //Trạng thái và Phân loại
-                    .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé (status - NOT NULL)
-                    .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước (is_booking - NOT NULL)
+                    .status(BookingStatus.CHECK_IN.name())    // Trạng thái vé status
+                    .isBooking(false)        // Đánh dấu KHÔNG PHẢI đơn đặt trước
                     .priorityScore(queueTicketService.computePriorityScore(savedBooking.getCustomer(), false)) // Tier weight (mặc định MEMBER nếu khách vãng lai chưa có tài khoản)
-                    //Trường 'issued_at' đã được cấu hình @CreationTimestamp trong Entity
-                    // nên khi lưu xuống DB, Hibernate sẽ tự động điền thời gian hiện tại, không cần set tay ở đây.
                     .build();
 
-            //Lưu chính thức xuống bảng queue_ticket dưới DB
+
             QueueTicket savedTicket = queueTicketRepository.save(ticket);
 
 
-            //TRẢ VỀ ĐÚNG KHUÔN MẪU CreateWalkInResponse PHỤC VỤ FRONT-END IN VÉ
             return CreateWalkInResponse.builder()
                     .bookingId(savedBooking.getId())
                     .queueTicketId(ticket.getId())
@@ -639,12 +628,10 @@ public class WalkInCheckInService {
                     .build();
         }
 
-    // Lấy toàn bộ danh sách gói dịch vụ và addon phục vụ việc dựng Form chọn tại quầy (Dùng vòng lặp truyền thống)
+    // Lấy toàn bộ danh sách gói dịch vụ và addon phục vụ việc dựng Form chọn tại quầy
+    @Override
     public WalkInFormDataResponse getWalkInFormData() {
 
-        // =========================================================================
-        // 1. CHUYỂN ĐỔI DANH SÁCH GÓI DỊCH VỤ CHÍNH (SERVICE PACKAGE)
-        // =========================================================================
         // Lấy tất cả gói dịch vụ chính từ Database lên
         List<ServicePackage> packages = servicePackageRepository.findByIsDeletedFalse();
 
@@ -653,7 +640,6 @@ public class WalkInCheckInService {
 
         // Duyệt qua từng thực thể gói dịch vụ bằng vòng lặp for-each
         for (ServicePackage p : packages) {
-            // Bốc tách dữ liệu từ thực thể p để đóng gói sang đối tượng DTO gọn nhẹ
             WalkInFormDataResponse.ServicePackageDTO dto = WalkInFormDataResponse.ServicePackageDTO.builder()
                     .id(p.getId())
                     .name(p.getName())
@@ -662,13 +648,9 @@ public class WalkInCheckInService {
                     .description(p.getDescription())
                     .build();
 
-            // Thêm DTO vừa tạo vào danh sách hứng
             packageDTOs.add(dto);
         }
 
-        // =========================================================================
-        // 2. CHUYỂN ĐỔI DANH SÁCH DỊCH VỤ BỔ SUNG (ADDON SERVICE)
-        // =========================================================================
         // Lấy tất cả dịch vụ bổ sung từ Database lên
         List<AddonService> addons = addonServiceRepository.findByIsDeletedFalse();
         List<PackageAddonMapping> allMapping = packageAddonMapping.findAllMappings();
@@ -691,9 +673,7 @@ public class WalkInCheckInService {
                     .build();
             addonDTOs.add(dto);
         }
-        // =========================================================================
-        // 3. ĐÓNG GÓI VÀ TRẢ KẾT QUẢ VỀ CHO FRONT-END
-        // =========================================================================
+
         return WalkInFormDataResponse.builder()
                 .servicePackages(packageDTOs)
                 .addonServices(addonDTOs)
@@ -704,6 +684,7 @@ public class WalkInCheckInService {
      * API XÁC NHẬN THU TIỀN CỌC PHẠT 20K TẠI QUẦY (TRƯỚC KHI TẠO ĐƠN)
      * Luồng đi: Staff thấy thông báo phạt -> Thu 20k tiền mặt của khách -> Bấm nút [XÁC NHẬN ĐÃ THU]
      */
+    @Override
     @Transactional
     public CheckInResultResponse collectWalkInPenaltyDeposit(String licensePlate) {
 
@@ -725,7 +706,7 @@ public class WalkInCheckInService {
                 .build();
     }
 
-    private boolean isSubscriptionUsageAllowedToday(Long vehicleId, Integer servicePackageId, LocalDate date) {
+    private boolean  isSubscriptionUsageAllowedToday(Long vehicleId, Integer servicePackageId, LocalDate date) {
         // Check xem trong ngày hôm đó xe này đã có booking nào sử dụng gói này mà KHÔNG PHẢI bị hủy (CANCELED) hay chưa
         boolean hasUsedToday = bookingRepository.existsByVehicleIdAndServicePackageIdAndAppointmentDateAndStatusNot(
                 vehicleId,
